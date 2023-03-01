@@ -1,0 +1,28 @@
+POST http://192.168.1.42/api/v1/addOrder HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample",
+    "time": "Wed, 21 Oct 2015 18:27:50 GMT",
+    "order":{
+        "userId": "Minh_Nhat",
+        "address": "387 Hai Ba Trung, p8, quan 3",
+        "items":[
+            {
+                "id":"0100876534276",
+                "qty": 2,
+                "loca":[{"COR":"G-9-9","DIR":1},{"COR":"G-4-20","DIR":-1},{"COR":"G-20-35","DIR":1}]
+            },
+            {
+                "id":"0100876534276",
+                "qty": 2,
+                "loca":[{"COR":"G-24-6","DIR":1},{"COR":"G-22-26","DIR":-1},{"COR":"G-12-42","DIR":1}]
+            },
+            {
+                "id":"0100876534276",
+                "qty": 2,
+                "loca":[{"COR":"G-20-5","DIR":-1},{"COR":"G-8-5","DIR":1},{"COR":"G-9-27","DIR":-1}]
+            }
+        ]
+    }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "mobile-robot-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "bot-server": "node ./bot-server/server.js",
+    "bot-client": "node ./bot-client/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taminhnhat/Mobile-Robot-App.git"
+  },
+  "author": "Ta Minh Nhat",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/taminhnhat/Mobile-Robot-App/issues"
+  },
+  "homepage": "https://github.com/taminhnhat/Mobile-Robot-App#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "http": "0.0.1-security",
+    "mongoose": "^6.9.1",
+    "morgan": "^1.10.0",
+    "socket.io": "^4.6.1"
+  }
+}
