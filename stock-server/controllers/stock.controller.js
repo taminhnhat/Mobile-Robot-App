@@ -1,6 +1,6 @@
 require('dotenv').config({ path: './.env' })
-const StockCollection = require('../models/stock')
-const BackupCollection = require('../models/backup')
+const StockCollection = require('../models/stock.model')
+const BackupCollection = require('../models/backup.model')
 const { set } = require('mongoose')
 
 let tempLightCursor = 0;
