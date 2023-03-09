@@ -10,4 +10,4 @@ socket.on('bot:status', () => {
 socket.on('bot:pathLog', () => {
     Socket.emit('bot:pathLog', { id: 'Y-004', des: 'G-2-34', dir: '90', path: [], pos: 'G-2-12', cor: '2200:12340:89' })
 })
-socket.emit('bot:init', { bot_id: 'Y-004' })
+socket.emit('bot:init', { id: 'Y-004' })

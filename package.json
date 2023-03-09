@@ -5,9 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "bot-server": "node ./bot-server/server.js",
-    "bot-client": "node ./bot-client/server.js"
+    "listen": "node server.js",
+    "server": "node ./bot-server/server.js",
+    "client": "node ./bot-client/server.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "mongoose": "^6.9.1",
     "morgan": "^1.10.0",
     "socket.io": "^4.6.1",
-    "socket.io-client": "^4.6.1"
+    "socket.io-client": "^4.6.1",
+    "telnet-client": "^2.0.8"
   }
 }
