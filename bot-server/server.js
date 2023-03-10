@@ -11,6 +11,12 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log(socket.conn.remoteAddress, socket.conn.id)
     io.emit('start', { message: `New bot ${socket.conn.id} connected` })
+
+    socket.on('order:add', data => {
+        console.log(data)
+
+    })
+
     socket.emit('bot:status', {})
     socket.on("picking:accepted", controller.handlePickingAccepted);
     socket.on("picking:complete", controller.handlePickingComplete);

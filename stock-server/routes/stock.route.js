@@ -4,17 +4,16 @@ const router = express.Router()
 require('dotenv').config({ path: './.env' })
 const stockController = require('../controllers/stock.controller')
 
-router
-    .route('/products')
-    .get(stockController.getStock)
-    .delete(stockController.clearStock)
+router.get('/getStock', stockController.getStock)
+router.post('/createBin', stockController.createBin)
+router.delete('/clearStock', stockController.clearStock)
+router.delete('/clearBin', stockController.clearBin)
 
 router.post('/putToLight', stockController.putToLight)
 
 router.post('/pickToLight', stockController.pickToLight)
 
-router.get('/products/search', stockController.searchProduct)
-
-router.delete('/products/:productId', stockController.deleteProduct)
+router.get('/searchItem', stockController.searchProduct)
+router.get('/searchBin', stockController.searchBin)
 
 module.exports = router

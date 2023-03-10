@@ -23,7 +23,7 @@ else
 
 // authorization
 const auth = require('./middlewares/auth')
-// app.use(auth)
+app.use(auth)
 
 // routing
 const stockRouter = require('./routes/stock.route')

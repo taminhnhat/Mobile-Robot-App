@@ -2,22 +2,16 @@ const mongoose = require('mongoose')
 
 const stockSchema = new mongoose.Schema({
     binId: {
-        type: Number,
+        type: String,
         required: true
     },
-    binWidth: {
+    mapPoint: {
         type: String,
-        required: false
+        required: true
     },
-    coordinate: {
-        loca: {
-            type: String,
-            required: true
-        },
-        map: {
-            type: String,
-            required: true
-        }
+    location: {
+        type: String,
+        required: true
     },
     stocks: {
         type: Array,

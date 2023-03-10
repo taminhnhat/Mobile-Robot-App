@@ -1,4 +1,5 @@
 require('dotenv').config({ path: './.env' })
+const fs = require('fs')
 const StockCollection = require('../models/stock.model')
 const BackupCollection = require('../models/backup.model')
 const { set } = require('mongoose')
@@ -16,7 +17,14 @@ async function getStock(req, res) {
 
     if (binIdFromRequest === false) {
         try {
-            const result = await StockCollection.find()
+            const result = await StockCollection.find().sort({ mapPoint: 1 })
+            const content = JSON.stringify(result)
+            fs.writeFile('stock.json', content, err => {
+                if (err) {
+                    console.error(err);
+                }
+                // file written successfully
+            });
             if (result == undefined)
                 return res.status(500).json({
                     status: 'fail',
@@ -99,6 +107,36 @@ async function searchProduct(req, res) {
     }
 }
 
+async function searchBin(req, res) {
+    // query
+    let queryObj = { binId: req.query.binId }
+    // projection
+    let projectionObj = { _id: 0, binId: 1, mapPoint: 1, location: 1 }
+
+    try {
+        // get all matched bins
+        let allMatchedBin = await StockCollection.find(queryObj, projectionObj)
+        // if stock is empty
+        if (allMatchedBin == null) {
+            return res.status(500).json({
+                status: 'fail',
+                message: 'Stock is empty'
+            })
+        }
+
+        return res.status(200).json({
+            status: 'success',
+            data: allMatchedBin
+        })
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({
+            status: 'fail',
+            error: 'Internal Server Error'
+        })
+    }
+}
+
 async function deleteProduct(req, res) {
     try {
         // get matched bin
@@ -133,6 +171,28 @@ async function deleteProduct(req, res) {
                 status: 'success',
                 data: result
             })
+        })
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({
+            status: 'fail',
+            error: 'Internal Server Error'
+        })
+    }
+}
+
+async function createBin(req, res) {
+    try {
+        const stock = new StockCollection({
+            binId: req.body.binId,
+            mapPoint: req.body.mapPoint || 'unknown',
+            location: req.body.location || 'unknown',
+            stocks: []
+        });
+        const newStock = await stock.save()
+        return res.status(201).json({
+            status: 'success',
+            data: newStock
         })
     } catch (err) {
         console.log(err)
@@ -205,58 +265,17 @@ async function putToLight(req, res) {
     async function createNewBin(req, res) {
         //
         console.log('create new bin')
-        const ledsPerMetterOfLedStrip = Number(process.env.LEDS_PER_METTER)
-        const binWidthInCm = Number(req.body.binWidth.replace('cm', '').replace('Cm', '').replace('CM', ''))
-        //
-        const deltaPoint = Math.floor(binWidthInCm / 100 * ledsPerMetterOfLedStrip) - 1
-        let startPoint
-        let endPoint
-        // if row is full, add new row
-        if (tempLightCursor + deltaPoint >= numOfLedPerStrip) {
-            // if no row to expand
-            if (tempBinIndex_Y + 1 >= numOfStrip)
-                return res.status(400).json({
-                    status: 'fail',
-                    message: 'Not enough space, use exist bin instead'
-                })
-            else {
-                tempBinIndex_Y += 1
-                tempBinIndex_X = 0
-                startPoint = 0
-                endPoint = deltaPoint
-            }
-        }
-        else {
-            startPoint = tempLightCursor
-            endPoint = tempLightCursor + deltaPoint
-        }
 
         try {
             const stock = new StockCollection({
-                binId: tempBinIndex,
-                binWidth: req.body.binWidth,
-                coordinate: {
-                    startPoint: startPoint,
-                    endPoint: endPoint,
-                    X_index: tempBinIndex_X,
-                    Y_index: tempBinIndex_Y
-                },
+                binId: req.body.binId,
                 stocks: [{
                     productId: req.body.productId,
                     orderId: req.body.orderId,
                     productQuantity: req.body.productQuantity
                 }]
             });
-            let backup = await BackupCollection.findOne({})
-            tempLightCursor = endPoint + 1
-            tempBinIndex_X += 1
-            tempBinIndex += 1
-            backup.lightCursor = tempLightCursor
-            backup.binIndex = tempBinIndex
-            backup.binIndex_X = tempBinIndex_X
-            backup.binIndex_Y = tempBinIndex_Y
             const newStock = await stock.save()
-            const out = await backup.save()
             return res.status(201).json({
                 status: 'success',
                 data: newStock
@@ -274,9 +293,9 @@ async function putToLight(req, res) {
         console.log('update product quantity')
         try {
             thisBin.stocks.forEach(async (eachProduct, productIndex) => {
-                if (eachProduct.productId == req.body.productId && eachProduct.orderId == req.body.orderId) {
+                if (eachProduct.id == req.body.productId && eachProduct.orderId == req.body.orderId) {
                     let updateProduct = eachProduct
-                    updateProduct.productQuantity += req.body.productQuantity
+                    updateProduct.qty += req.body.productQuantity
                     thisBin.stocks.push(updateProduct)
                     thisBin.stocks.splice(productIndex, 1)
                     const updatedBin = await thisBin.save()
@@ -299,9 +318,8 @@ async function putToLight(req, res) {
         console.log('push new product')
         try {
             thisBin.stocks.push({
-                productId: req.body.productId,
-                orderId: req.body.orderId,
-                productQuantity: req.body.productQuantity
+                id: req.body.productId,
+                qty: req.body.productQuantity
             })
             const updatedBin = await thisBin.save()
             return res.status(201).json({
@@ -356,20 +374,6 @@ async function clearStock(req, res) {
         stocks.forEach(async stock => {
             await stock.remove()
         })
-        tempLightCursor = 0
-        tempBinIndex = 0
-        tempBinIndex_X = 0
-        tempBinIndex_Y = 0
-        const backup = await BackupCollection.find()
-        backup.forEach(async ele => {
-            await ele.remove()
-        })
-        await BackupCollection({
-            lightCursor: tempLightCursor,
-            binIndex: tempBinIndex,
-            binIndex_X: tempBinIndex_X,
-            binIndex_Y: tempBinIndex_Y
-        }).save()
         res.status(200).json({
             status: 'success',
             message: 'Deleted stocks'
@@ -380,6 +384,30 @@ async function clearStock(req, res) {
             status: 'fail',
             error: 'Internal Server Error'
         })
+    }
+}
+
+async function clearBin(req, res) {
+    const binId = req.query.binId || false
+    if (binId === false) {
+
+        try {
+            const allBin = await StockCollection.find()
+            allBin.forEach(async eachBin => {
+                eachBin.stocks = []
+                await eachBin.remove()
+            })
+            res.status(200).json({
+                status: 'success',
+                message: 'Deleted stocks'
+            })
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
+                status: 'fail',
+                error: 'Internal Server Error'
+            })
+        }
     }
 }
 
@@ -406,4 +434,4 @@ async function reload(req, res) {
     }
 }
 
-module.exports = { getStock, addStock, clearStock, putToLight, pickToLight, searchProduct, deleteProduct };
+module.exports = { getStock, clearStock, createBin, putToLight, pickToLight, searchProduct, searchBin };
