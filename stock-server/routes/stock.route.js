@@ -7,7 +7,7 @@ const stockController = require('../controllers/stock.controller')
 router.get('/getStock', stockController.getStock)
 router.post('/createBin', stockController.createBin)
 router.delete('/clearStock', stockController.clearStock)
-router.delete('/clearBin', stockController.clearBin)
+router.delete('/emptyBin', stockController.emptyBin)
 
 router.post('/putToLight', stockController.putToLight)
 

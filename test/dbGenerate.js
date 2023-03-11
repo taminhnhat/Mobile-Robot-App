@@ -1,16 +1,21 @@
 const axios = require('axios');
+const { generateStock } = require('./stockGenerate');
 
 function createBin(_binId, _location, _mapPoint) {
+    const stock = generateStock()
     axios.post('http://192.168.1.42:80/api/v1/createBin', {
         binId: _binId,
         location: _location,
-        mapPoint: _mapPoint
+        mapPoint: _mapPoint,
+        stock: stock
     }, {
         headers: {
             api_key: 'mgw_cEfRlzOgO2EwRe9ha7Ho'
         }
     })
-        .then(res => console.log(res.data))
+        .then(res => {
+            console.log(res.data)
+        })
         .catch(err => console.log(err.message))
 }
 

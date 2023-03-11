@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+mongoose.set('strictQuery', true)
 
 const stockSchema = new mongoose.Schema({
     binId: {
@@ -13,7 +14,7 @@ const stockSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    stocks: {
+    stock: {
         type: Array,
         required: true,
         default: []

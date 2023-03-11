@@ -29,4 +29,20 @@ const productList = [
     '2800382754089',
     '2900839799823',
     '3000364765378']
-module.exports = productList
+
+function generateProductList(quantum) {
+    let out = []
+    for (let i = 1; i <= quantum; i++) {
+        let newProductId = `${i}`
+        for (let k = newProductId.length; k < 4; k++) {
+            newProductId = '0' + newProductId
+        }
+        for (let j = 1; j <= 9; j++) {
+            newProductId = Math.floor(Math.random() * 10) + newProductId
+        }
+        out.push(newProductId)
+    }
+    return out
+}
+
+module.exports = { productList, generateProductList }
