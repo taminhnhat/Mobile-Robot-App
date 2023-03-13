@@ -1,34 +1,4 @@
-const productList = [
-    '0100876534276',
-    '0200710478546',
-    '0300896356368',
-    '0400775101058',
-    '0500343625172',
-    '0600610513865',
-    '0700110382456',
-    '0800721061103',
-    '0900483065287',
-    '1000869093563',
-    '1100445673400',
-    '1200760987632',
-    '1300076286414',
-    '1400576328893',
-    '1500739800303',
-    '1600404300043',
-    '1700042387222',
-    '1800756434674',
-    '1900483023028',
-    '2000852790291',
-    '2100347569268',
-    '2200362738387',
-    '2300873048080',
-    '2400245879803',
-    '2500450298039',
-    '2600398740939',
-    '2700348634987',
-    '2800382754089',
-    '2900839799823',
-    '3000364765378']
+const fs = require('fs')
 
 function generateProductList(quantum) {
     let out = []
@@ -42,7 +12,10 @@ function generateProductList(quantum) {
         }
         out.push(newProductId)
     }
+    const data = JSON.stringify(out)
+    fs.writeFileSync('products.json', data)
     return out
 }
+generateProductList(900)
 
-module.exports = { productList, generateProductList }
+module.exports = { generateProductList }

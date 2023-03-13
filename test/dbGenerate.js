@@ -1,5 +1,6 @@
-const axios = require('axios');
-const { generateStock } = require('./stockGenerate');
+const axios = require('axios')
+require('dotenv').config()
+const { generateStock } = require('./stockGenerate')
 
 function createBin(_binId, _location, _mapPoint) {
     const stock = generateStock()
@@ -10,7 +11,7 @@ function createBin(_binId, _location, _mapPoint) {
         stock: stock
     }, {
         headers: {
-            api_key: 'mgw_cEfRlzOgO2EwRe9ha7Ho'
+            api_key: process.env.TOKEN_SECRET
         }
     })
         .then(res => {

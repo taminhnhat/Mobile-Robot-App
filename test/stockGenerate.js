@@ -1,6 +1,8 @@
 const axios = require('axios');
+const fs = require('fs')
 const { generateProductList } = require('./productGenerate')
-const productList = generateProductList(900)
+const readFromJson = fs.readFileSync('products.json')
+const productList = JSON.parse(readFromJson)
 console.log(productList)
 
 function generateStock() {

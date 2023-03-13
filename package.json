@@ -26,6 +26,7 @@
     "http": "0.0.1-security",
     "mongoose": "^6.10.2",
     "morgan": "^1.10.0",
+    "node-fetch": "^2.6.9",
     "path": "^0.12.7",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1",

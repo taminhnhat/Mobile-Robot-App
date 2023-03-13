@@ -1,4 +1,8 @@
 
+function handleOrderAdd(data) {
+    //
+}
+
 function handlePickingAccepted(data) {
     console.log(data)
 }
@@ -31,6 +35,7 @@ function handleBotPathLog(data) {
 }
 
 module.exports = {
+    handleOrderAdd,
     handlePickingAccepted,
     handlePickingComplete,
     handlePickingError,
