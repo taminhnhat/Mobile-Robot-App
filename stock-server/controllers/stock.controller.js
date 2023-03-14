@@ -1,5 +1,3 @@
-require('dotenv').config({ path: './.env' })
-const { all } = require('axios')
 const fs = require('fs')
 const StockCollection = require('../models/stock.model')
 
@@ -54,14 +52,15 @@ async function getStock(req, res) {
 
 async function searchProduct(req, res) {
     const productIdFromRequest = req.query.productId
-    const orderIdFromRequest = req.query.orderId
+    const productBarcodeFromRequest = req.query.productBarcode
+    const mapPointFromRequest = req.query.mapPoint
     const binIdFromRequest = req.query.binId
-    const lightOnFlag = req.query.lightOn || 'false'
-    const locationReturnFlag = req.query.locationReturn || 'false'
 
     // query
     let queryObj = { stock: { $elemMatch: {} } }
     if (productIdFromRequest != undefined) queryObj.stock.$elemMatch.id = productIdFromRequest
+    if (productBarcodeFromRequest != undefined) queryObj.stock.$elemMatch.barcode = productBarcodeFromRequest
+    if (mapPointFromRequest != undefined) queryObj.mapPoint = mapPointFromRequest
     if (binIdFromRequest != undefined) queryObj.binId = binIdFromRequest
     // projection
     let projectionObj = { _id: 0, binId: 1, stock: 1, mapPoint: 1, location: 1 }
@@ -78,11 +77,12 @@ async function searchProduct(req, res) {
         }
         else {
             // filering result
-            allMatchedBin.forEach(eachBin => {
-                eachBin.stock = eachBin.stock.filter(eachProduct => {
-                    return eachProduct.id == productIdFromRequest
-                })
-            });
+            if (productIdFromRequest != undefined)
+                allMatchedBin.forEach(eachBin => {
+                    eachBin.stock = eachBin.stock.filter(eachProduct => {
+                        return eachProduct.id == productIdFromRequest
+                    })
+                });
 
             return res.status(200).json({
                 status: 'success',

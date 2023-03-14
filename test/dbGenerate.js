@@ -1,10 +1,10 @@
 const axios = require('axios')
-require('dotenv').config()
+require('dotenv').config({ path: './stock-server/.env' })
 const { generateStock } = require('./stockGenerate')
 
 function createBin(_binId, _location, _mapPoint) {
     const stock = generateStock()
-    axios.post('http://192.168.1.42:80/api/v1/createBin', {
+    axios.post(`http://192.168.1.42:${process.env.HTTP_PORT}/api/v1/createBin`, {
         binId: _binId,
         location: _location,
         mapPoint: _mapPoint,

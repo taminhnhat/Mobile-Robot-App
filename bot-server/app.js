@@ -21,12 +21,12 @@ else if (process.env.NODE_ENV == 'development')
 else
     app.use(morgan('common'))
 
-// // authorization
-// const auth = require('./middlewares/auth')
-// app.use(auth)
+// authorization
+const auth = require('./middlewares/auth')
+app.use(auth)
 
 // routing
-const orderRouter = require('./routes/order.routes')
+const orderRouter = require('./routes/order.route')
 app.use('/api/v1', orderRouter)
 
 // create server

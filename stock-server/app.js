@@ -30,7 +30,7 @@ const stockRouter = require('./routes/stock.route')
 app.use('/api/v1', stockRouter)
 
 // create server
-const httpServer = http.createServer(app)
+const server = http.createServer(app)
 
 // export
-module.exports = { httpServer }
+module.exports = server
