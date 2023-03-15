@@ -2,6 +2,7 @@ const server = require('./app')
 const fetch = require('node-fetch')
 const io = require('socket.io')(server)
 const controller = require('./controller')
+const event = require('./middlewares/event')
 require('dotenv').config({ path: './bot-server/.env' })
 const port = Number(process.env.HTTP_PORT) || 3002
 
@@ -20,42 +21,8 @@ io.on('connection', (socket) => {
     console.log(socket.conn.remoteAddress, socket.conn.id)
     io.emit('start', { message: `New bot ${socket.conn.id} connected` })
 
-    async function handleOrderAdd(dataFromSocket) {
-        socket.emit('order:add', {
-            message: 'accepted'
-        })
-        console.log('dataFromSocket:', dataFromSocket)
-        dataFromSocket.items.forEach(async (eachItem, itemIndex) => {
-            try {
-                const searchRespond = await fetch(`http://192.168.1.42:3001/api/v1/searchItem?productId=${eachItem.id}`, {
-                    method: 'GET',
-                    headers: {
-                        api_key: process.env.TOKEN_SECRET
-                    }
-                })
-                const respondBody = await searchRespond.json()
-                console.log(`${searchRespond.status} ${searchRespond.statusText}`, respondBody)
-                let out = []
-                respondBody.data.forEach(eachBin => {
-                    // if (eachBin.stock[0].qty >= eachItem.qty)
-                    out.push({ binId: eachBin.binId, mapPoint: eachBin.mapPoint, qty: eachBin.stock[0].qty })
-                })
-                eachItem.location = out
-                if (itemIndex == dataFromSocket.items.length - 1) {
-                    console.log('result:', JSON.stringify(dataFromSocket.items))
-                    socket.emit('order:info', {
-                        orderId: dataFromSocket.orderId,
-                        status: 'accepted',
-                        items: dataFromSocket.items
-                    })
-                    //
-                    const routingPlan = []
-                }
-            }
-            catch (err) {
-                console.log(err.message)
-            }
-        })
+    async function handleOrderAdd(data) {
+        console.log('dataFromSocket:', data)
     }
 
     function generateRoutingPlan(items) {
@@ -79,21 +46,7 @@ io.on('connection', (socket) => {
         //
     }
 
-    socket.on('order:add', handleOrderAdd)
-
-    socket.emit('bot:status', {})
-    socket.on("picking:accepted", controller.handlePickingAccepted)
-    socket.on("picking:complete", controller.handlePickingComplete)
-    socket.on("picking:error", controller.handlePickingError)
-
-    socket.on("putting:accepted", controller.handlePuttingAccepted)
-    socket.on("putting:complete", controller.handlePuttingComplete)
-    socket.on("putting:error", controller.handlePuttingError)
-
-    socket.on("bot:init", controller.handleBotInit)
-    socket.on("bot:status", controller.handleBotStatus)
-    socket.on("bot:error", controller.handleBotError)
-    socket.on('bot:pathLog', controller.handleBotPathLog)
+    event.on('order:add', handleOrderAdd)
 });
 
 server.listen(port, () => {
