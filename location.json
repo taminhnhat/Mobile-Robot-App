@@ -1,0 +1,140 @@
+[
+    {
+        "id": "00361",
+        "qty": 1,
+        "location": [
+            {
+                "binId": "M-15-7",
+                "mapPoint": "X25Y12P270",
+                "location": "G-25-10",
+                "stock": [
+                    {
+                        "id": "00361",
+                        "barcode": "6858677838417",
+                        "qty": 99
+                    }
+                ]
+            },
+            {
+                "binId": "M-7-15",
+                "mapPoint": "X7Y28P90",
+                "location": "G-7-30",
+                "stock": [
+                    {
+                        "id": "00361",
+                        "barcode": "6858677838417",
+                        "qty": 59
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "00530",
+        "qty": 1,
+        "location": [
+            {
+                "binId": "M-13-11",
+                "mapPoint": "X26Y4P90",
+                "location": "G-26-6",
+                "stock": [
+                    {
+                        "id": "00530",
+                        "barcode": "5877956090386",
+                        "qty": 4
+                    }
+                ]
+            },
+            {
+                "binId": "M-3-10",
+                "mapPoint": "X12Y12P90",
+                "location": "G-12-14",
+                "stock": [
+                    {
+                        "id": "00530",
+                        "barcode": "5877956090386",
+                        "qty": 78
+                    }
+                ]
+            },
+            {
+                "binId": "M-17-2",
+                "mapPoint": "X20Y20P270",
+                "location": "G-20-18",
+                "stock": [
+                    {
+                        "id": "00530",
+                        "barcode": "5877956090386",
+                        "qty": 99
+                    }
+                ]
+            },
+            {
+                "binId": "M-9-14",
+                "mapPoint": "X8Y36P90",
+                "location": "G-8-38",
+                "stock": [
+                    {
+                        "id": "00530",
+                        "barcode": "5877956090386",
+                        "qty": 98
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "00101",
+        "qty": 2,
+        "location": [
+            {
+                "binId": "M-2-8",
+                "mapPoint": "X11Y8P270",
+                "location": "G-11-6",
+                "stock": [
+                    {
+                        "id": "00101",
+                        "barcode": "8658904763818",
+                        "qty": 31
+                    }
+                ]
+            },
+            {
+                "binId": "M-16-11",
+                "mapPoint": "X26Y16P90",
+                "location": "G-26-18",
+                "stock": [
+                    {
+                        "id": "00101",
+                        "barcode": "8658904763818",
+                        "qty": 9
+                    }
+                ]
+            },
+            {
+                "binId": "M-18-18",
+                "mapPoint": "X19Y24P90",
+                "location": "G-19-26",
+                "stock": [
+                    {
+                        "id": "00101",
+                        "barcode": "8658904763818",
+                        "qty": 4
+                    }
+                ]
+            },
+            {
+                "binId": "M-20-11",
+                "mapPoint": "X26Y32P90",
+                "location": "G-26-34",
+                "stock": [
+                    {
+                        "id": "00101",
+                        "barcode": "8658904763818",
+                        "qty": 74
+                    }
+                ]
+            }
+        ]
+    }
+]

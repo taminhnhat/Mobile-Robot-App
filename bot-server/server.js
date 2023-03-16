@@ -1,7 +1,5 @@
 const server = require('./app')
-const fetch = require('node-fetch')
 const io = require('socket.io')(server)
-const controller = require('./controller')
 const event = require('./middlewares/event')
 require('dotenv').config({ path: './bot-server/.env' })
 const port = Number(process.env.HTTP_PORT) || 3002
@@ -13,42 +11,28 @@ mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true })
         console.log(err)
     })
 
+const robotCtrl = require('./robots.js')
+const core = require('./core')
+
 const db = mongoose.connection
 db.on('error', (error) => console.error(error))
 db.once('open', () => console.log('Connected to Database'))
 
-io.on('connection', (socket) => {
-    console.log(socket.conn.remoteAddress, socket.conn.id)
-    io.emit('start', { message: `New bot ${socket.conn.id} connected` })
+const onConnection = (socket) => {
+    const msg = `New bot ${socket.conn.id}|${socket.conn.remoteAddress} connected`
+    console.log(msg)
+    io.emit('start', { message: msg })
 
-    async function handleOrderAdd(data) {
-        console.log('dataFromSocket:', data)
-    }
+    socket.on('robot:connect', robotCtrl.onConnect)
+    socket.on('robot:info', robotCtrl.onInfo)
+    socket.on('robot:message', robotCtrl.onMessage)
 
-    function generateRoutingPlan(items) {
-        let planA = []
-        items.forEach(eachItem => {
-            planA.push[{
-                id: eachItem.id,
-                qty: eachItem.qty,
-                location: eachItem.location[0].mapPoint
-            }]
-        })
-        console.log(planA)
-        return planA
-    }
+    event.on('robot:plan', robotCtrl.onPlan)
+}
+event.on('core:addOrder', core.onAddOrder)
 
-    /**
-     * 
-     * @param {Array} botStopList List of stop points for robot to colect items
-     */
-    function pathPlanning(routingPlan) {
-        //
-    }
-
-    event.on('order:add', handleOrderAdd)
-});
+io.on('connection', onConnection);
 
 server.listen(port, () => {
-    console.log(`Socket.IO server running at http://localhost:${port}/`);
+    console.log(`Robot server running at http://localhost:${port}/`);
 });

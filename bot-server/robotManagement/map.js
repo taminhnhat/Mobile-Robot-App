@@ -1,4 +1,4 @@
-const MobileRobot = require('./bot')
+const MobileRobot = require('../robots')
 let whMap = []
 let groundLayer = []
 let guidanceLayer = []
