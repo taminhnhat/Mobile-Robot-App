@@ -1,0 +1,13 @@
+pos.x = 5;
+pos.y = 5;
+R01 = Robot("R-01", [100 100 100], pos);
+pos.x = 10;
+pos.y = 10;
+warehouseModel();
+p = R01.show();
+pause(2);
+pos.x = 20;
+pos.y = 10;
+pos.v = 50;
+delete(p);
+p = R01.simulate(pos);

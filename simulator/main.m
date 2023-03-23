@@ -1,5 +1,6 @@
-mclear device;
+clear device;
 global position;
+global R01;
 
 clear server;
 address = "192.168.1.42";
@@ -12,34 +13,15 @@ warehouseModel();
 
 position.x = 13;
 position.y = 1;
+R01 = Robot("R-01", [100 100 100], position);
 global p;
-p = robotShow(position);
+p = R01.show()
 plot(position.x, position.y, 'r*');
 
-% destination = pathParse('RUN:1300:3000:5000/');
-% position = simulate(position, destination);
-% res = sprintf("POS:%.1d:%.1d\n", [round(position.x * 100), round(position.y * 100)]);
-% write(device, res, "string");
-
-classdef SimpleClass
-
-    properties
-        Value {mustBeNumeric}
-    end
-
-    methods
-
-        function R = roundOff(object)
-            R = round([object.Value], 2);
-        end
-
-        function R = DivideBy(object, n)
-            R = [object.Value] / n;
-        end
-
-    end
-
-end
+% des.x = 20;
+% des.y = 10;
+% des.v = 10;
+% position = R01.simulate(des);
 
 function res = pathParse(str)
     rexgexpResult = regexp(str, '\d*', 'Match')
@@ -120,6 +102,7 @@ end
 function callbackFcn(src, evt)
     disp(src);
     global position;
+    global R01;
     message = readline(src);
     mesParse = regexp(message, '\w*', 'match');
 
@@ -129,7 +112,8 @@ function callbackFcn(src, evt)
             des.x = str2num(cell2mat(mesParse(2)));
             des.y = str2num(cell2mat(mesParse(3)));
             des.v = str2num(cell2mat(mesParse(4)));
-            position = simulate(position, des);
+            % position = simulate(position, des);
+            position = R01.simulate(des);
             res = sprintf("POS:%d:%d", [round(position.x), round(position.y)]);
             src.writeline(res);
         case 'STATUS'
