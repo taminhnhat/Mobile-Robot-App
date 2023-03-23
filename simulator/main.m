@@ -1,12 +1,12 @@
-clear device;
+mclear device;
 global position;
 
 clear server;
 address = "192.168.1.42";
 port = 9600;
-server = tcpserver(address,port,"ConnectionChangedFcn",@connectionFcn);
+server = tcpserver(address, port, "ConnectionChangedFcn", @connectionFcn);
 % configureTerminator(server, "CR/LF");
-configureCallback(server,"terminator",@callbackFcn);
+configureCallback(server, "terminator", @callbackFcn);
 
 warehouseModel();
 
@@ -20,6 +20,26 @@ plot(position.x, position.y, 'r*');
 % position = simulate(position, destination);
 % res = sprintf("POS:%.1d:%.1d\n", [round(position.x * 100), round(position.y * 100)]);
 % write(device, res, "string");
+
+classdef SimpleClass
+
+    properties
+        Value {mustBeNumeric}
+    end
+
+    methods
+
+        function R = roundOff(object)
+            R = round([object.Value], 2);
+        end
+
+        function R = DivideBy(object, n)
+            R = [object.Value] / n;
+        end
+
+    end
+
+end
 
 function res = pathParse(str)
     rexgexpResult = regexp(str, '\d*', 'Match')
@@ -37,7 +57,7 @@ end
 function p = robotShow(pos)
     rWidth = 0.5;
     rLength = 0.6;
-    p = rectangle('Position',[pos.x-rWidth/2 pos.y-rLength/2 rWidth rLength],'FaceColor',[.92 .63 .11],'EdgeColor',[0 0 0]);
+    p = rectangle('Position', [pos.x - rWidth / 2 pos.y - rLength / 2 rWidth rLength], 'FaceColor', [.92 .63 .11], 'EdgeColor', [0 0 0]);
     hold on;
 end
 
@@ -67,6 +87,7 @@ function result = simulate(startPoint, endPoint)
         path.x(1) = startPoint.x + dx;
         path.y(1) = startPoint.y + dy;
         pause(t_samp);
+
         for i = 2:n
             path.x(i) = path.x(i - 1) + dx;
             path.y(i) = path.y(i - 1) + dy;
@@ -77,6 +98,7 @@ function result = simulate(startPoint, endPoint)
             hold on;
             pause(t_samp);
         end
+
         result.x = path.x(n);
         result.y = path.y(n);
     else
@@ -85,26 +107,29 @@ function result = simulate(startPoint, endPoint)
 
 end
 
-function connectionFcn(src,~)
+function connectionFcn(src, ~)
+
     if src.Connected
         disp("Client connected");
     else
         disp("Client has disconnected.");
     end
+
 end
 
-function callbackFcn(src,evt)
+function callbackFcn(src, evt)
     disp(src);
     global position;
     message = readline(src);
-    mesParse = regexp(message, '\w*','match');
+    mesParse = regexp(message, '\w*', 'match');
+
     switch mesParse(1)
         case 'RUN'
-            fprintf("X%sY%sV%s\n",[mesParse(2),mesParse(3),mesParse(4)]);
+            fprintf("X%sY%sV%s\n", [mesParse(2), mesParse(3), mesParse(4)]);
             des.x = str2num(cell2mat(mesParse(2)));
             des.y = str2num(cell2mat(mesParse(3)));
             des.v = str2num(cell2mat(mesParse(4)));
-            position = simulate(position,des);
+            position = simulate(position, des);
             res = sprintf("POS:%d:%d", [round(position.x), round(position.y)]);
             src.writeline(res);
         case 'STATUS'
@@ -112,4 +137,5 @@ function callbackFcn(src,evt)
         otherwise
             disp('not a valid message');
     end
+
 end
