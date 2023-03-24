@@ -33,6 +33,10 @@ classdef Robot
             hold on;
         end
 
+        function p = getPos(rb)
+            p = rb.pos;
+        end
+
         function p = run(rb, pos)
             rb.pos.x = pos.x;
             rb.pos.y = pos.y;
@@ -78,8 +82,9 @@ classdef Robot
                     pause(t_samp);
                 end
 
-                des.x = path.x(n);
-                des.y = path.y(n);
+                rb.pos.x = path.x(n);
+                rb.pos.y = path.y(n);
+                des = pos;
             else
                 disp("error");
             end

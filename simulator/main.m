@@ -1,6 +1,8 @@
 clear device;
 global position;
 global R01;
+global R02;
+global R03;
 
 clear server;
 address = "192.168.1.42";
@@ -13,7 +15,9 @@ warehouseModel();
 
 position.x = 13;
 position.y = 1;
-R01 = Robot("R-01", [100 100 100], position);
+R01 = Robot("R-01", [235 160 28], position);
+R02 = Robot("R-02", [47 120 115], position);
+R03 = Robot("R-03", [11 48 74], position);
 global p;
 p = R01.show()
 plot(position.x, position.y, 'r*');
@@ -43,52 +47,6 @@ function p = robotShow(pos)
     hold on;
 end
 
-function result = simulate(startPoint, endPoint)
-    global p;
-    t_samp = 0.001;
-    velocity = endPoint.v;
-    nx = (endPoint.x - startPoint.x) / (velocity * t_samp);
-    ny = (endPoint.y - startPoint.y) / (velocity * t_samp);
-    n = abs(nx);
-
-    if (abs(ny) > abs(nx))
-        n = abs(ny);
-    end
-
-    n = round(n);
-
-    if (n == 0 || n == 1)
-        delete(p);
-        p = robotShow(endPoint);
-        hold on;
-        result.x = endPoint.x;
-        result.y = endPoint.y;
-    elseif (n > 1)
-        dx = (endPoint.x - startPoint.x) / n;
-        dy = (endPoint.y - startPoint.y) / n;
-        path.x(1) = startPoint.x + dx;
-        path.y(1) = startPoint.y + dy;
-        pause(t_samp);
-
-        for i = 2:n
-            path.x(i) = path.x(i - 1) + dx;
-            path.y(i) = path.y(i - 1) + dy;
-            delete(p);
-            tmp.x = path.x(i);
-            tmp.y = path.y(i);
-            p = robotShow(tmp);
-            hold on;
-            pause(t_samp);
-        end
-
-        result.x = path.x(n);
-        result.y = path.y(n);
-    else
-        disp("error");
-    end
-
-end
-
 function connectionFcn(src, ~)
 
     if src.Connected
@@ -113,7 +71,8 @@ function callbackFcn(src, evt)
             des.y = str2num(cell2mat(mesParse(3)));
             des.v = str2num(cell2mat(mesParse(4)));
             % position = simulate(position, des);
-            position = R01.simulate(des);
+            position = R01.simulate(des)
+            R01.getPos()
             res = sprintf("POS:%d:%d", [round(position.x), round(position.y)]);
             src.writeline(res);
         case 'STATUS'
