@@ -25,6 +25,11 @@ global p;
 p1 = R01.show();
 p2 = R02.show();
 p3 = R03.show();
+des.x = 19;
+des.y = 1;
+des.v = 100;
+R01.simulate(des)
+p1 = R01.show();
 
 function connectionFcn(src, ~)
 
@@ -50,9 +55,9 @@ function callbackFcn(src, evt)
             des.y = str2num(cell2mat(mesParse(3)));
             des.v = str2num(cell2mat(mesParse(4)));
             % position = simulate(position, des);
-            position = R01.simulate(des);
+            delete(p1);
+            R01.simulate(des);
             p1 = R01.show();
-            R01.getPos()
             res = sprintf("POS:%d:%d", [round(position.x), round(position.y)]);
             src.writeline(res);
         case 'STATUS'

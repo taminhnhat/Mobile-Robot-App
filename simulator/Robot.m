@@ -1,4 +1,4 @@
-classdef Robot
+classdef Robot < handle
 
     properties (Constant)
         width = 0.5;
@@ -10,6 +10,7 @@ classdef Robot
         id {} = "";
         faceColor = [0 0 0];
         pos
+        grap
     end
 
     methods (Access = public)
@@ -60,7 +61,7 @@ classdef Robot
 
             if (n == 0 || n == 1)
                 delete(p);
-                p = rb.run(endPoint);
+                des = rb.run(endPoint);
                 hold on;
                 result.x = endPoint.x;
                 result.y = endPoint.y;
@@ -82,6 +83,7 @@ classdef Robot
                     pause(t_samp);
                 end
 
+                delete(p);
                 rb.pos.x = path.x(n);
                 rb.pos.y = path.y(n);
                 des = rb.pos;

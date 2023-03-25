@@ -215,3 +215,315 @@ info: Received: POS:10:15
 
 error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
 warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:17:1
+
+info: Received: POS:17:1
+
+info: Connected to simulator
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":8080,"syscall":"connect"}}
+warn: Connection closed
