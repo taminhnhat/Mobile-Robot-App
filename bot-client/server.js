@@ -1,14 +1,10 @@
 const { io } = require("socket.io-client")
 const socket = io('http://192.168.1.42:3002')
 const driver = require('./telnet')
-
-
-driver.on('error', err => {
-    console.log(err)
-})
+const logger = require('./logger/logger')
 
 socket.on("start", (data) => {
-    console.log(data)
+    logger.info(data)
 });
 socket.on('bot:status', () => {
     socket.emit('bot:status', { status: '' })

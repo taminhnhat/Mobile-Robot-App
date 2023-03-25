@@ -84,7 +84,7 @@ classdef Robot
 
                 rb.pos.x = path.x(n);
                 rb.pos.y = path.y(n);
-                des = pos;
+                des = rb.pos;
             else
                 disp("error");
             end

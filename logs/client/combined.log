@@ -1,0 +1,217 @@
+{"level":"info","message":"New bot KbPSaLMSReVia0WTAAAC|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:14:09.790Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:11.809Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:11.810Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:11.810Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:15.877Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:15.878Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:15.878Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:19.930Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:19.930Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:19.931Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:23.996Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:23.997Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:23.998Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:28.052Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:28.053Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:28.054Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:32.108Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:32.109Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:32.109Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:36.168Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:36.169Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:36.169Z"}
+{"level":"info","message":"New bot i-PB6Z6rxQKbNEtEAAAE|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:14:39.396Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:14:41.386Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:41.387Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:41.387Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:45.437Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:45.439Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:49.480Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:49.481Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:53.544Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:53.545Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:14:57.605Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:14:57.606Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:01.668Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:01.669Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:05.720Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:05.721Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:09.789Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:09.791Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:13.842Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:13.843Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:17.907Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:17.908Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:21.949Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:21.950Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:25.998Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:25.999Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:30.060Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:30.061Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:34.116Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:34.117Z"}
+{"level":"info","message":"New bot sjW3-mXdWKnlY796AAAG|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:15:38.721Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:15:40.737Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:40.738Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:40.739Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:44.796Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:44.798Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:48.840Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:48.841Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:52.883Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:52.884Z"}
+{"level":"info","message":"New bot o8tcKyRf0VfLo8TEAAAI|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:15:56.160Z"}
+{"level":"error","message":{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}},"timestamp":"2023-03-24T14:15:58.180Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:15:58.181Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:15:58.182Z"}
+{"level":"info","message":"New bot WKOiRbJRqGNbYK1eAAAK|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:16:32.461Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:16:34.472Z"}
+{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"level":"error","port":9600,"syscall":"connect","timestamp":"2023-03-24T14:16:34.473Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:16:34.474Z"}
+{"level":"info","message":"New bot oLteotW8Oj_jbukFAAAM|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:17:07.455Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:17:09.482Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:17:09.483Z"}
+{"level":"info","message":"New bot dhniV5DnyeGeKB61AAAO|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:17:30.550Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:17:32.580Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:17:32.581Z"}
+{"level":"info","message":"New bot dNCcC_9O886juE_IAAAQ|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:17:48.745Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:17:50.767Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:17:50.769Z"}
+{"level":"info","message":"New bot rsoletK2q1X_SMP1AAAS|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:18:44.421Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:18:46.421Z"}
+{"level":"info","message":"New bot PgXY5icZ3AwBWmknAAAU|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:19:30.517Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:19:32.522Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:19:36.576Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:19:40.636Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:19:44.693Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:19:48.755Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:19:52.816Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:19:56.874Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:20:00.913Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:20:04.954Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:20:09.008Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:20:13.068Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:20:17.132Z"}
+{"level":"info","message":"New bot FChgceOCxlqKs95dAAAW|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:20:24.000Z"}
+{"level":"info","message":"New bot CMeMyC2z6NHQDQJVAAAY|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:21:19.889Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:21:21.889Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:21:21.890Z"}
+{"level":"info","message":"New bot PjcJUm4LIoAW4kiuAAAa|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:21:58.135Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:22:00.151Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:22:00.153Z"}
+{"level":"info","message":"New bot y8ZF2I0iUsKuAXAZAAAc|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:22:26.573Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:22:28.584Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:22:28.586Z"}
+{"level":"info","message":"New bot EktvToBDA8D0b_ceAAAe|::ffff:192.168.1.42 connected","timestamp":"2023-03-24T14:23:45.590Z"}
+{"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"},"level":"error","message":"telnet error","timestamp":"2023-03-24T14:23:47.608Z"}
+{"level":"warn","message":"Connection closed","timestamp":"2023-03-24T14:23:47.610Z"}
+undefined
+undefined
+undefined
+undefined
+undefined
+undefined
+info: New bot ID2gMbBTLTT9inGcAAAk|::ffff:192.168.1.42 connected
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+info: Connected to simulator
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+info: Connected to simulator
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+info: Connected to simulator
+info: Received: POS:10:10
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed
+error: telnet error {"err":{"address":"192.168.1.42","code":"ECONNREFUSED","errno":-4078,"port":9600,"syscall":"connect"}}
+warn: Connection closed
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+info: Connected to simulator
+info: Received: POS:10:10
+
+info: Received: POS:20:10
+
+info: Received: POS:20:20
+
+info: Received: POS:10:20
+
+info: Received: POS:10:15
+
+error: telnet error {"err":{"code":"ECONNRESET","errno":-4077,"syscall":"read"}}
+warn: Connection closed

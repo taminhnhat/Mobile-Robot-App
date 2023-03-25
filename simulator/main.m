@@ -1,4 +1,3 @@
-clear device;
 global position;
 global R01;
 global R02;
@@ -6,7 +5,7 @@ global R03;
 
 clear server;
 address = "192.168.1.42";
-port = 9600;
+port = 8080;
 server = tcpserver(address, port, "ConnectionChangedFcn", @connectionFcn);
 % configureTerminator(server, "CR/LF");
 configureCallback(server, "terminator", @callbackFcn);
@@ -16,36 +15,16 @@ warehouseModel();
 position.x = 13;
 position.y = 1;
 R01 = Robot("R-01", [235 160 28], position);
-R02 = Robot("R-02", [47 120 115], position);
-R03 = Robot("R-03", [11 48 74], position);
+position.x = 15;
+position.y = 1;
+R02 = Robot("R-02", [39 186 245], position);
+position.x = 17;
+position.y = 1;
+R03 = Robot("R-03", [64 152 52], position);
 global p;
-p = R01.show()
-plot(position.x, position.y, 'r*');
-
-% des.x = 20;
-% des.y = 10;
-% des.v = 10;
-% position = R01.simulate(des);
-
-function res = pathParse(str)
-    rexgexpResult = regexp(str, '\d*', 'Match')
-    % rexgexpResult = regexp(str, '([0-9]+)', 'Match') % anotherway
-    % Get value from message
-    res.x = str2num(cell2mat(rexgexpResult(1)));
-    res.y = str2num(cell2mat(rexgexpResult(2)));
-    res.v = str2num(cell2mat(rexgexpResult(3)));
-    % another way
-    % str2num([rexgexpResult{1, 1}])
-    % str2num([rexgexpResult{1, 2}])
-    % str2num([rexgexpResult{1, 3}])
-end
-
-function p = robotShow(pos)
-    rWidth = 0.5;
-    rLength = 0.6;
-    p = rectangle('Position', [pos.x - rWidth / 2 pos.y - rLength / 2 rWidth rLength], 'FaceColor', [.92 .63 .11], 'EdgeColor', [0 0 0]);
-    hold on;
-end
+p1 = R01.show();
+p2 = R02.show();
+p3 = R03.show();
 
 function connectionFcn(src, ~)
 
@@ -58,9 +37,9 @@ function connectionFcn(src, ~)
 end
 
 function callbackFcn(src, evt)
-    disp(src);
     global position;
     global R01;
+    global p1;
     message = readline(src);
     mesParse = regexp(message, '\w*', 'match');
 
@@ -71,7 +50,8 @@ function callbackFcn(src, evt)
             des.y = str2num(cell2mat(mesParse(3)));
             des.v = str2num(cell2mat(mesParse(4)));
             % position = simulate(position, des);
-            position = R01.simulate(des)
+            position = R01.simulate(des);
+            p1 = R01.show();
             R01.getPos()
             res = sprintf("POS:%d:%d", [round(position.x), round(position.y)]);
             src.writeline(res);
