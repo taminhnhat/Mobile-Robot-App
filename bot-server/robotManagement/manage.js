@@ -1,1 +1,0 @@
-const orderCollection = require('../models/order.model')

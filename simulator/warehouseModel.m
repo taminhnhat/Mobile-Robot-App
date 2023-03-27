@@ -4,6 +4,7 @@ function warehouseModel()
     set(gcf, 'Position', [1000, 50, 900, 900])
     axis equal;
     axis([0 28 0 40]);
+    grid on;
     xlabel('x(m)'); ylabel('y(m)');
     hold on;
 

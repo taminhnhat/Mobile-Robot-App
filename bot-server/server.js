@@ -4,6 +4,7 @@ const event = require('./middlewares/event')
 require('dotenv').config({ path: './bot-server/.env' })
 const port = Number(process.env.HTTP_PORT) || 3002
 const logger = require('./logger/logger')
+const { robotPlot } = require('./robotManagement/map_2')
 
 // connect db
 const mongoose = require('mongoose')
@@ -25,7 +26,9 @@ const onConnection = (socket) => {
     io.emit('start', { message: msg })
 
     socket.on('robot:connect', robotCtrl.onConnect)
-    socket.on('robot:info', robotCtrl.onInfo)
+    socket.on('robot:status', (data) => {
+        robotPlot(data)
+    })
     socket.on('robot:message', robotCtrl.onMessage)
 
     event.on('robot:plan', robotCtrl.onPlan)

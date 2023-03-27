@@ -24,6 +24,7 @@ classdef Robot < handle
             disp(robot.faceColor);
             robot.pos.x = pos.x;
             robot.pos.y = pos.y;
+            robot.pos.p = pos.p;
             disp(robot.pos);
             disp(robot.width);
             disp(robot.length);

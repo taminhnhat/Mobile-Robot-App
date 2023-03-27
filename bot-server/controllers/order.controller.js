@@ -1,7 +1,7 @@
 const fs = require('fs')
 const event = require('../middlewares/event')
 const orderCollection = require('../models/order.model')
-const { showMap } = require('../robotManagement/map')
+const { showMap } = require('../robotManagement/map_2')
 
 async function addOrder(req, res) {
     event.emit('core:addOrder', req.body)

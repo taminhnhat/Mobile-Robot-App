@@ -28,6 +28,7 @@
     "morgan": "^1.10.0",
     "node-fetch": "^2.6.9",
     "path": "^0.12.7",
+    "plotly": "^1.0.6",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1",
     "telnet-client": "^2.0.8",

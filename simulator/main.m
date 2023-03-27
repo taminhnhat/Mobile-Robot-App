@@ -15,12 +15,15 @@ warehouseModel();
 
 position.x = 13;
 position.y = 1;
+position.p = 90;
 robot(1) = Robot("R-01", [235 160 28], position);
 position.x = 15;
 position.y = 1;
+position.p = 90;
 robot(2) = Robot("R-02", [39 186 245], position);
 position.x = 17;
 position.y = 1;
+position.p = 90;
 robot(3) = Robot("R-03", [64 152 52], position);
 global p;
 robot(1).show();
@@ -33,13 +36,13 @@ function connectionFcn(src, ~)
     if src.Connected
         disp("Client connected");
         res = robot(1).getPos();
-        mess = sprintf("R01:POS:%d:%d", [round(res.x), round(res.y)]);
+        mess = sprintf("R01:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
         src.writeline(mess);
         res = robot(2).getPos();
-        mess = sprintf("R02:POS:%d:%d", [round(res.x), round(res.y)]);
+        mess = sprintf("R02:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
         src.writeline(mess);
         res = robot(3).getPos();
-        mess = sprintf("R03:POS:%d:%d", [round(res.x), round(res.y)]);
+        mess = sprintf("R03:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
         src.writeline(mess);
     else
         disp("Client has disconnected.");
@@ -64,13 +67,34 @@ function callbackFcn(src, evt)
             switch mesParse(1)
                 case 'R01'
                     res = robot(1).simulate(des);
-                    mess = sprintf("R01:POS:%d:%d", [round(res.x), round(res.y)]);
+                    mess = sprintf("R01:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
                 case 'R02'
                     res = robot(2).simulate(des);
-                    mess = sprintf("R02:POS:%d:%d", [round(res.x), round(res.y)]);
+                    mess = sprintf("R02:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
                 case 'R03'
                     res = robot(3).simulate(des);
-                    mess = sprintf("R03:POS:%d:%d", [round(res.x), round(res.y)]);
+                    mess = sprintf("R03:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
+                otherwise
+                    return;
+            end
+
+            src.writeline(mess);
+        case 'G'
+            des.x = str2num(cell2mat(mesParse(3))) * 0.5 - 0.25;
+            des.y = str2num(cell2mat(mesParse(4))) * 0.5 - 0.25;
+            des.v = str2num(cell2mat(mesParse(5))) * 0.5 - 0.25;
+            res = '';
+
+            switch mesParse(1)
+                case 'R01'
+                    res = robot(1).simulate(des);
+                    mess = sprintf("R01:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
+                case 'R02'
+                    res = robot(2).simulate(des);
+                    mess = sprintf("R02:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
+                case 'R03'
+                    res = robot(3).simulate(des);
+                    mess = sprintf("R03:POS:%d:%d:%d", [round(res.x), round(res.y), round(res.p)]);
                 otherwise
                     return;
             end
