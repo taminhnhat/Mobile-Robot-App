@@ -30,23 +30,71 @@ classdef Robot < handle
         end
 
         function p = show(rb)
-            p = rectangle('Position', [rb.pos.x - rb.width / 2 rb.pos.y - rb.length / 2 rb.width rb.length], 'FaceColor', rb.faceColor, 'EdgeColor', rb.edgeColor);
+            delete(rb.grap);
+            rb.grap = rectangle('Position', [rb.pos.x - rb.width / 2 rb.pos.y - rb.length / 2 rb.width rb.length], 'FaceColor', rb.faceColor, 'EdgeColor', rb.edgeColor);
             hold on;
+            p = rb.grap;
         end
 
         function p = getPos(rb)
             p = rb.pos;
         end
 
-        function p = run(rb, pos)
-            rb.pos.x = pos.x;
-            rb.pos.y = pos.y;
-            p = rectangle('Position', [rb.pos.x - rb.width / 2 rb.pos.y - rb.length / 2 rb.width rb.length], 'FaceColor', rb.faceColor, 'EdgeColor', rb.edgeColor);
+        function p = run(rb, des)
+            rb.pos.x = des.x;
+            rb.pos.y = des.y;
+            delete(rb.grap)
+            rb.grap = rectangle('Position', [rb.pos.x - rb.width / 2 rb.pos.y - rb.length / 2 rb.width rb.length], 'FaceColor', rb.faceColor, 'EdgeColor', rb.edgeColor);
             hold on;
+            p = rb.pos;
         end
 
+        function p = rotate(rb, des)
+            rb.pos.a = des.a;
+            delete(rb.grap)
+            rb.grap = rectangle('Position', [rb.pos.x - rb.width / 2 rb.pos.y - rb.length / 2 rb.width rb.length], 'FaceColor', rb.faceColor, 'EdgeColor', rb.edgeColor);
+            hold on;
+            p = rb.pos;
+        end
+
+        % function des = simulate(rb, endPoint)
+        %     t_samp = 0.01;
+        %     nx = (endPoint.x - rb.pos.x) / (endPoint.v * t_samp);
+        %     ny = (endPoint.y - rb.pos.y) / (endPoint.v * t_samp);
+        %     n = abs(nx);
+
+        %     if (abs(ny) > abs(nx))
+        %         n = abs(ny);
+        %     end
+
+        %     n = round(n);
+
+        %     if (n == 0)
+        %         des = rb.show();
+        %     elseif (n > 0)
+        %         dx = (endPoint.x - rb.pos.x) / n;
+        %         dy = (endPoint.y - rb.pos.y) / n;
+        %         t = timer('StartDelay', t_samp, 'Period', t_samp, 'TasksToExecute', 2, 'ExecutionMode', 'fixedRate');
+        %         t.TimerFcn = @t_callback_fcn;
+        %         i = 1;
+        %         start(t);
+
+        %         function t_callback_fcn()
+        %             if (i == n)delete(t); end
+        %             tmp.x = rb.;
+        %             tmp.y = path.y(i);
+        %             des = rb.run(tmp);
+        %             i += 1;
+        %         end
+
+        %     else
+        %         disp('error');
+        %     end
+
+        % end
+
         function des = simulate(rb, endPoint)
-            t_samp = 0.001;
+            t_samp = 0.01;
             velocity = endPoint.v;
             nx = (endPoint.x - rb.pos.x) / (velocity * t_samp);
             ny = (endPoint.y - rb.pos.y) / (velocity * t_samp);
@@ -57,36 +105,23 @@ classdef Robot < handle
             end
 
             n = round(n);
-            p = rb.show();
 
             if (n == 0 || n == 1)
-                delete(p);
                 des = rb.run(endPoint);
                 hold on;
-                result.x = endPoint.x;
-                result.y = endPoint.y;
+                rb.pos.x = endPoint.x;
+                rb.pos.y = endPoint.y;
             elseif (n > 1)
                 dx = (endPoint.x - rb.pos.x) / n;
                 dy = (endPoint.y - rb.pos.y) / n;
-                path.x(1) = rb.pos.x + dx;
-                path.y(1) = rb.pos.y + dy;
-                pause(t_samp);
 
-                for i = 2:n
-                    path.x(i) = path.x(i - 1) + dx;
-                    path.y(i) = path.y(i - 1) + dy;
-                    delete(p);
-                    tmp.x = path.x(i);
-                    tmp.y = path.y(i);
-                    p = rb.run(tmp);
-                    hold on;
+                for i = 1:n
                     pause(t_samp);
+                    tmp.x = rb.pos.x + dx;
+                    tmp.y = rb.pos.y + dy;
+                    des = rb.run(tmp);
                 end
 
-                delete(p);
-                rb.pos.x = path.x(n);
-                rb.pos.y = path.y(n);
-                des = rb.pos;
             else
                 disp("error");
             end

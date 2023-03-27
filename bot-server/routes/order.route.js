@@ -3,7 +3,7 @@ const router = express.Router()
 
 const orderController = require('../controllers/order.controller')
 
-router.post('/addOrder', orderController.addOrder)
-router.get('/getMap', orderController.getMap)
+router.post('/order/add', orderController.addOrder)
+router.get('/map', orderController.getMap)
 
 module.exports = router
