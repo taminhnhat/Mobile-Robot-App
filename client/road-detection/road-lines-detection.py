@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
 
-video = cv2.VideoCapture("road_car_view.mp4")
+videoPath = './media/road_car_view.mp4'
+video = cv2.VideoCapture(videoPath)
 
 while True:
     ret, original_frame = video.read()
     if not ret:
-        video = cv2.VideoCapture("road_car_view.mp4")
+        video = cv2.VideoCapture(videoPath)
         continue
     frame = cv2.GaussianBlur(original_frame, (5, 5), 0)
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
