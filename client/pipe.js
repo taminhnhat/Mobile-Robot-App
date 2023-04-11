@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { spawn, fork } = require('child_process');
+let logger = require('./logger/logger')
 
 // const event = require('./event');
 
