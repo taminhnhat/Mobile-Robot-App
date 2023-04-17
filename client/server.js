@@ -20,7 +20,6 @@ socket.on('bot:pathLog', () => {
 })
 socket.emit('bot:init', { id: 'Y-004' })
 
-
 driver.on('close', () => {
     logger.warn('Connection closed')
     setTimeout(() => {
