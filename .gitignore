@@ -1,3 +1,10 @@
+# nodejs
 .env
 node_modules
 logs
+# platformio
+agv-driver/.pio
+agv-driver/.vscode/.browse.c_cpp.db*
+agv-driver/.vscode/c_cpp_properties.json
+agv-driver/.vscode/launch.json
+agv-driver/.vscode/ipch
