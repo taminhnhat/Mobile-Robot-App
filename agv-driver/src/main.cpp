@@ -1,35 +1,31 @@
 #include <Arduino.h>
 #include <PID_v1.h>
 
-#define USART1
-#define USART2
-#define USART6
 // define motor 1
-#define MOTOR_1_A PA5
-#define MOTOR_1_B PA4
-#define MOTOR_1_PWM PA11
-#define MOTOR_1_DIR PA12
+#define MOTOR_1_A PA0
+#define MOTOR_1_B PC15
+#define MOTOR_1_PWM PB1
+#define MOTOR_1_DIR PB0
 // define motor 2
-#define MOTOR_2_A PA1
-#define MOTOR_2_B PA0
-#define MOTOR_2_PWM PA15
-#define MOTOR_2_DIR PB3
+#define MOTOR_2_A PC14
+#define MOTOR_2_B PC13
+#define MOTOR_2_PWM PA5
+#define MOTOR_2_DIR PA4
 // define motor 3
-#define MOTOR_3_A PB13
-#define MOTOR_3_B PB14
-#define MOTOR_3_PWM PB4
-#define MOTOR_3_DIR PB5
+#define MOTOR_3_A PA15
+#define MOTOR_3_B PB3
+#define MOTOR_3_PWM PB8
+#define MOTOR_3_DIR PB9
 // define motor 4
-#define MOTOR_4_A PB15
-#define MOTOR_4_B PA8
-#define MOTOR_4_PWM PB8
-#define MOTOR_4_DIR PB9
+#define MOTOR_4_A PA11
+#define MOTOR_4_B PA12
+#define MOTOR_4_PWM PB4
+#define MOTOR_4_DIR PB5
 
 // define sensor
-#define ENDSTOP 19
-#define AMP_SENSOR 18
+#define DIS_SEN PA1
 
-HardwareSerial Serial2(12, 13);
+HardwareSerial Serial2(PA3, PA2);
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 // Define Variables we'll be connecting to
@@ -39,7 +35,7 @@ double Setpoint, Input, Output;
 double aggKp = 4, aggKi = 0.2, aggKd = 1;
 double consKp = 1, consKi = 0.05, consKd = 0.25;
 PID servoCtrl(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
-void pidGenerate(double Input)
+void angleGenerate(double Input)
 {
   double gap = abs(Setpoint - Input); // distance away from setpoint
   if (gap < 10)
@@ -53,6 +49,10 @@ void pidGenerate(double Input)
   }
 
   servoCtrl.Compute();
+}
+
+void velocityGenerate(double input){
+  //
 }
 
 // -------------------------------------------------ENCODER HANDLE--------------------------------------------------------
@@ -180,6 +180,8 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_A), EncoderHandle_4_A, HIGH);
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_B), EncoderHandle_4_B, HIGH);
 
+  pinMode(DIS_SEN,INPUT);
+
   // xTaskCreate(TaskLed, // Task function
   //             "Led",   // Task name
   //             128,     // Stack size
@@ -246,6 +248,12 @@ void loop()
     Serial1.println('.');
     tick_t = millis();
   }
+  digitalWrite(MOTOR_1_DIR,HIGH);
+  analogWrite(MOTOR_1_PWM,205);
+  delay(10000);
+  digitalWrite(MOTOR_1_DIR,LOW);
+  analogWrite(MOTOR_1_PWM,50);
+  delay(10000);
 }
 
 int drive(int speed)
