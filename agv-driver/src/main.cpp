@@ -2,25 +2,25 @@
 #include <PID_v1.h>
 
 // define motor 1
-#define MOTOR_1_A PA0
-#define MOTOR_1_B PC15
-#define MOTOR_1_PWM PB1
-#define MOTOR_1_DIR PB0
+#define MOTOR_1_A PB3
+#define MOTOR_1_B PA15
+#define MOTOR_1_PWM PB9
+#define MOTOR_1_DIR PB8
 // define motor 2
-#define MOTOR_2_A PC14
-#define MOTOR_2_B PC13
-#define MOTOR_2_PWM PA5
-#define MOTOR_2_DIR PA4
+#define MOTOR_2_A PA12
+#define MOTOR_2_B PA11
+#define MOTOR_2_PWM PB5
+#define MOTOR_2_DIR PB4
 // define motor 3
-#define MOTOR_3_A PA15
-#define MOTOR_3_B PB3
-#define MOTOR_3_PWM PB8
-#define MOTOR_3_DIR PB9
+#define MOTOR_3_A PC15
+#define MOTOR_3_B PA0
+#define MOTOR_3_PWM PB0
+#define MOTOR_3_DIR PB1
 // define motor 4
-#define MOTOR_4_A PA11
-#define MOTOR_4_B PA12
-#define MOTOR_4_PWM PB4
-#define MOTOR_4_DIR PB5
+#define MOTOR_4_A PC13
+#define MOTOR_4_B PC14
+#define MOTOR_4_PWM PA4
+#define MOTOR_4_DIR PA5
 
 // define sensor
 #define DIS_SEN PA1
@@ -51,7 +51,8 @@ void angleGenerate(double Input)
   servoCtrl.Compute();
 }
 
-void velocityGenerate(double input){
+void velocityGenerate(double input)
+{
   //
 }
 
@@ -180,7 +181,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_A), EncoderHandle_4_A, HIGH);
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_B), EncoderHandle_4_B, HIGH);
 
-  pinMode(DIS_SEN,INPUT);
+  pinMode(DIS_SEN, INPUT);
 
   // xTaskCreate(TaskLed, // Task function
   //             "Led",   // Task name
@@ -248,11 +249,11 @@ void loop()
     Serial1.println('.');
     tick_t = millis();
   }
-  digitalWrite(MOTOR_1_DIR,HIGH);
-  analogWrite(MOTOR_1_PWM,205);
+  digitalWrite(MOTOR_1_DIR, HIGH);
+  analogWrite(MOTOR_1_PWM, 205);
   delay(10000);
-  digitalWrite(MOTOR_1_DIR,LOW);
-  analogWrite(MOTOR_1_PWM,50);
+  digitalWrite(MOTOR_1_DIR, LOW);
+  analogWrite(MOTOR_1_PWM, 50);
   delay(10000);
 }
 
