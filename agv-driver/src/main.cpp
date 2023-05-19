@@ -73,7 +73,7 @@ private:
   uint32_t tick()
   {
     const uint32_t d_t = millis() - this->last_t;
-    if (d_t >= 1000)
+    if (d_t >= 100)
     {
       const uint32_t d_p = this->p - this->last_p;
       this->v = (d_p * 60) / (d_t * this->ppr);
@@ -209,18 +209,6 @@ void setup()
   pinMode(MOTOR_2_DIR, OUTPUT);
   pinMode(MOTOR_3_DIR, OUTPUT);
   pinMode(MOTOR_4_DIR, OUTPUT);
-
-  analogWrite(PA11, 50);
-  analogWrite(PA15, 150);
-  analogWrite(PB3, 200);
-  analogWrite(PB4, 50);
-  analogWrite(PB5, 100);
-  analogWrite(PB8, 150);
-  analogWrite(PB9, 200);
-
-  // test interrupt
-  analogWrite(PB1, 127);
-  analogWrite(PB0, 127);
 }
 
 void loop()
@@ -249,12 +237,6 @@ void loop()
     Serial1.println('.');
     tick_t = millis();
   }
-  digitalWrite(MOTOR_1_DIR, HIGH);
-  analogWrite(MOTOR_1_PWM, 205);
-  delay(10000);
-  digitalWrite(MOTOR_1_DIR, LOW);
-  analogWrite(MOTOR_1_PWM, 50);
-  delay(10000);
 }
 
 int drive(int speed)
