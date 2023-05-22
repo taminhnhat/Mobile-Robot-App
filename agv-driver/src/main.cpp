@@ -4,23 +4,23 @@
 // define motor 1
 #define MOTOR_1_A PB3
 #define MOTOR_1_B PA15
-#define MOTOR_1_PWM PB9
-#define MOTOR_1_DIR PB8
+#define MOTOR_1_PWM PB8
+#define MOTOR_1_DIR PB9
 // define motor 2
 #define MOTOR_2_A PA12
 #define MOTOR_2_B PA11
-#define MOTOR_2_PWM PB5
-#define MOTOR_2_DIR PB4
+#define MOTOR_2_PWM PB4
+#define MOTOR_2_DIR PB5
 // define motor 3
 #define MOTOR_3_A PC15
 #define MOTOR_3_B PA0
-#define MOTOR_3_PWM PB0
-#define MOTOR_3_DIR PB1
+#define MOTOR_3_PWM PB1
+#define MOTOR_3_DIR PB0
 // define motor 4
 #define MOTOR_4_A PC13
 #define MOTOR_4_B PC14
-#define MOTOR_4_PWM PA4
-#define MOTOR_4_DIR PA5
+#define MOTOR_4_PWM PA5
+#define MOTOR_4_DIR PA4
 
 // define sensor
 #define DIS_SEN PA1
@@ -116,6 +116,11 @@ public:
   {
     return this->v;
   }
+  void forward(uint8_t forward_speed)
+  {
+    digitalWrite(MOTOR_1_DIR, LOW);
+    analogWrite(MOTOR_1_PWM, forward_speed);
+  }
 } encoder1, encoder2, encoder3, encoder4;
 
 void EncoderHandle_1_A()
@@ -209,6 +214,17 @@ void setup()
   pinMode(MOTOR_2_DIR, OUTPUT);
   pinMode(MOTOR_3_DIR, OUTPUT);
   pinMode(MOTOR_4_DIR, OUTPUT);
+
+  uint8_t forward_speed = 127;
+  uint8_t backward_speed = 255 - forward_speed;
+  digitalWrite(MOTOR_1_DIR, LOW);
+  analogWrite(MOTOR_1_PWM, forward_speed);
+  digitalWrite(MOTOR_2_DIR, LOW);
+  analogWrite(MOTOR_2_PWM, forward_speed);
+  digitalWrite(MOTOR_3_DIR, LOW);
+  analogWrite(MOTOR_3_PWM, forward_speed);
+  digitalWrite(MOTOR_4_DIR, LOW);
+  analogWrite(MOTOR_4_PWM, forward_speed);
 }
 
 void loop()
