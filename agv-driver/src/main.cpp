@@ -211,18 +211,33 @@ void angleGenerate(double Input)
     // we're far from setpoint, use aggressive tuning parameters
     servoCtrl.SetTunings(aggKp, aggKi, aggKd);
   }
-
   servoCtrl.Compute();
 }
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 uint32_t tick_t = millis();
-
 String messageFromSerial1 = "";
 
 void msgProcess(String);
 void velocityProcess(float, float);
 
+// -------------------------------------------------TIMER--------------------------------------------------------
+HardwareTimer timer(TIM1);
+uint64_t timer_count = 0;
+void OnTimer1Interrupt()
+{
+  timer_count++;
+  if (timer_count % 10 == 0)
+  {
+    //
+  }
+  else if (timer_count % 1000 == 0)
+  {
+    Serial1.println("timer tick!");
+  }
+}
+
+// -------------------------------------------------MAIN CODE--------------------------------------------------------
 void setup()
 {
   // Start serial 1 as external control communication
@@ -256,6 +271,14 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(MOTOR_3_B), EncoderHandle_3_B, HIGH);
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_A), EncoderHandle_4_A, HIGH);
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_B), EncoderHandle_4_B, HIGH);
+
+  timer.setPrescaleFactor(9999);
+  timer.setOverflow(9);
+  timer.attachInterrupt(OnTimer1Interrupt);
+  timer.refresh();
+  timer.resume();
+  Serial1.print("timer fre: ");
+  Serial1.println(timer.getTimerClkFreq());
 }
 
 void loop()
@@ -274,6 +297,7 @@ void loop()
   }
 }
 
+// -------------------------------------------------DECLARE FUNCTIONS--------------------------------------------------------
 void serialEvent1()
 {
   while (Serial1.available())
