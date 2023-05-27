@@ -14,18 +14,20 @@
 #define MOTOR_2_PWM PB4
 #define MOTOR_2_DIR PB5
 // define motor 3
-#define MOTOR_3_A PC15
-#define MOTOR_3_B PA0
+#define MOTOR_3_A PA6
+#define MOTOR_3_B PA7
 #define MOTOR_3_PWM PB1
 #define MOTOR_3_DIR PB0
 // define motor 4
 #define MOTOR_4_A PC13
-#define MOTOR_4_B PC14
+#define MOTOR_4_B PA0
 #define MOTOR_4_PWM PA5
 #define MOTOR_4_DIR PA4
 
 // define sensor
 #define DIS_SEN PA1
+
+#define FRONT_LIGHT PC13
 
 // -------------------------------------------------JSON--------------------------------------------------------
 StaticJsonDocument<200> doc;
@@ -67,21 +69,16 @@ private:
     double consKp, consKi, consKd;
   } pid;
 
-  void tick()
-  {
-    const uint32_t present_p = this->p;
-    const uint32_t d_t = millis() - this->last_t;
-    if (d_t >= this->vel_cal_cycle)
-    {
-      this->d_p = present_p - this->last_p;
-      this->v = (this->d_p * 60) / (d_t * this->ppr);
-      this->last_t += this->vel_cal_cycle;
-      this->last_p = present_p;
-    }
-  }
-
 public:
   uint32_t d_p;
+
+  void tick(uint32_t d_t)
+  {
+    const uint32_t present_p = this->p;
+    this->d_p = present_p - this->last_p;
+    this->v = (this->d_p * 60) / (d_t * this->ppr);
+    this->last_p = present_p;
+  }
   MotorControl(uint32_t direction_pin, uint32_t pwm_pin)
   {
     this->a = 0;
@@ -112,18 +109,17 @@ public:
   {
     this->a++;
     this->p++;
-    this->tick();
   }
   void channel_b()
   {
     this->b++;
     this->p++;
-    this->tick();
   }
   void reset()
   {
     this->a = 0;
     this->b = 0;
+    this->p = 0;
   }
   uint32_t pulses()
   {
@@ -133,6 +129,10 @@ public:
   {
     return this->v;
   }
+  float speed()
+  {
+    return this->v * wheel_speed_factor;
+  }
   void drive(float velocity)
   {
     const float wheel_speed = abs(velocity) * wheel_speed_factor;         // rpm
@@ -141,15 +141,12 @@ public:
     {
       digitalWrite(this->DIR_PIN_ADDR, HIGH);
       analogWrite(this->PWM_PIN_ADDR, pwm_max_val - pwm_val);
-      Serial1.print(pwm_max_val - pwm_val);
     }
     else
     {
       digitalWrite(this->DIR_PIN_ADDR, LOW);
       analogWrite(this->PWM_PIN_ADDR, pwm_val);
-      Serial1.print(pwm_val);
     }
-    Serial1.print(":");
   }
   void rotate(float speed)
   {
@@ -161,17 +158,19 @@ public:
     {
       digitalWrite(this->DIR_PIN_ADDR, HIGH);
       analogWrite(this->PWM_PIN_ADDR, pwm_max_val - pwm_val);
-      Serial1.print(pwm_max_val - pwm_val);
     }
     else
     {
       digitalWrite(this->DIR_PIN_ADDR, LOW);
       analogWrite(this->PWM_PIN_ADDR, pwm_val);
-      Serial1.print(pwm_val);
     }
-    Serial1.print(":");
   }
-  void fix()
+  void write(uint32_t duty, uint32_t level)
+  {
+    digitalWrite(this->DIR_PIN_ADDR, level);
+    analogWrite(this->PWM_PIN_ADDR, duty);
+  }
+  void lock()
   {
     //
   }
@@ -254,9 +253,12 @@ uint64_t timer_count = 0;
 void OnTimer1Interrupt()
 {
   timer_count++;
-  if (timer_count % 10 == 0)
+  if (timer_count % 50 == 0)
   {
-    //
+    motor1.tick(50);
+    motor2.tick(50);
+    motor3.tick(50);
+    motor4.tick(50);
   }
   else if (timer_count % 1000 == 0)
   {
@@ -274,14 +276,14 @@ void setup()
 
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(DIS_SEN, INPUT);
-  pinMode(MOTOR_1_A, INPUT_PULLUP);
-  pinMode(MOTOR_1_B, INPUT_PULLUP);
-  pinMode(MOTOR_2_A, INPUT_PULLUP);
-  pinMode(MOTOR_2_B, INPUT_PULLUP);
-  pinMode(MOTOR_3_A, INPUT_PULLUP);
-  pinMode(MOTOR_3_B, INPUT_PULLUP);
-  pinMode(MOTOR_4_A, INPUT_PULLUP);
-  pinMode(MOTOR_4_B, INPUT_PULLUP);
+  pinMode(MOTOR_1_A, INPUT_PULLDOWN);
+  pinMode(MOTOR_1_B, INPUT_PULLDOWN);
+  pinMode(MOTOR_2_A, INPUT);
+  pinMode(MOTOR_2_B, INPUT);
+  pinMode(MOTOR_3_A, INPUT);
+  pinMode(MOTOR_3_B, INPUT);
+  pinMode(MOTOR_4_A, INPUT_PULLDOWN);
+  pinMode(MOTOR_4_B, INPUT_PULLDOWN);
   pinMode(MOTOR_1_PWM, OUTPUT);
   pinMode(MOTOR_2_PWM, OUTPUT);
   pinMode(MOTOR_3_PWM, OUTPUT);
@@ -320,6 +322,15 @@ void setup()
   motor2.stop();
   motor3.stop();
   motor4.stop();
+  motor1.reset();
+  motor2.reset();
+  motor3.reset();
+  motor4.reset();
+
+  motor1.write(80, LOW);
+  motor2.write(80, LOW);
+  motor3.write(80, LOW);
+  motor4.write(80, LOW);
 }
 
 void loop()
@@ -328,28 +339,29 @@ void loop()
   const uint32_t t = millis();
   if (t - tick_t >= cycle)
   {
+    Serial1.print("d_p: ");
     Serial1.print(motor1.d_p);
-    Serial1.print(':');
+    Serial1.print("  ");
     Serial1.print(motor2.d_p);
-    Serial1.print(':');
+    Serial1.print("  ");
     Serial1.print(motor3.d_p);
-    Serial1.print(':');
+    Serial1.print("  ");
     Serial1.print(motor4.d_p);
-    Serial1.print('\t');
-    Serial1.print(motor1.pulses());
-    Serial1.print(':');
-    Serial1.print(motor2.pulses());
-    Serial1.print(':');
-    Serial1.print(motor3.pulses());
-    Serial1.print(':');
-    Serial1.print(motor4.pulses());
-    Serial1.print('\t');
+    Serial1.print("\trpm: ");
+    Serial1.print(motor1.speed());
+    Serial1.print("  ");
+    Serial1.print(motor2.speed());
+    Serial1.print("  ");
+    Serial1.print(motor3.speed());
+    Serial1.print("  ");
+    Serial1.print(motor4.speed());
+    Serial1.print("\tm/s: ");
     Serial1.print(motor1.velocity());
-    Serial1.print(':');
+    Serial1.print("  ");
     Serial1.print(motor2.velocity());
-    Serial1.print(':');
+    Serial1.print("  ");
     Serial1.print(motor3.velocity());
-    Serial1.print(':');
+    Serial1.print("  ");
     Serial1.print(motor4.velocity());
     Serial1.println('.');
     tick_t += cycle;
@@ -400,9 +412,12 @@ void msgProcess(String lightCmd)
     // Serial1.println(angular);
     velocityProcess(linear, angular);
   }
-  else if (topic_name.compareTo("state") == 0)
+  else if (topic_name.compareTo("clear") == 0)
   {
-    //
+    motor1.reset();
+    motor2.reset();
+    motor3.reset();
+    motor4.reset();
   }
   else
   {
@@ -418,23 +433,23 @@ void velocityProcess(double linear, double angular)
   const double motor_2_velocity = linear_tmp - angular_tmp;
   const double motor_3_velocity = linear_tmp + angular_tmp;
   const double motor_4_velocity = linear_tmp + angular_tmp;
-  // Serial1.print("WHEEL VELOCITY: ");
-  // Serial1.print(motor_1_velocity);
-  // Serial1.print("\t");
-  // Serial1.print(motor_2_velocity);
-  // Serial1.print("\t");
-  // Serial1.print(motor_3_velocity);
-  // Serial1.print("\t");
-  // Serial1.print(motor_4_velocity);
-  // Serial1.print("\tWHEEL SPEED: ");
-  // Serial1.print(motor_1_velocity * wheel_speed_factor);
-  // Serial1.print("\t");
-  // Serial1.print(motor_2_velocity * wheel_speed_factor);
-  // Serial1.print("\t");
-  // Serial1.print(motor_3_velocity * wheel_speed_factor);
-  // Serial1.print("\t");
-  // Serial1.print(motor_4_velocity * wheel_speed_factor);
-  // Serial1.println("");
+  Serial1.print("WHEEL VELOCITY: ");
+  Serial1.print(motor_1_velocity);
+  Serial1.print("\t");
+  Serial1.print(motor_2_velocity);
+  Serial1.print("\t");
+  Serial1.print(motor_3_velocity);
+  Serial1.print("\t");
+  Serial1.print(motor_4_velocity);
+  Serial1.print("\tWHEEL SPEED: ");
+  Serial1.print(motor_1_velocity * wheel_speed_factor);
+  Serial1.print("\t");
+  Serial1.print(motor_2_velocity * wheel_speed_factor);
+  Serial1.print("\t");
+  Serial1.print(motor_3_velocity * wheel_speed_factor);
+  Serial1.print("\t");
+  Serial1.print(motor_4_velocity * wheel_speed_factor);
+  Serial1.println("");
   motor1.drive(motor_1_velocity);
   motor2.drive(motor_2_velocity);
   motor3.drive(motor_3_velocity);
