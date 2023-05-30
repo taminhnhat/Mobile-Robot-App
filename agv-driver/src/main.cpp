@@ -36,31 +36,49 @@ StaticJsonDocument<200> doc;
 HardwareSerial Serial2(PA3, PA2);
 
 // -------------------------------------------------MOTOR--------------------------------------------------------
-const float wheel_separation = 0.2; // m
-const float wheel_distance = 0.146; // m
-const float wheel_diameter = 0.09;  // m
-const float motor_max_speed = 333;  // rpm
-const float angular_velocity_factor = (wheel_distance * wheel_distance + wheel_separation * wheel_separation) / (2 * wheel_separation);
-const float wheel_speed_factor = 60 / (3.1416 * wheel_diameter);
-const float max_linear_velocity = motor_max_speed / wheel_speed_factor;
-const float max_angular_velocity = (2 * motor_max_speed) / (wheel_speed_factor * wheel_separation);
-const uint32_t pwm_max_val = pow(2, PWM_RESOLUTION) - 1;
+const double WHEEL_SEPARATION = 0.2; // m
+const double WHEEL_DISTANCE = 0.146; // m
+const double WHEEL_DIAMETER = 0.09;  // m
+const double MOTOR_MAX_SPEED = 333;  // rpm
+const double MOTOR_MAX_PPR = 660.0;  // motor max speed in pules per round
+const double ANGULAR_VELOCITY_FACTOR = (WHEEL_DISTANCE * WHEEL_DISTANCE + WHEEL_SEPARATION * WHEEL_SEPARATION) / (2 * WHEEL_SEPARATION);
+const double WHEEL_SPEED_FACTOR = 60 / (3.1416 * WHEEL_DIAMETER);
+const double MAX_LINEAR_VELOCITY = MOTOR_MAX_SPEED / WHEEL_SPEED_FACTOR;
+const double MAX_ANGULAR_VELOCITY = (2 * MOTOR_MAX_SPEED) / (WHEEL_SPEED_FACTOR * WHEEL_SEPARATION);
+const uint32_t PWM_MAX_VAL = pow(2, PWM_RESOLUTION) - 1;
+const uint32_t VEL_CAL_CYCLE = 50;
+
 class MotorControl
 {
 private:
-  const float ppr = 330.0;
-  const uint32_t vel_cal_cycle = 50;
-  uint32_t a;
-  uint32_t b;
-  uint32_t p;
-  float v;
-  uint32_t last_t;
-  uint32_t last_p;
-  uint32_t DIR_PIN_ADDR;
-  uint32_t PWM_PIN_ADDR;
+#define DIRECT 0
+#define REVERSE 1
+  // Motor parameters
+  uint32_t a;            // a channel count
+  uint32_t b;            // b channel count
+  uint32_t p;            // total encoder pulse count
+  double v;              // motor velocity in m/s
+  uint32_t last_t;       // last time call in milisecond
+  uint32_t last_p;       // last pulses call
+  uint32_t DIR_PIN_ADDR; // direction pin address
+  uint32_t PWM_PIN_ADDR; // pwm pin address
+  // PID parameters
   double Setpoint, Input, Output;
   double aggKp = 4, aggKi = 0.2, aggKd = 1;
   double consKp = 1, consKi = 0.05, consKd = 0.25;
+  double pOn;
+  bool pOnE, inAuto;
+  double dispKp, dispKi, dispKd;
+  double kp, ki, kd;
+  double *myInput;
+  double *myOutput;
+  double *mySetpoint;
+  double outputSum;
+  double outMax, outMin;
+  double lastInput;
+  uint32_t lastTime;
+  uint32_t SampleTime;
+  uint32_t controllerDirection;
   struct pid_var
   {
     double Setpoint;
@@ -71,13 +89,17 @@ private:
 
 public:
   uint32_t d_p;
+  uint32_t d_t;
 
-  void tick(uint32_t d_t)
+  void tick(uint32_t t)
   {
     const uint32_t present_p = this->p;
+    const uint32_t present_t = millis();
+    this->d_t = present_t - this->last_t;
     this->d_p = present_p - this->last_p;
-    this->v = (this->d_p * 60) / (d_t * this->ppr);
+    this->v = (this->d_p * 60000.0) / (d_t * MOTOR_MAX_PPR * WHEEL_SPEED_FACTOR);
     this->last_p = present_p;
+    this->last_t = present_t;
   }
   MotorControl(uint32_t direction_pin, uint32_t pwm_pin)
   {
@@ -125,22 +147,94 @@ public:
   {
     return this->p;
   }
-  float velocity()
+  double velocity()
   {
     return this->v;
   }
-  float speed()
+  double speed()
   {
-    return this->v * wheel_speed_factor;
+    return this->v * WHEEL_SPEED_FACTOR;
   }
-  void drive(float velocity)
+  void setTurning(double Kp, double Ki, double Kd, int POn)
   {
-    const float wheel_speed = abs(velocity) * wheel_speed_factor;         // rpm
-    const uint32_t pwm_val = wheel_speed * pwm_max_val / motor_max_speed; // %
+    if (Kp < 0 || Ki < 0 || Kd < 0)
+      return;
+
+    pOn = POn;
+    pOnE = POn == P_ON_E;
+
+    dispKp = Kp;
+    dispKi = Ki;
+    dispKd = Kd;
+
+    double SampleTimeInSec = ((double)SampleTime) / 1000;
+    kp = Kp;
+    ki = Ki * SampleTimeInSec;
+    kd = Kd / SampleTimeInSec;
+
+    if (controllerDirection == REVERSE)
+    {
+      kp = (0 - kp);
+      ki = (0 - ki);
+      kd = (0 - kd);
+    }
+  }
+  uint32_t compute()
+  {
+    if (!inAuto)
+      return 0;
+    uint32_t present_t = millis();
+    uint32_t d_t = (present_t - this->last_t);
+
+    double err = this->Setpoint - this->v;
+    double P_ = this->kp * err;
+
+    // /*Compute all the working error variables*/
+    // double input = *myInput;
+    // double error = *mySetpoint - input;
+    // double dInput = (input - lastInput);
+    // outputSum += (ki * error);
+
+    // /*Add Proportional on Measurement, if P_ON_M is specified*/
+    // if (!pOnE)
+    //   outputSum -= kp * dInput;
+
+    // if (outputSum > outMax)
+    //   outputSum = outMax;
+    // else if (outputSum < outMin)
+    //   outputSum = outMin;
+
+    // /*Add Proportional on Error, if P_ON_E is specified*/
+    // double output;
+    // if (pOnE)
+    //   output = kp * error;
+    // else
+    //   output = 0;
+
+    // /*Compute Rest of PID Output*/
+    // output += outputSum - kd * dInput;
+
+    // if (output > outMax)
+    //   output = outMax;
+    // else if (output < outMin)
+    //   output = outMin;
+    // *myOutput = output;
+
+    // /*Remember some variables for next time*/
+    // lastInput = input;
+    // lastTime = present_t;
+    return 1;
+  }
+  void drive(double velocity)
+  {
+    const double wheel_speed = abs(velocity) * WHEEL_SPEED_FACTOR;        // rpm
+    const uint32_t pwm_val = wheel_speed * PWM_MAX_VAL / MOTOR_MAX_SPEED; // %
+    Serial1.print(pwm_val);
+    Serial1.print("  ");
     if (velocity > 0)
     {
       digitalWrite(this->DIR_PIN_ADDR, HIGH);
-      analogWrite(this->PWM_PIN_ADDR, pwm_max_val - pwm_val);
+      analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - pwm_val);
     }
     else
     {
@@ -148,16 +242,16 @@ public:
       analogWrite(this->PWM_PIN_ADDR, pwm_val);
     }
   }
-  void rotate(float speed)
+  void rotate(double speed)
   {
-    float wheel_speed = abs(speed); // rpm
-    if (wheel_speed > motor_max_speed)
-      wheel_speed = motor_max_speed;
-    uint32_t pwm_val = wheel_speed * pwm_max_val / motor_max_speed; // %
+    double wheel_speed = abs(speed); // rpm
+    if (wheel_speed > MOTOR_MAX_SPEED)
+      wheel_speed = MOTOR_MAX_SPEED;
+    uint32_t pwm_val = wheel_speed * PWM_MAX_VAL / MOTOR_MAX_SPEED; // %
     if (speed > 0)
     {
       digitalWrite(this->DIR_PIN_ADDR, HIGH);
-      analogWrite(this->PWM_PIN_ADDR, pwm_max_val - pwm_val);
+      analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - pwm_val);
     }
     else
     {
@@ -233,8 +327,7 @@ void angleGenerate(double Input)
     servoCtrl.SetTunings(consKp, consKi, consKd);
   }
   else
-  {
-    // we're far from setpoint, use aggressive tuning parameters
+  { // we're far from setpoint, use aggressive tuning parameters
     servoCtrl.SetTunings(aggKp, aggKi, aggKd);
   }
   servoCtrl.Compute();
@@ -253,12 +346,12 @@ uint64_t timer_count = 0;
 void OnTimer1Interrupt()
 {
   timer_count++;
-  if (timer_count % 50 == 0)
+  if (timer_count % VEL_CAL_CYCLE == 0)
   {
-    motor1.tick(50);
-    motor2.tick(50);
-    motor3.tick(50);
-    motor4.tick(50);
+    motor1.tick(VEL_CAL_CYCLE);
+    motor2.tick(VEL_CAL_CYCLE);
+    motor3.tick(VEL_CAL_CYCLE);
+    motor4.tick(VEL_CAL_CYCLE);
   }
   else if (timer_count % 1000 == 0)
   {
@@ -311,11 +404,11 @@ void setup()
   Serial1.print("timer freq: ");
   Serial1.println(timer.getTimerClkFreq());
   Serial1.print("pwm resolution: ");
-  Serial1.println(pwm_max_val);
+  Serial1.println(PWM_MAX_VAL);
   Serial1.print("max speed: ");
-  Serial1.print(max_linear_velocity);
+  Serial1.print(MAX_LINEAR_VELOCITY);
   Serial1.print(" m/s\tturn: ");
-  Serial1.print(max_angular_velocity);
+  Serial1.print(MAX_ANGULAR_VELOCITY);
   Serial1.println(" rad/s");
 
   motor1.stop();
@@ -326,11 +419,6 @@ void setup()
   motor2.reset();
   motor3.reset();
   motor4.reset();
-
-  motor1.write(80, LOW);
-  motor2.write(80, LOW);
-  motor3.write(80, LOW);
-  motor4.write(80, LOW);
 }
 
 void loop()
@@ -339,15 +427,31 @@ void loop()
   const uint32_t t = millis();
   if (t - tick_t >= cycle)
   {
-    Serial1.print("d_p: ");
-    Serial1.print(motor1.d_p);
-    Serial1.print("  ");
-    Serial1.print(motor2.d_p);
-    Serial1.print("  ");
-    Serial1.print(motor3.d_p);
-    Serial1.print("  ");
-    Serial1.print(motor4.d_p);
-    Serial1.print("\trpm: ");
+    // Serial1.print("p: ");
+    // Serial1.print(motor1.pulses());
+    // Serial1.print("  ");
+    // Serial1.print(motor2.pulses());
+    // Serial1.print("  ");
+    // Serial1.print(motor3.pulses());
+    // Serial1.print("  ");
+    // Serial1.print(motor4.pulses());
+    // Serial1.print("\td_p: ");
+    // Serial1.print(motor1.d_p);
+    // Serial1.print("  ");
+    // Serial1.print(motor2.d_p);
+    // Serial1.print("  ");
+    // Serial1.print(motor3.d_p);
+    // Serial1.print("  ");
+    // Serial1.print(motor4.d_p);
+    // Serial1.print("\td_t: ");
+    // Serial1.print(motor1.d_t);
+    // Serial1.print("  ");
+    // Serial1.print(motor2.d_t);
+    // Serial1.print("  ");
+    // Serial1.print(motor3.d_t);
+    // Serial1.print("  ");
+    // Serial1.print(motor4.d_t);
+    Serial1.print("rpm: ");
     Serial1.print(motor1.speed());
     Serial1.print("  ");
     Serial1.print(motor2.speed());
@@ -427,7 +531,7 @@ void msgProcess(String lightCmd)
 
 void velocityProcess(double linear, double angular)
 {
-  const double angular_tmp = angular * angular_velocity_factor;
+  const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
   double linear_tmp = linear;
   const double motor_1_velocity = linear_tmp - angular_tmp;
   const double motor_2_velocity = linear_tmp - angular_tmp;
@@ -442,16 +546,18 @@ void velocityProcess(double linear, double angular)
   Serial1.print("\t");
   Serial1.print(motor_4_velocity);
   Serial1.print("\tWHEEL SPEED: ");
-  Serial1.print(motor_1_velocity * wheel_speed_factor);
+  Serial1.print(motor_1_velocity * WHEEL_SPEED_FACTOR);
   Serial1.print("\t");
-  Serial1.print(motor_2_velocity * wheel_speed_factor);
+  Serial1.print(motor_2_velocity * WHEEL_SPEED_FACTOR);
   Serial1.print("\t");
-  Serial1.print(motor_3_velocity * wheel_speed_factor);
+  Serial1.print(motor_3_velocity * WHEEL_SPEED_FACTOR);
   Serial1.print("\t");
-  Serial1.print(motor_4_velocity * wheel_speed_factor);
+  Serial1.print(motor_4_velocity * WHEEL_SPEED_FACTOR);
   Serial1.println("");
+  Serial.print("generate pwm: ");
   motor1.drive(motor_1_velocity);
   motor2.drive(motor_2_velocity);
   motor3.drive(motor_3_velocity);
   motor4.drive(motor_4_velocity);
+  Serial.println("");
 }
