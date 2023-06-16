@@ -445,8 +445,8 @@ void setup()
 {
   // Start serial 1 as external control communication
   Serial1.begin(115200);
-  // Start serial 2 as rf communication
-  Serial2.begin(9600);
+  // Start serial 2 as wireless communication (rf/bluetooth)
+  Serial2.begin(115200);
 
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(DIS_SEN, INPUT);
@@ -480,17 +480,17 @@ void setup()
   timer.attachInterrupt(OnTimer1Interrupt);
   timer.refresh();
   timer.resume();
-  // Serial1.println("===============ROBOT START================");
-  // Serial1.println("System information");
-  // Serial1.print("timer freq: ");
-  // Serial1.println(timer.getTimerClkFreq());
-  // Serial1.print("pwm resolution: ");
-  // Serial1.println(PWM_MAX_VAL);
-  // Serial1.print("max speed: ");
-  // Serial1.print(MAX_LINEAR_VELOCITY);
-  // Serial1.print(" m/s\tturn: ");
-  // Serial1.print(MAX_ANGULAR_VELOCITY);
-  // Serial1.println(" rad/s");
+  Serial1.println("===============ROBOT START================");
+  Serial1.println("System information");
+  Serial1.print("timer freq: ");
+  Serial1.println(timer.getTimerClkFreq());
+  Serial1.print("pwm resolution: ");
+  Serial1.println(PWM_MAX_VAL);
+  Serial1.print("max speed: ");
+  Serial1.print(MAX_LINEAR_VELOCITY);
+  Serial1.print(" m/s\tturn: ");
+  Serial1.print(MAX_ANGULAR_VELOCITY);
+  Serial1.println(" rad/s");
 
   motor1.stop();
   motor2.stop();
@@ -511,11 +511,13 @@ void setup()
   // motor4.write(127, 0);
 
   // Serial2.println("AT");
+
+  Serial1.println(SERIAL_UART_INSTANCE);
 }
 
 void loop()
 {
-  const uint32_t cycle = 10;
+  const uint32_t cycle = 100;
   const uint32_t t = millis();
   if (t - t_previous >= cycle)
   {
@@ -545,14 +547,14 @@ void loop()
     // Serial1.print(motor4.getB());
     // Serial1.print("m/s: ");
     // Serial1.print("m1=");
-    Serial1.print(motor1.getVelocity());
-    Serial1.print(" ");
-    Serial1.print(motor2.getVelocity());
-    Serial1.print(" ");
-    Serial1.print(motor3.getVelocity());
-    Serial1.print(" ");
-    Serial1.print(motor4.getVelocity());
-    Serial1.println(" 0 1.0");
+    Serial2.print(motor1.getVelocity());
+    Serial2.print(" ");
+    Serial2.print(motor2.getVelocity());
+    Serial2.print(" ");
+    Serial2.print(motor3.getVelocity());
+    Serial2.print(" ");
+    Serial2.print(motor4.getVelocity());
+    Serial2.println(" 0 1.0");
     // Serial1.print("\trpm: ");
     // Serial1.print(motor1.getSpeed());
     // Serial1.print("  ");
@@ -563,6 +565,21 @@ void loop()
     // Serial1.print(motor4.getSpeed());
     // Serial1.println('.');
     t_previous += cycle;
+  }
+  while (Serial2.available())
+  {
+    char tempChar = (char)Serial2.read();
+    if (tempChar != '\n')
+    {
+      messageFromSerial2 += tempChar;
+    }
+    else
+    {
+      msgProcess(messageFromSerial2);
+      Serial1.print("RF: ");
+      Serial1.print(messageFromSerial2);
+      messageFromSerial2 = "";
+    }
   }
 }
 
@@ -579,6 +596,7 @@ void serialEvent1()
     else
     {
       msgProcess(messageFromSerial1);
+      Serial2.print(messageFromSerial1);
       messageFromSerial1 = "";
     }
   }
@@ -619,25 +637,23 @@ void msgProcess(String lightCmd)
   const String topic_name = String(topic);
   if (topic_name.compareTo("control") == 0)
   {
-    const double linear = doc["linear"];
-    const double angular = doc["angular"];
-    // Serial1.println("control velocity");
-    // Serial1.print("linear: ");
-    // Serial1.print(linear);
-    // Serial1.print("\tangular: ");
-    // Serial1.println(angular);
-    velocityProcess(linear, angular);
+    const double linear_x = doc["linear"][0];   // x
+    const double linear_y = doc["linear"][1];   // x
+    const double linear_z = doc["linear"][2];   // x
+    const double angular_r = doc["angular"][0]; // roll
+    const double angular_p = doc["angular"][1]; // pitch
+    const double angular_y = doc["angular"][2]; // yaw
+    velocityProcess(linear_x, angular_y);
   }
   else if (topic_name.compareTo("base_control") == 0)
   {
-    const double linear = doc["linear"];
-    const double angular = doc["angular"];
-    // Serial1.println("control velocity");
-    // Serial1.print("linear: ");
-    // Serial1.print(linear);
-    // Serial1.print("\tangular: ");
-    // Serial1.println(angular);
-    velocityProcess_base(linear, angular);
+    const double linear_x = doc["linear"][0];   // x
+    const double linear_y = doc["linear"][1];   // x
+    const double linear_z = doc["linear"][2];   // x
+    const double angular_r = doc["angular"][0]; // roll
+    const double angular_p = doc["angular"][1]; // pitch
+    const double angular_y = doc["angular"][2]; // yaw
+    velocityProcess_base(linear_x, angular_y);
   }
   else if (topic_name.compareTo("configPID") == 0)
   {
@@ -684,28 +700,27 @@ void velocityProcess(double linear, double angular)
 {
   const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
   double linear_tmp = linear;
-  const double motor_1_velocity = linear_tmp - angular_tmp;
-  const double motor_2_velocity = linear_tmp - angular_tmp;
-  const double motor_3_velocity = linear_tmp + angular_tmp;
-  const double motor_4_velocity = linear_tmp + angular_tmp;
-  // Serial1.print("WHEEL VELOCITY: ");
-  // Serial1.print(motor_1_velocity);
-  // Serial1.print("\t");
-  // Serial1.print(motor_2_velocity);
-  // Serial1.print("\t");
-  // Serial1.print(motor_3_velocity);
-  // Serial1.print("\t");
-  // Serial1.print(motor_4_velocity);
-  // Serial1.print("\tWHEEL SPEED: ");
-  // Serial1.print(motor_1_velocity * WHEEL_SPEED_FACTOR);
-  // Serial1.print("\t");
-  // Serial1.print(motor_2_velocity * WHEEL_SPEED_FACTOR);
-  // Serial1.print("\t");
-  // Serial1.print(motor_3_velocity * WHEEL_SPEED_FACTOR);
-  // Serial1.print("\t");
-  // Serial1.print(motor_4_velocity * WHEEL_SPEED_FACTOR);
-  // Serial1.println("");
-  // Serial.print("generate pwm: ");
+  const double motor_1_velocity = linear_tmp + angular_tmp;
+  const double motor_2_velocity = linear_tmp + angular_tmp;
+  const double motor_3_velocity = linear_tmp - angular_tmp;
+  const double motor_4_velocity = linear_tmp - angular_tmp;
+  Serial1.print("=> m/s: ");
+  Serial1.print(motor_1_velocity);
+  Serial1.print("   ");
+  Serial1.print(motor_2_velocity);
+  Serial1.print("   ");
+  Serial1.print(motor_3_velocity);
+  Serial1.print("   ");
+  Serial1.print(motor_4_velocity);
+  Serial1.print("   rpm: ");
+  Serial1.print(motor_1_velocity * WHEEL_SPEED_FACTOR);
+  Serial1.print("   ");
+  Serial1.print(motor_2_velocity * WHEEL_SPEED_FACTOR);
+  Serial1.print("   ");
+  Serial1.print(motor_3_velocity * WHEEL_SPEED_FACTOR);
+  Serial1.print("   ");
+  Serial1.print(motor_4_velocity * WHEEL_SPEED_FACTOR);
+  Serial1.println("");
   motor1.setVelocity(motor_1_velocity);
   motor2.setVelocity(motor_2_velocity);
   motor3.setVelocity(motor_3_velocity);

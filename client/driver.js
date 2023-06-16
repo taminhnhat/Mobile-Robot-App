@@ -3,7 +3,7 @@
  * Scanners are configured
  */
 require('dotenv').config({ path: './.env' });
-const SerialPort = require('serialport');
+const { SerialPort } = require('serialport');
 
 const logger = require('./logger/logger');
 const rgbHubCycleInMilis = Number(process.env.RGB_HUB_SERIAL_CYCLE) || 100;
@@ -15,25 +15,18 @@ let messageInQueue = []
 let lastCallInMilis = 0
 let reconnectHubInterval
 
+
 //  NEED TO CONFIG SERIAL PORT FIRST, READ 'README.md'
-const driver = new SerialPort(process.env.DRIVER_PATH, {
-  baudRate: Number(process.env.DRIVER_BAUDRATE) || 115200,
-  autoOpen: false
-});
+const driver = new SerialPort({ path: process.env.DRIVER_PATH, baudRate: Number(process.env.DRIVER_BAUDRATE) || 115200, autoOpen: false });
 
 driver.on('open', function () {
   clearInterval(reconnectHubInterval)
-  logger.info({ message: 'rgb hub opened', location: FILE_NAME })
+  logger.info({ message: 'rgb hub opened' })
 });
 
 driver.on('data', function (data) {
   const value = String(data).trim()
-  if (messageBufferFromRgbHub == '\n') {
-    logger.debug(messageBufferFromRgbHub)
-    messageBufferFromRgbHub = ''
-  }
-  else
-    messageBufferFromRgbHub += value
+  logger.debug({ message: value })
 });
 
 driver.on('close', () => {
@@ -46,12 +39,12 @@ driver.on('close', () => {
 });
 
 driver.on('error', (err) => {
-  logger.error('Rgb hub error', { err: err })
+  logger.error('Rgb hub error', { error: err })
 });
 
 /**
- * 
- * @param {String} message 
+ *
+ * @param {String} message
  */
 function queue(message) {
   messageInQueue.push(message)
@@ -74,7 +67,7 @@ function next() {
   if (delayTimeInMilis > 0) {
     setTimeout(() => {
       driver.write(messageToRgbHub, (err, res) => {
-        if (err) logger.error({ message: 'Cannot write to rgb hub', err: err, location: FILE_NAME });
+        if (err) logger.error({ message: 'Cannot write to rgb hub', error: err });
         if (rgbHubDebugMode == 'true');
       });
     }, delayTimeInMilis)
@@ -83,7 +76,7 @@ function next() {
   else {
     setImmediate(() => {
       driver.write(messageToRgbHub, (err, res) => {
-        if (err) logger.error({ message: 'Cannot write to rgb hub', err: err, location: FILE_NAME });
+        if (err) logger.error({ message: 'Cannot write to rgb hub', error: err });
         if (rgbHubDebugMode == 'true');
       });
     })
@@ -93,7 +86,7 @@ function next() {
 }
 
 driver.open((err) => {
-  if (err) logger.error({ message: 'Can not open driver', err: err, location: FILE_NAME });
+  if (err) logger.error({ message: 'Can not open driver', error: err });
   reconnectHubInterval = setInterval(() => {
     driver.open((err) => {
       //
