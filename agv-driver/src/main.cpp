@@ -45,9 +45,10 @@ const double ANGULAR_VELOCITY_FACTOR = (WHEEL_DISTANCE * WHEEL_DISTANCE + WHEEL_
 const double WHEEL_SPEED_FACTOR = 60 / (3.1416 * WHEEL_DIAMETER);
 const double MAX_LINEAR_VELOCITY = MOTOR_MAX_SPEED / WHEEL_SPEED_FACTOR;
 const double MAX_ANGULAR_VELOCITY = (2 * MOTOR_MAX_SPEED) / (WHEEL_SPEED_FACTOR * WHEEL_SEPARATION);
-const uint32_t PWM_MAX_VAL = pow(2, PWM_RESOLUTION) - 1;
-const uint32_t VEL_CAL_CYCLE = 10;    // in ms
-const uint32_t PID_SAMPLE_CYCLE = 50; // in ms
+const int32_t PWM_RESOLUTION_SET = 16;
+const uint32_t PWM_MAX_VAL = pow(2, PWM_RESOLUTION_SET) - 1;
+const uint32_t VEL_CAL_CYCLE = 20;     // in ms
+const uint32_t PID_SAMPLE_CYCLE = 100; // in ms
 
 class MotorControl
 {
@@ -72,8 +73,8 @@ private:
   double v_ave;          // average motor velocity in m/s
   uint32_t v_cou = 0;    // velocity sample counter
   double v_sum = 0;      // velocity sum
-  double v_kp = 500.0;   //
-  double v_ki = 0;       //
+  double v_kp = 20.0;    //
+  double v_ki = 1;       //
   double v_kd = 0;       //
   double v_Pro = 0;      // velocity proportional
   double v_Int = 0;      // velocity integral
@@ -116,29 +117,33 @@ private:
   void velocityCompute()
   {
     this->v_Pro = this->v_set - this->v_ins;
-    const double wheel_speed = abs(this->v_set) * WHEEL_SPEED_FACTOR;     // rpm
-    const uint32_t pwm_val = wheel_speed * PWM_MAX_VAL / MOTOR_MAX_SPEED; // %
-    double Base_Block = pwm_val;
-    double P_Block = this->v_kp * this->v_Pro;
-    double I_Block = this->v_ki * this->v_Int;
-    double D_Block = this->v_kd * this->v_Der;
+    double pid_scale_factor = 1;
+    // if (this->v_Pro < 0.1)
+    //   pid_scale_factor = 2;
+    // else if (this->v_Pro < 0.2)
+    //   pid_scale_factor = 1.4;
+    const double B_Voltage = this->v_set * WHEEL_SPEED_FACTOR * 12 / MOTOR_MAX_SPEED; // %
+    double P_Voltage = pid_scale_factor * this->v_kp * this->v_Pro;
+    double I_Voltage = pid_scale_factor * this->v_ki * this->v_Int;
+    double D_Voltage = pid_scale_factor * this->v_kd * this->v_Der;
     this->v_Int = 0;
     this->v_Der = 0;
 
-    uint32_t duty = round(Base_Block + P_Block + I_Block + D_Block);
+    uint32_t duty = abs(B_Voltage + P_Voltage + I_Voltage + D_Voltage) * PWM_MAX_VAL / 12;
+    // Serial2.print(B_Voltage);
+    // Serial2.print(" ");
+    // Serial2.print(P_Voltage);
+    // Serial2.print(" ");
+    // Serial2.print(I_Voltage);
+    // Serial2.print(" ");
+    // Serial2.print(D_Voltage);
+    // Serial2.print(" ");
+    // Serial2.println(duty);
     if (duty > PWM_MAX_VAL)
       duty = PWM_MAX_VAL;
     if (duty < 0)
       duty = 0;
-    // Serial1.print(this->id);
-    // Serial1.print(":");
-    // Serial1.print(err);
-    // Serial1.print(":");
-    // Serial1.print(Base_Block);
-    // Serial1.print(":");
-    // Serial1.print(duty);
-    // Serial1.print("\t");
-    if (this->v_set > 0)
+    if (B_Voltage > 0)
     {
       digitalWrite(this->DIR_PIN_ADDR, HIGH);
       analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - duty);
@@ -443,12 +448,12 @@ void OnTimer1Interrupt()
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
 void setup()
 {
+  analogWriteResolution(PWM_RESOLUTION_SET);
   // Start serial 1 as external control communication
   Serial1.begin(115200);
   // Start serial 2 as wireless communication (rf/bluetooth)
   Serial2.begin(115200);
 
-  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(DIS_SEN, INPUT);
   pinMode(MOTOR_1_A, INPUT);
   pinMode(MOTOR_1_B, INPUT);
@@ -517,7 +522,7 @@ void setup()
 
 void loop()
 {
-  const uint32_t cycle = 100;
+  const uint32_t cycle = 50;
   const uint32_t t = millis();
   if (t - t_previous >= cycle)
   {
@@ -553,8 +558,7 @@ void loop()
     Serial2.print(" ");
     Serial2.print(motor3.getVelocity());
     Serial2.print(" ");
-    Serial2.print(motor4.getVelocity());
-    Serial2.println(" 0 1.0");
+    Serial2.println(motor4.getVelocity());
     // Serial1.print("\trpm: ");
     // Serial1.print(motor1.getSpeed());
     // Serial1.print("  ");
@@ -596,7 +600,6 @@ void serialEvent1()
     else
     {
       msgProcess(messageFromSerial1);
-      Serial2.print(messageFromSerial1);
       messageFromSerial1 = "";
     }
   }
@@ -675,6 +678,13 @@ void msgProcess(String lightCmd)
       motor3.setPositionPID(kp, ki, kd);
       motor4.setPositionPID(kp, ki, kd);
     }
+  }
+  else if (topic_name.compareTo("info") == 0)
+  {
+    motor1.info();
+    motor2.info();
+    motor3.info();
+    motor4.info();
   }
   else if (topic_name.compareTo("stop") == 0)
   {
