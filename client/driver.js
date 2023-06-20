@@ -17,28 +17,28 @@ let reconnectHubInterval
 
 
 //  NEED TO CONFIG SERIAL PORT FIRST, READ 'README.md'
-const driver = new SerialPort({ path: process.env.DRIVER_PATH, baudRate: Number(process.env.DRIVER_BAUDRATE) || 115200, autoOpen: false });
+const serialDevice = new SerialPort({ path: process.env.DRIVER_PATH, baudRate: Number(process.env.DRIVER_BAUDRATE) || 115200, autoOpen: false });
 
-driver.on('open', function () {
+serialDevice.on('open', function () {
   clearInterval(reconnectHubInterval)
   logger.info({ message: 'rgb hub opened' })
 });
 
-driver.on('data', function (data) {
+serialDevice.on('data', function (data) {
   const value = String(data).trim()
   logger.debug({ message: value })
 });
 
-driver.on('close', () => {
+serialDevice.on('close', () => {
   logger.warn('Rgb hub closed')
   reconnectHubInterval = setInterval(() => {
-    driver.open((err) => {
+    serialDevice.open((err) => {
       //
     });
   }, 10000)
 });
 
-driver.on('error', (err) => {
+serialDevice.on('error', (err) => {
   logger.error('Rgb hub error', { error: err })
 });
 
@@ -66,7 +66,7 @@ function next() {
   const delayTimeInMilis = lastCallInMilis + rgbHubCycleInMilis - presentInMilis
   if (delayTimeInMilis > 0) {
     setTimeout(() => {
-      driver.write(messageToRgbHub, (err, res) => {
+      serialDevice.write(messageToRgbHub, (err, res) => {
         if (err) logger.error({ message: 'Cannot write to rgb hub', error: err });
         if (rgbHubDebugMode == 'true');
       });
@@ -75,7 +75,7 @@ function next() {
   }
   else {
     setImmediate(() => {
-      driver.write(messageToRgbHub, (err, res) => {
+      serialDevice.write(messageToRgbHub, (err, res) => {
         if (err) logger.error({ message: 'Cannot write to rgb hub', error: err });
         if (rgbHubDebugMode == 'true');
       });
@@ -85,13 +85,13 @@ function next() {
   messageInQueue.pop()
 }
 
-driver.open((err) => {
+serialDevice.open((err) => {
   if (err) logger.error({ message: 'Can not open driver', error: err });
   reconnectHubInterval = setInterval(() => {
-    driver.open((err) => {
+    serialDevice.open((err) => {
       //
     });
   }, 10000)
 });
 
-module.exports = { write: queue }
+module.exports = { port: serialDevice, write: queue }
