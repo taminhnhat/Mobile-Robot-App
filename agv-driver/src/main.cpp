@@ -35,13 +35,13 @@
 #define MOTOR_2_PWM PB4
 #define MOTOR_2_DIR PB5
 // define motor 3
-#define MOTOR_3_A PA11
-#define MOTOR_3_B PA12
+#define MOTOR_3_A PA15
+#define MOTOR_3_B PB3
 #define MOTOR_3_PWM PB15
 #define MOTOR_3_DIR PA8
 // define motor 4
-#define MOTOR_4_A PA15
-#define MOTOR_4_B PB3
+#define MOTOR_4_A PA11
+#define MOTOR_4_B PA12
 #define MOTOR_4_PWM PB13
 #define MOTOR_4_DIR PB14
 
@@ -58,8 +58,12 @@ StaticJsonDocument<200> doc;
 // -------------------------------------------------SERIAL--------------------------------------------------------
 HardwareSerial Bridge(PA3, PA2);
 #define Radio Serial1
+bool logVelocityEnable = false; //
+bool logPidEnable = false;      //
+String logMotorId = "";         // "M-1"|"M-2"|"M-3"|"M-4"
 
 // -------------------------------------------------MOTOR--------------------------------------------------------
+bool En_Mecanum_Wheel = true;
 const double WHEEL_SEPARATION = 0.2; // m
 const double WHEEL_DISTANCE = 0.146; // m
 const double WHEEL_DIAMETER = 0.09;  // m
@@ -90,14 +94,13 @@ private:
   double p_kp = 0;        //
   double p_ki = 0;        //
   double p_kd = 0;        //
-  double voltage;         //
   double v_ins;           // instant motor velocity in m/s
   double v_pre = 0;       // previous motor velocity in m/s
   double v_set = 0;       // setpoint motor velocity in m/s
   double v_ave;           // average motor velocity in m/s
   uint32_t v_cou = 0;     // velocity sample counter
   double v_sum = 0;       // velocity sum
-  double v_kp = 0;        //
+  double v_kp = 1.2;      //
   double v_ki = 0;        //
   double v_kd = 0;        //
   double v_Pro = 0;       // velocity proportional
@@ -117,6 +120,7 @@ private:
   uint32_t controlMode;   // 1 for position control, 2 for velocity control
   uint32_t SampleTime;
   uint32_t controllerDirection;
+  uint32_t direction_factor = 1;
 
   struct pid_var
   {
@@ -143,10 +147,10 @@ private:
     //   pid_scale_factor = 2;
     // else if (this->v_Pro < 0.2)
     //   pid_scale_factor = 1.4;
-    const double B_Voltage = this->voltage; // %
-    double P_Voltage = pid_scale_factor * this->v_kp * this->v_Pro;
-    double I_Voltage = pid_scale_factor * this->v_ki * this->v_Int;
-    double D_Voltage = pid_scale_factor * this->v_kd * this->v_Der;
+    this->B_Voltage = this->voltage; // %
+    this->P_Voltage = pid_scale_factor * this->v_kp * this->v_Pro;
+    this->I_Voltage = pid_scale_factor * this->v_ki * this->v_Int;
+    this->D_Voltage = pid_scale_factor * this->v_kd * this->v_Der;
 
     this->v_Int = 0;
     this->v_Der = 0;
@@ -168,8 +172,34 @@ private:
     //   Radio.println(Sum_Voltage);
     // }
   }
+  void drive(double set_voltage)
+  {
+    double output_voltage = set_voltage;
+    if (output_voltage > 12)
+      output_voltage = 12;
+    if (output_voltage < -12)
+      output_voltage = 12;
+    uint32_t duty = abs(output_voltage) * PWM_MAX_VAL / 12;
+    this->voltage = output_voltage;
+    if (output_voltage > 0)
+    {
+      digitalWrite(this->DIR_PIN_ADDR, LOW);
+      analogWrite(this->PWM_PIN_ADDR, duty);
+    }
+    else
+    {
+      digitalWrite(this->DIR_PIN_ADDR, HIGH);
+      analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - duty);
+    }
+  }
 
 public:
+  double voltage; //
+  double B_Voltage = 0;
+  double P_Voltage = 0;
+  double I_Voltage = 0;
+  double D_Voltage = 0;
+
   MotorControl(String id, uint32_t direction_pin, uint32_t pwm_pin, uint32_t a_pin, uint32_t b_pin)
   {
     this->id = id;
@@ -182,6 +212,8 @@ public:
     this->PWM_PIN_ADDR = pwm_pin;
     this->state = "float";
     this->controlMode = 1;
+    if (this->id.compareTo("M-3") == 0 || this->id.compareTo("M-4") == 0)
+      this->direction_factor = -1;
   }
   void setVelocityPID(double v_kp, double v_ki, double v_kd)
   {
@@ -296,33 +328,13 @@ public:
     this->controlMode = 2;
     this->lastcall = millis();
   }
-  void drive(double set_voltage)
-  {
-    double output_voltage = set_voltage;
-    if (output_voltage > 12)
-      output_voltage = 12;
-    if (output_voltage < -12)
-      output_voltage = 12;
-    uint32_t duty = abs(output_voltage) * PWM_MAX_VAL / 12;
-    this->voltage = output_voltage;
-    if (output_voltage > 0)
-    {
-      digitalWrite(this->DIR_PIN_ADDR, LOW);
-      analogWrite(this->PWM_PIN_ADDR, duty);
-    }
-    else
-    {
-      digitalWrite(this->DIR_PIN_ADDR, HIGH);
-      analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - duty);
-    }
-  }
   void lock()
   {
     setPosition(this->p_ins);
   }
   void stop()
   {
-    this->drive(0);
+    this->drive(0.0);
     this->controlMode = 0;
   }
 } motor1("M-1", MOTOR_1_DIR, MOTOR_1_PWM, MOTOR_1_A, MOTOR_1_B),
@@ -412,9 +424,9 @@ uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 
 void msgProcess(String);
-void velocityProcess(double, double);
-void velocityProcessTimeout(double, double, uint32_t);
-void velocityProcess_base(double, double);
+void velocityProcess(double, double, double);
+void velocityProcessTimeout(double, double, double, uint32_t);
+void velocityProcess_base(double, double, double);
 
 // -------------------------------------------------TIMER--------------------------------------------------------
 HardwareTimer timer(TIM1);
@@ -512,13 +524,31 @@ void loop()
   const uint32_t t = millis();
   if (t - t_previous >= cycle)
   {
+    // Radio.print(motor1.voltage);
+    // Radio.print(" ");
+    // Radio.print(motor2.voltage);
+    // Radio.print(" ");
+    // Radio.print(motor3.voltage);
+    // Radio.print(" ");
+    // Radio.print(motor4.voltage);
+
+    // Radio.print(motor3.B_Voltage);
+    // Radio.print(" ");
+    // Radio.print(motor3.P_Voltage);
+    // Radio.print(" ");
+    // Radio.print(motor3.voltage);
+    // Radio.print(" ");
+    // Radio.print(motor3.getVelocity());
+
     Radio.print(motor1.getVelocity());
     Radio.print(" ");
     Radio.print(motor2.getVelocity());
     Radio.print(" ");
     Radio.print(motor3.getVelocity());
     Radio.print(" ");
-    Radio.println(motor4.getVelocity());
+    Radio.print(motor4.getVelocity());
+
+    Radio.println("");
     t_previous += cycle;
   }
   while (Bridge.available())
@@ -583,9 +613,9 @@ void msgProcess(String lightCmd)
     Bridge.print("timeout: ");
     Bridge.println(timeout);
     if (timeout == 0)
-      velocityProcess(linear_x, angular_y);
+      velocityProcess(linear_x, linear_y, angular_y);
     else
-      velocityProcessTimeout(linear_x, angular_y, timeout);
+      velocityProcessTimeout(linear_x, linear_y, angular_y, timeout);
   }
   else if (topic_name.compareTo("base_control") == 0)
   {
@@ -595,7 +625,7 @@ void msgProcess(String lightCmd)
     const double angular_r = doc["angular"][0]; // roll
     const double angular_p = doc["angular"][1]; // pitch
     const double angular_y = doc["angular"][2]; // yaw
-    velocityProcess_base(linear_x, angular_y);
+    velocityProcess_base(linear_x, linear_y, angular_y);
   }
   else if (topic_name.compareTo("configPID") == 0)
   {
@@ -616,6 +646,19 @@ void msgProcess(String lightCmd)
       motor2.setPositionPID(kp, ki, kd);
       motor3.setPositionPID(kp, ki, kd);
       motor4.setPositionPID(kp, ki, kd);
+    }
+  }
+  else if (topic_name.compareTo("configLog") == 0)
+  {
+    bool velocityLogEnable = doc["velocity"];
+    bool pidLogEnable = doc["velocity"];
+    if (velocityLogEnable == true)
+      logVelocityEnable = true;
+    else
+      logVelocityEnable = false;
+    if (pidLogEnable == true)
+    {
+      logVelocityEnable = true;
     }
   }
   else if (topic_name.compareTo("info") == 0)
@@ -645,16 +688,29 @@ void msgProcess(String lightCmd)
   }
 }
 
-void velocityProcess(double linear, double angular)
+void velocityProcess(double linear_x, double linear_y, double angular)
 {
   velocity_lastcall = millis();
   OnVelocityControl = true;
+  double motor_1_velocity = 0;
+  double motor_2_velocity = 0;
+  double motor_3_velocity = 0;
+  double motor_4_velocity = 0;
   const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
-  double linear_tmp = linear;
-  const double motor_1_velocity = linear_tmp + angular_tmp;
-  const double motor_2_velocity = linear_tmp + angular_tmp;
-  const double motor_3_velocity = linear_tmp - angular_tmp;
-  const double motor_4_velocity = linear_tmp - angular_tmp;
+  if (En_Mecanum_Wheel == true)
+  {
+    motor_1_velocity = linear_x + linear_y + angular_tmp;
+    motor_2_velocity = linear_x - linear_y + angular_tmp;
+    motor_3_velocity = linear_x + linear_y - angular_tmp;
+    motor_4_velocity = linear_x - linear_y - angular_tmp;
+  }
+  else
+  {
+    motor_1_velocity = linear_x + angular_tmp;
+    motor_2_velocity = linear_x + angular_tmp;
+    motor_3_velocity = linear_x - angular_tmp;
+    motor_4_velocity = linear_x - angular_tmp;
+  }
   Bridge.print("=> m/s: ");
   Bridge.print(motor_1_velocity);
   Bridge.print("   ");
@@ -678,21 +734,21 @@ void velocityProcess(double linear, double angular)
   motor4.setVelocity(motor_4_velocity);
 }
 
-void velocityProcessTimeout(double linear, double angular, uint32_t timeout)
+void velocityProcessTimeout(double linear_x, double linear_y, double angular, uint32_t timeout)
 {
   velocity_timeout = timeout;
-  velocityProcess(linear, angular);
+  velocityProcess(linear_x, linear_y, angular);
 }
 
-void velocityProcess_base(double linear, double angular)
+void velocityProcess_base(double linear_x, double linear_y, double angular)
 {
   velocity_lastcall = millis();
   const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
-  double linear_tmp = linear;
-  const double motor_1_velocity = linear_tmp - angular_tmp;
-  const double motor_2_velocity = linear_tmp - angular_tmp;
-  const double motor_3_velocity = linear_tmp + angular_tmp;
-  const double motor_4_velocity = linear_tmp + angular_tmp;
+  double linear_tmp = linear_x;
+  const double motor_1_velocity = linear_tmp + angular_tmp;
+  const double motor_2_velocity = linear_tmp + angular_tmp;
+  const double motor_3_velocity = linear_tmp - angular_tmp;
+  const double motor_4_velocity = linear_tmp - angular_tmp;
   Bridge.print("WHEEL VELOCITY: ");
   Bridge.print(motor_1_velocity);
   Bridge.print("\t");
