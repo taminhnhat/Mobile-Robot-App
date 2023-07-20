@@ -35,13 +35,13 @@
 #define MOTOR_2_PWM PB4
 #define MOTOR_2_DIR PB5
 // define motor 3
-#define MOTOR_3_A PA15
-#define MOTOR_3_B PB3
+#define MOTOR_3_B PA15
+#define MOTOR_3_A PB3
 #define MOTOR_3_PWM PB15
 #define MOTOR_3_DIR PA8
 // define motor 4
-#define MOTOR_4_A PA11
-#define MOTOR_4_B PA12
+#define MOTOR_4_B PA11
+#define MOTOR_4_A PA12
 #define MOTOR_4_PWM PB13
 #define MOTOR_4_DIR PB14
 
@@ -66,17 +66,17 @@ String logMotorId = "";         // "M-1"|"M-2"|"M-3"|"M-4"
 bool En_Mecanum_Wheel = true;
 const double WHEEL_SEPARATION = 0.2; // m
 const double WHEEL_DISTANCE = 0.146; // m
-const double WHEEL_DIAMETER = 0.09;  // m
-const double MOTOR_MAX_SPEED = 333;  // rpm
-const double MOTOR_MAX_PPR = 1320.0; // motor max speed in pulses per round
+const double WHEEL_DIAMETER = 0.096; // m
+const double MOTOR_MAX_SPEED = 111;  // rpm
+const double MOTOR_MAX_PPR = 3960;   // motor max speed in pulses per round
 const double ANGULAR_VELOCITY_FACTOR = (WHEEL_DISTANCE * WHEEL_DISTANCE + WHEEL_SEPARATION * WHEEL_SEPARATION) / (2 * WHEEL_SEPARATION);
-const double WHEEL_SPEED_FACTOR = 60 / (3.1416 * WHEEL_DIAMETER);
+const double WHEEL_SPEED_FACTOR = 60 / (M_PI * WHEEL_DIAMETER);
 const double MAX_LINEAR_VELOCITY = MOTOR_MAX_SPEED / WHEEL_SPEED_FACTOR;
 const double MAX_ANGULAR_VELOCITY = (2 * MOTOR_MAX_SPEED) / (WHEEL_SPEED_FACTOR * WHEEL_SEPARATION);
 const int32_t PWM_RESOLUTION_SET = 16;
 const uint32_t PWM_MAX_VAL = pow(2, PWM_RESOLUTION_SET) - 1;
-const uint32_t VEL_CAL_CYCLE = 20;    // in ms
-const uint32_t PID_SAMPLE_CYCLE = 40; // in ms
+const uint32_t VEL_CAL_CYCLE = 10;    // in ms
+const uint32_t PID_SAMPLE_CYCLE = 10; // in ms
 
 class MotorControl
 {
@@ -90,6 +90,7 @@ private:
   int64_t p_ins;          // instant encoder pulse value
   int64_t p_pre;          // previous encoder pulse value
   int64_t p_set;          // setpoint encoder pulse value
+  int64_t d_p = 0;        //
   int64_t p_ave;          // average encoder pulse value
   double p_kp = 0;        //
   double p_ki = 0;        //
@@ -100,9 +101,9 @@ private:
   double v_ave;           // average motor velocity in m/s
   uint32_t v_cou = 0;     // velocity sample counter
   double v_sum = 0;       // velocity sum
-  double v_kp = 1.2;      //
+  double v_kp = 3.0;      //
   double v_ki = 0;        //
-  double v_kd = 0;        //
+  double v_kd = 180.0;    //
   double v_Pro = 0;       // velocity proportional
   double v_Int = 0;       // velocity integral
   double v_Der = 0;       // velocity derivative
@@ -143,34 +144,24 @@ private:
   {
     this->v_Pro = this->v_set - this->v_ins;
     double pid_scale_factor = 1;
-    // if (this->v_Pro < 0.1)
-    //   pid_scale_factor = 2;
-    // else if (this->v_Pro < 0.2)
-    //   pid_scale_factor = 1.4;
-    this->B_Voltage = this->voltage; // %
+    if (this->v_Pro < 0.1)
+      pid_scale_factor = 3;
+    else if (this->v_Pro < 0.2)
+      pid_scale_factor = 2;
+    this->B_Voltage = this->voltage;
+    // if (abs(this->v_Pro) > 0.005)
+    //   this->P_Voltage = pid_scale_factor * this->v_kp * this->v_Pro;
+    // else
+    //   this->P_Voltage = 0;
     this->P_Voltage = pid_scale_factor * this->v_kp * this->v_Pro;
-    this->I_Voltage = pid_scale_factor * this->v_ki * this->v_Int;
-    this->D_Voltage = pid_scale_factor * this->v_kd * this->v_Der;
+    this->I_Voltage = this->v_ki * this->v_Int;
+    this->D_Voltage = this->v_kd * this->v_Der;
 
     this->v_Int = 0;
     this->v_Der = 0;
 
     double Sum_Voltage = B_Voltage + P_Voltage + I_Voltage + D_Voltage;
     this->drive(Sum_Voltage);
-    // if (this->id.compareTo("M-3") == 0)
-    // {
-    //   Radio.print(this->v_Pro);
-    //   Radio.print(" ");
-    //   Radio.print(B_Voltage);
-    //   Radio.print(" ");
-    //   // Radio.print(P_Voltage);
-    //   // Radio.print(" ");
-    //   // Radio.print(I_Voltage);
-    //   // Radio.print(" ");
-    //   // Radio.print(D_Voltage);
-    //   // Radio.print(" ");
-    //   Radio.println(Sum_Voltage);
-    // }
   }
   void drive(double set_voltage)
   {
@@ -248,22 +239,33 @@ public:
   }
   void tick(uint32_t t)
   {
+    // calculate instant velocity
     const int64_t present_p = this->p_ins;
     const uint32_t present_t = millis();
-    uint32_t d_t = present_t - this->last_t;
-    int64_t d_p = present_p - this->p_pre;
-    this->v_ins = (d_p * 60000.0) / (d_t * MOTOR_MAX_PPR * WHEEL_SPEED_FACTOR);
+    uint32_t d_t = present_t - this->last_t; // in miliseconds
+    this->d_p = present_p - this->p_pre;
+    this->v_ins = (this->d_p * 60000.0) / (d_t * MOTOR_MAX_PPR * WHEEL_SPEED_FACTOR);
     this->p_pre = present_p;
     this->last_t = present_t;
+
+    // prepare for calculating everage velocity
     this->v_sum += v_ins;
     this->v_cou++;
-    this->v_Int += (this->v_ins - this->v_set) * d_t;
-    this->v_Der += (this->v_ins - this->v_pre) / d_t;
+
+    // calculate Integral
+    this->v_Int += (this->v_set - this->v_ins) * d_t;
+    // calculate derivative
+    this->v_Der = (this->v_pre - this->v_ins) / d_t;
+
     this->v_pre = this->v_ins;
+
+    // check pid cycle
     if (present_t - this->last_pid_t >= PID_SAMPLE_CYCLE)
     {
       this->last_pid_t = present_p;
+      // pid computing
       pidCompute();
+      // calculate average volocity
       this->v_ave = this->v_sum / this->v_cou;
       this->v_sum = 0;
       this->v_cou = 0;
@@ -279,7 +281,6 @@ public:
     case 2: // Control velocity mode
       this->velocityCompute();
       break;
-
     default:
       break;
     }
@@ -315,6 +316,10 @@ public:
   double getSpeed()
   {
     return this->v_ins * WHEEL_SPEED_FACTOR;
+  }
+  int32_t getdp()
+  {
+    return this->d_p;
   }
   void setPosition(int32_t p)
   {
