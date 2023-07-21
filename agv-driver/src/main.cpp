@@ -145,9 +145,9 @@ private:
     this->v_Pro = this->v_set - this->v_ins;
     double pid_scale_factor = 1;
     if (this->v_Pro < 0.1)
-      pid_scale_factor = 3;
-    else if (this->v_Pro < 0.2)
       pid_scale_factor = 2;
+    else if (this->v_Pro < 0.2)
+      pid_scale_factor = 1.5;
     this->B_Voltage = this->voltage;
     // if (abs(this->v_Pro) > 0.005)
     //   this->P_Voltage = pid_scale_factor * this->v_kp * this->v_Pro;
