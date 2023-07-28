@@ -198,7 +198,7 @@ public:
         const uint32_t present_t = millis();
         uint32_t d_t = present_t - this->last_t; // in miliseconds
         this->d_p = present_p - this->p_pre;
-        this->v_ins = (this->d_p * 60000.0) / (d_t * CONFIG.MOTOR_MAX_PPR * CONFIG.MPS_TO_RPM_FACTOR);
+        this->v_ins = (this->d_p * 60000.0 * CONFIG.RPM_TO_MPS_FACTOR) / (d_t * CONFIG.MOTOR_MAX_PPR);
         this->p_pre = present_p;
         this->last_t = present_t;
 
@@ -288,10 +288,12 @@ public:
     }
     void setVelocity(double v)
     {
-        if (v > CONFIG.MOTOR_MAX_SPEED_IN_MPS)
-            return;
+        if (v > CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS)
+            v = CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS;
+        if (v < -CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS)
+            v = -CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS;
         this->v_set = v;
-        this->voltage = this->v_set * CONFIG.MPS_TO_RPM_FACTOR * 12 / CONFIG.MOTOR_MAX_SPEED_IN_RPM;
+        this->voltage = this->v_set * 12 / CONFIG.MOTOR_MAX_SPEED_IN_MPS;
         this->controlMode = IF_VELOCITY_CONTROL_MODE;
         this->lastcall = millis();
     }
