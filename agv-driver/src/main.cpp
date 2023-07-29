@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "checksum.h"
-#include "motor.h"
+#include "hardware_control.h"
 #include <math.h>
 
 // -------------------------------------------------JSON--------------------------------------------------------
@@ -122,6 +122,10 @@ void OnTimer1Interrupt()
     motor3.tick(CONFIG.VEL_CAL_CYCLE);
     motor4.tick(CONFIG.VEL_CAL_CYCLE);
   }
+  if (timer_count % CONFIG.BAT_VOL_CAL_CYCLE == 0)
+  {
+    battery.tick();
+  }
   else if (timer_count % 1000 == 0)
   {
     //
@@ -211,6 +215,10 @@ void loop()
     // Radio.print(motor3.voltage);
     // Radio.print(" ");
     // Radio.print(motor3.getVelocity());
+
+    Bridge.print("battery: ");
+    // Bridge.println(battery.getSignal());
+    Bridge.println(battery.getAverageVoltage());
 
     Radio.print(motor1.getSetVelocity());
     Radio.print(" ");
@@ -397,6 +405,9 @@ void msgProcess(String lightCmd)
     motor2.info();
     motor3.info();
     motor4.info();
+    Bridge.print("battery voltage: ");
+    Bridge.print(battery.getAverageVoltage());
+    Bridge.println(" V");
   }
   else if (topic_name.compareTo("stop") == 0)
   {

@@ -310,3 +310,47 @@ public:
     motor2("M-2", MOTOR_2_DIR, MOTOR_2_PWM, MOTOR_2_A, MOTOR_2_B),
     motor3("M-3", MOTOR_3_DIR, MOTOR_3_PWM, MOTOR_3_A, MOTOR_3_B),
     motor4("M-4", MOTOR_4_DIR, MOTOR_4_PWM, MOTOR_4_A, MOTOR_4_B);
+
+class Battery
+
+{
+private:
+    uint32_t sig;            //
+    double vol_ins;          // instant voltage
+    double vol_sum = 0;      // sum voltage
+    double vol_ave;          // average voltage
+    uint32_t vol_cou;        // voltage sampling count
+    uint32_t cal_cyc = 1000; // calculating average voltage cycle
+    uint64_t last_t = 0;
+
+public:
+    Battery(/* args */) {}
+    ~Battery() {}
+    void tick()
+    {
+        this->sig = analogRead(BATTERY_SENSOR);
+        this->vol_ins = 3.3 * 5 * analogRead(BATTERY_SENSOR) / 1023;
+        this->vol_sum += this->vol_ins;
+        this->vol_cou++;
+        const uint64_t present_t = millis();
+        if (present_t - this->last_t >= this->cal_cyc)
+        {
+            this->vol_ave = this->vol_sum / this->vol_cou;
+            this->vol_sum = 0;
+            this->vol_cou = 0;
+            this->last_t = present_t;
+        }
+    }
+    uint32_t getSignal()
+    {
+        return this->sig;
+    }
+    double getVoltage()
+    {
+        return this->vol_ins;
+    }
+    double getAverageVoltage()
+    {
+        return this->vol_ave;
+    }
+} battery;
