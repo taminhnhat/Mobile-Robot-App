@@ -11,7 +11,7 @@ StaticJsonDocument<200> doc;
 HardwareSerial Bridge(PA3, PA2);
 #define Radio Serial1
 bool logVelocityEnable = false; //
-bool CRC_Enable = true;
+bool CRC_Enable = false;
 
 void EncoderHandle_1_A()
 {
@@ -220,13 +220,13 @@ void loop()
     // Bridge.println(battery.getSignal());
     Bridge.println(battery.getAverageVoltage());
 
-    Radio.print(motor1.getSetVelocity());
+    Radio.print(motor1.getVelocity());
     Radio.print(" ");
-    Radio.print(motor2.getSetVelocity());
+    Radio.print(motor2.getVelocity());
     Radio.print(" ");
-    Radio.print(motor3.getSetVelocity());
+    Radio.print(motor3.getVelocity());
     Radio.print(" ");
-    Radio.print(motor4.getSetVelocity());
+    Radio.print(motor4.getVelocity());
 
     Radio.println("");
     t_previous += cycle;
