@@ -29,7 +29,7 @@
 #define MOTOR_4_DIR PB14
 
 // define sensor
-#define DIS_SEN PA1
+#define DISTANCE_SENSOR PA1
 #define FRONT_LIGHT PC13
 #define BATTERY_SENSOR PB0
 
@@ -315,7 +315,6 @@ class Battery
 
 {
 private:
-    uint32_t sig;            //
     double vol_ins;          // instant voltage
     double vol_sum = 0;      // sum voltage
     double vol_ave;          // average voltage
@@ -328,7 +327,6 @@ public:
     ~Battery() {}
     void tick()
     {
-        this->sig = analogRead(BATTERY_SENSOR);
         this->vol_ins = 3.3 * 5 * analogRead(BATTERY_SENSOR) / 1023;
         this->vol_sum += this->vol_ins;
         this->vol_cou++;
@@ -341,10 +339,6 @@ public:
             this->last_t = present_t;
         }
     }
-    uint32_t getSignal()
-    {
-        return this->sig;
-    }
     double getVoltage()
     {
         return this->vol_ins;
@@ -354,3 +348,59 @@ public:
         return this->vol_ave;
     }
 } battery;
+
+class DistanceSensor
+
+{
+private:
+    double vol_ins;         // instant voltage
+    double dis_ins;         // instant distance
+    double dis_sum = 0;     // sum voltage
+    double dis_ave;         // average voltage
+    uint32_t dis_cou;       // voltage sampling count
+    uint32_t cal_cyc = 100; // calculating average voltage cycle
+    uint64_t last_t = 0;
+    const double vol_factor = 3.3 / 1024;
+
+public:
+    DistanceSensor(/* args */) {}
+    ~DistanceSensor() {}
+    void tick()
+    {
+        this->vol_ins = analogRead(DISTANCE_SENSOR) * this->vol_factor;
+        if (vol_ins < 0.3)
+        {
+            this->dis_ins = 0;
+        }
+        if (vol_ins < 2.33)
+        {
+            this->dis_ins = 0;
+        }
+        else if (vol_ins < 3.3)
+        {
+            this->dis_ins = 0;
+        }
+        else
+        {
+            //
+        }
+        this->dis_sum += this->dis_ins;
+        this->dis_cou++;
+        const uint64_t present_t = millis();
+        if (present_t - this->last_t >= this->cal_cyc)
+        {
+            this->dis_ave = this->dis_sum / this->dis_cou;
+            this->dis_sum = 0;
+            this->dis_cou = 0;
+            this->last_t = present_t;
+        }
+    }
+    double getDistance()
+    {
+        return this->dis_ins;
+    }
+    double getAverageDistance()
+    {
+        return this->dis_ave;
+    }
+} distance;

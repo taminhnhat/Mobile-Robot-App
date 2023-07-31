@@ -126,6 +126,10 @@ void OnTimer1Interrupt()
   {
     battery.tick();
   }
+  if (timer_count % CONFIG.DIS_VOL_CAL_CYCLE == 0)
+  {
+    distance.tick();
+  }
   else if (timer_count % 1000 == 0)
   {
     //
@@ -141,7 +145,7 @@ void setup()
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
 
-  pinMode(DIS_SEN, INPUT);
+  pinMode(DISTANCE_SENSOR, INPUT);
   pinMode(MOTOR_1_A, INPUT);
   pinMode(MOTOR_1_B, INPUT);
   pinMode(MOTOR_2_A, INPUT);
@@ -216,9 +220,12 @@ void loop()
     // Radio.print(" ");
     // Radio.print(motor3.getVelocity());
 
-    Bridge.print("battery: ");
-    // Bridge.println(battery.getSignal());
-    Bridge.println(battery.getAverageVoltage());
+    // Bridge.print("battery: ");
+    // Bridge.println(battery.getAverageVoltage());
+
+    Bridge.print("distance: ");
+    Bridge.println(distance.getDistance());
+    // Bridge.println(analogRead(PA1));
 
     Radio.print(motor1.getVelocity());
     Radio.print(" ");

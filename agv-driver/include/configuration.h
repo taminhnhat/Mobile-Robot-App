@@ -18,6 +18,7 @@ struct CONF_
     const uint32_t PWM_MAX_VAL = pow(2, PWM_RESOLUTION_SET) - 1;
     const uint32_t VEL_CAL_CYCLE = 10;      // in ms
     const uint32_t BAT_VOL_CAL_CYCLE = 100; // in ms
+    const uint32_t DIS_VOL_CAL_CYCLE = 10;  // in ms
     const uint32_t PID_SAMPLE_CYCLE = 10;   // in ms
 };
 
