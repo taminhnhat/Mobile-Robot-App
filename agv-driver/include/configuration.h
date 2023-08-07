@@ -2,7 +2,9 @@
 
 struct CONF_
 {
-    bool EN_MECANUM_WHEEL = true;
+    bool CRC_Enable = true;
+    bool EN_MECANUM_WHEEL = false;
+    bool EN_VELOCITY_LOG = false;                                                     //
     const double WHEEL_SEPARATION = 0.2;                                              // m
     const double WHEEL_DISTANCE = 0.146;                                              // m
     const double WHEEL_DIAMETER = 0.096;                                              // m

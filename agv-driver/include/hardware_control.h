@@ -33,7 +33,9 @@
 #define FRONT_LIGHT PC13
 #define BATTERY_SENSOR PB0
 
-// struct CONF_ CONFIG;
+#define Radio Serial1
+
+HardwareSerial Bridge(PA3, PA2);
 
 class MotorControl
 {
@@ -174,22 +176,22 @@ public:
     }
     void info()
     {
-        // Bridge.print("Motor ");
-        // Bridge.print(this->id);
-        // Bridge.print("\tVelocity:");
-        // Bridge.print(" kp:");
-        // Bridge.print(this->v_kp);
-        // Bridge.print(" ki:");
-        // Bridge.print(this->v_ki);
-        // Bridge.print(" kd:");
-        // Bridge.println(this->v_kd);
-        // Bridge.print("Position: ");
-        // Bridge.print(" kp:");
-        // Bridge.print(this->p_kp);
-        // Bridge.print(" ki:");
-        // Bridge.print(this->p_ki);
-        // Bridge.print(" kd:");
-        // Bridge.println(this->p_kd);
+        Bridge.print("Motor ");
+        Bridge.print(this->id);
+        Bridge.print("\tVelocity:");
+        Bridge.print(" kp:");
+        Bridge.print(this->v_kp);
+        Bridge.print(" ki:");
+        Bridge.print(this->v_ki);
+        Bridge.print(" kd:");
+        Bridge.println(this->v_kd);
+        Bridge.print("Position: ");
+        Bridge.print(" kp:");
+        Bridge.print(this->p_kp);
+        Bridge.print(" ki:");
+        Bridge.print(this->p_ki);
+        Bridge.print(" kd:");
+        Bridge.println(this->p_kd);
     }
     void tick(uint32_t t)
     {
@@ -368,21 +370,30 @@ public:
     void tick()
     {
         this->vol_ins = analogRead(DISTANCE_SENSOR) * this->vol_factor;
-        if (vol_ins < 0.3)
+
+        if (this->vol_ins > 2.0)
         {
-            this->dis_ins = 0;
+            motor1.stop();
+            motor2.stop();
+            motor3.stop();
+            motor4.stop();
         }
-        if (vol_ins < 2.33)
+
+        if (this->vol_ins < 0.3)
         {
-            this->dis_ins = 0;
+            this->dis_ins = 100;
         }
-        else if (vol_ins < 3.3)
+        else if (this->vol_ins < 2.33)
         {
-            this->dis_ins = 0;
+            this->dis_ins = 12.5926 / (this->vol_ins + 0.0148) - 0.42;
+        }
+        else if (this->vol_ins < 3.3)
+        {
+            this->dis_ins = 8.5714 / (this->vol_ins - 0.7714) - 0.42;
         }
         else
         {
-            //
+            this->dis_ins = 0;
         }
         this->dis_sum += this->dis_ins;
         this->dis_cou++;
@@ -394,6 +405,10 @@ public:
             this->dis_cou = 0;
             this->last_t = present_t;
         }
+    }
+    double getVoltage()
+    {
+        return this->vol_ins;
     }
     double getDistance()
     {

@@ -7,12 +7,6 @@
 // -------------------------------------------------JSON--------------------------------------------------------
 StaticJsonDocument<200> doc;
 
-// -------------------------------------------------SERIAL--------------------------------------------------------
-HardwareSerial Bridge(PA3, PA2);
-#define Radio Serial1
-bool logVelocityEnable = false; //
-bool CRC_Enable = false;
-
 void EncoderHandle_1_A()
 {
   uint32_t state_a = digitalRead(MOTOR_1_A);
@@ -95,7 +89,7 @@ uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 
 int64_t lastMsgProcess = 0;
-void msgProcess(String);
+void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
 void velocityProcess_base(double, double, double);
@@ -223,19 +217,21 @@ void loop()
     // Bridge.print("battery: ");
     // Bridge.println(battery.getAverageVoltage());
 
-    Bridge.print("distance: ");
-    Bridge.println(distance.getDistance());
+    // Bridge.print("distance: ");
+    // Bridge.println(distance.getVoltage());
     // Bridge.println(analogRead(PA1));
 
-    Radio.print(motor1.getVelocity());
-    Radio.print(" ");
-    Radio.print(motor2.getVelocity());
-    Radio.print(" ");
-    Radio.print(motor3.getVelocity());
-    Radio.print(" ");
-    Radio.print(motor4.getVelocity());
-
-    Radio.println("");
+    if (CONFIG.EN_VELOCITY_LOG)
+    {
+      Radio.print(motor1.getVelocity());
+      Radio.print(" ");
+      Radio.print(motor2.getVelocity());
+      Radio.print(" ");
+      Radio.print(motor3.getVelocity());
+      Radio.print(" ");
+      Radio.print(motor4.getVelocity());
+      Radio.println("");
+    }
     t_previous += cycle;
   }
   while (Bridge.available())
@@ -247,7 +243,7 @@ void loop()
     }
     else
     {
-      msgProcess(messageFromBridge);
+      msgProcess(messageFromBridge, Bridge);
       messageFromBridge = "";
     }
   }
@@ -265,35 +261,35 @@ void serialEvent1()
     }
     else
     {
-      msgProcess(messageFromRadio);
+      msgProcess(messageFromRadio, Radio);
       messageFromRadio = "";
     }
   }
 }
 
-void msgProcess(String lightCmd)
+void msgProcess(String lightCmd, Stream &stream)
 {
   Bridge.print(">>> cmd: ");
   Bridge.print(lightCmd);
-  if (CRC_Enable == true)
+  uint32_t idx = lightCmd.indexOf('{'); //
+
+  String cmd_cs = lightCmd.substring(0, idx); // received checksum
+  uint32_t rec_cs = 0;
+  for (unsigned int i = 0; i < cmd_cs.length(); i++)
   {
-    uint32_t idx = lightCmd.indexOf('{'); //
+    rec_cs = rec_cs * 10 + (cmd_cs[i] - '0');
+  }
+  lightCmd = lightCmd.substring(idx);       // split light comment from message
+  uint32_t cal_cs = crc_generate(lightCmd); // calculated checksum
 
-    String cmd_cs = lightCmd.substring(0, idx); // received checksum
-    uint32_t rec_cs = 0;
-    for (unsigned int i = 0; i < cmd_cs.length(); i++)
-    {
-      rec_cs = rec_cs * 10 + (cmd_cs[i] - '0');
-    }
-    lightCmd = lightCmd.substring(idx);   // split light comment from message
-    uint32_t cal_cs = checksum(lightCmd); // calculated checksum
+  // Radio.print("rec_cs: ");
+  // Radio.println(rec_cs);
+  // Radio.print("cal_cs: ");
+  // Radio.println(cal_cs);
 
-    // Radio.print("rec_cs: ");
-    // Radio.println(rec_cs);
-    // Radio.print("cal_cs: ");
-    // Radio.println(cal_cs);
-
-    // checksum
+  // checksum
+  if (CONFIG.CRC_Enable == true)
+  {
     if (rec_cs != cal_cs)
       return;
   }
@@ -325,15 +321,15 @@ void msgProcess(String lightCmd)
 
     if (angular_y > 2)
     {
-      Bridge.print(micros() - lastMsgProcess);
-      Bridge.print("    ALERT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    yaw = ");
-      Bridge.println(angular_y);
-      Bridge.print(lightCmd);
+      stream.print(micros() - lastMsgProcess);
+      stream.print("    ALERT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    yaw = ");
+      stream.println(angular_y);
+      stream.print(lightCmd);
       return;
     }
 
-    // Bridge.print("timeout: ");
-    // Bridge.println(timeout);
+    // stream.print("timeout: ");
+    // stream.println(timeout);
     if (timeout == 0)
       velocityProcess(linear_x, linear_y, angular_y);
     else
@@ -341,26 +337,28 @@ void msgProcess(String lightCmd)
   }
   else if (topic_name.compareTo("wheel_control") == 0)
   {
-    const double r_wheel_speed = doc["velocity"][0]; // rad/s
-    const double l_wheel_speed = doc["velocity"][1]; // rad/s
-    const double motor_1_velocity = r_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
-    const double motor_2_velocity = motor_1_velocity;
-    const double motor_3_velocity = l_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
-    const double motor_4_velocity = motor_3_velocity;
-    motor1.setVelocity(motor_1_velocity);
-    motor2.setVelocity(motor_2_velocity);
-    motor3.setVelocity(motor_3_velocity);
-    motor4.setVelocity(motor_4_velocity);
-  }
-  else if (topic_name.compareTo("base_control") == 0)
-  {
-    const double linear_x = doc["linear"][0];   // x
-    const double linear_y = doc["linear"][1];   // x
-    const double linear_z = doc["linear"][2];   // x
-    const double angular_r = doc["angular"][0]; // roll
-    const double angular_p = doc["angular"][1]; // pitch
-    const double angular_y = doc["angular"][2]; // yaw
-    velocityProcess_base(linear_x, linear_y, angular_y);
+    const double front_right_wheel_speed = doc["velocity"][0]; // rad/s
+    const double rear_right_wheel_speed = doc["velocity"][1];  // rad/s
+    const double rear_left_wheel_speed = doc["velocity"][2];   // rad/s
+    const double front_left_wheel_speed = doc["velocity"][3];  // rad/s
+    const double motor_1_velocity = front_right_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
+    const double motor_2_velocity = rear_right_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
+    const double motor_3_velocity = rear_left_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
+    const double motor_4_velocity = front_left_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
+    if (CONFIG.EN_MECANUM_WHEEL == true)
+    {
+      motor1.setVelocity(motor_1_velocity);
+      motor2.setVelocity(motor_2_velocity);
+      motor3.setVelocity(motor_3_velocity);
+      motor4.setVelocity(motor_4_velocity);
+    }
+    else
+    {
+      motor1.setVelocity(motor_1_velocity);
+      motor2.setVelocity(motor_1_velocity);
+      motor3.setVelocity(motor_4_velocity);
+      motor4.setVelocity(motor_4_velocity);
+    }
   }
   else if (topic_name.compareTo("configPID") == 0)
   {
@@ -383,28 +381,43 @@ void msgProcess(String lightCmd)
       motor4.setPositionPID(kp, ki, kd);
     }
   }
-  else if (topic_name.compareTo("configLog") == 0)
+  else if (topic_name.compareTo("config") == 0)
   {
-    bool velocityLogEnable = doc["velocity"];
-    bool pidLogEnable = doc["velocity"];
-    if (velocityLogEnable == true)
-      logVelocityEnable = true;
-    else
-      logVelocityEnable = false;
-    if (pidLogEnable == true)
-    {
-      logVelocityEnable = true;
-    }
+    const String enableLog = doc["enable"];
+    if (enableLog.compareTo("true") == 0)
+      CONFIG.EN_VELOCITY_LOG = true;
+    else if (enableLog.compareTo("false") == 0)
+      CONFIG.EN_VELOCITY_LOG = false;
+  }
+  else if (topic_name.compareTo("enableVelocityLog") == 0)
+  {
+    CONFIG.EN_VELOCITY_LOG = true;
+    stream.println("Succes Enable Velocity Log!");
+  }
+  else if (topic_name.compareTo("disableVelocityLog") == 0)
+  {
+    CONFIG.EN_VELOCITY_LOG = false;
+    stream.println("Succes Disable Velocity Log!");
   }
   else if (topic_name.compareTo("enableCRC") == 0)
   {
-    CRC_Enable = true;
-    Bridge.println("Enable CRC");
+    CONFIG.CRC_Enable = true;
+    stream.println("Succes Enable CRC!");
   }
   else if (topic_name.compareTo("disableCRC") == 0)
   {
-    CRC_Enable = false;
-    Bridge.println("Disable CRC");
+    CONFIG.CRC_Enable = false;
+    stream.println("Success Disable CRC!");
+  }
+  else if (topic_name.compareTo("enableMecanum") == 0)
+  {
+    CONFIG.EN_MECANUM_WHEEL = true;
+    stream.println("Succes Enable Mecanum Wheel Mode!");
+  }
+  else if (topic_name.compareTo("disableMecanum") == 0)
+  {
+    CONFIG.EN_MECANUM_WHEEL = false;
+    stream.println("Success Disable Mecanum Wheel Mode!");
   }
   else if (topic_name.compareTo("info") == 0)
   {
@@ -412,9 +425,29 @@ void msgProcess(String lightCmd)
     motor2.info();
     motor3.info();
     motor4.info();
-    Bridge.print("battery voltage: ");
-    Bridge.print(battery.getAverageVoltage());
-    Bridge.println(" V");
+    stream.print("battery voltage: ");
+    stream.print(battery.getAverageVoltage());
+    stream.println(" V");
+
+    stream.print("CRC Enable: ");
+    stream.println(CONFIG.CRC_Enable);
+
+    stream.print("Mecanum Wheel Enable: ");
+    stream.println(CONFIG.EN_MECANUM_WHEEL);
+  }
+  else if (topic_name.compareTo("status") == 0)
+  {
+    doc["battery"] = battery.getAverageVoltage();
+
+    JsonArray data = doc.createNestedArray("data");
+    data.add(48.75);
+    data.add(2.30);
+
+    char buffer[100];
+    serializeJson(doc, buffer);
+    String msg = String(buffer);
+    msg = crc_generate(msg) + msg;
+    stream.println(msg);
   }
   else if (topic_name.compareTo("stop") == 0)
   {
