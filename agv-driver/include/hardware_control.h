@@ -373,10 +373,10 @@ public:
 
         if (this->vol_ins > 2.0)
         {
-            motor1.stop();
-            motor2.stop();
-            motor3.stop();
-            motor4.stop();
+            // motor1.stop();
+            // motor2.stop();
+            // motor3.stop();
+            // motor4.stop();
         }
 
         if (this->vol_ins < 0.3)

@@ -4,8 +4,9 @@ struct CONF_
 {
     bool CRC_Enable = true;
     bool EN_MECANUM_WHEEL = false;
-    bool EN_VELOCITY_LOG = false;                                                     //
-    const double WHEEL_SEPARATION = 0.2;                                              // m
+    bool EN_VELOCITY_LOG = true;                                                      //
+    const uint32_t DEFAULT_VEL_TIMEOUT = 200;                                         //
+    const double WHEEL_SEPARATION = 0.205;                                            // m
     const double WHEEL_DISTANCE = 0.146;                                              // m
     const double WHEEL_DIAMETER = 0.096;                                              // m
     const double MOTOR_MAX_PPR = 3960;                                                // motor max speed in pulses per round
@@ -14,7 +15,7 @@ struct CONF_
     const double MOTOR_MAX_SPEED_IN_RPM = 111;                                        // rpm
     const double MOTOR_MAX_SPEED_IN_MPS = MOTOR_MAX_SPEED_IN_RPM * RPM_TO_MPS_FACTOR; //
     const double MOTOR_ALLOW_MAX_SPEED_IN_MPS = 0.4;                                  //
-    const double ANGULAR_VELOCITY_FACTOR = (WHEEL_DISTANCE * WHEEL_DISTANCE + WHEEL_SEPARATION * WHEEL_SEPARATION) / (2 * WHEEL_SEPARATION);
+    const double ANGULAR_VELOCITY_FACTOR = WHEEL_SEPARATION / 2;
     const double MAX_ANGULAR_VELOCITY = (2 * MOTOR_MAX_SPEED_IN_RPM * RPM_TO_MPS_FACTOR) / WHEEL_SEPARATION;
     const int32_t PWM_RESOLUTION_SET = 16;
     const uint32_t PWM_MAX_VAL = pow(2, PWM_RESOLUTION_SET) - 1;

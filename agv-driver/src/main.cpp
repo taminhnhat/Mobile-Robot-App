@@ -230,6 +230,10 @@ void loop()
       Radio.print(motor3.getVelocity());
       Radio.print(" ");
       Radio.print(motor4.getVelocity());
+      Radio.print(" ");
+      Radio.print(motor1.getSetVelocity());
+      Radio.print(" ");
+      Radio.print(motor4.getSetVelocity());
       Radio.println("");
     }
     t_previous += cycle;
@@ -319,21 +323,24 @@ void msgProcess(String lightCmd, Stream &stream)
     const double angular_y = doc["angular"][2]; // yaw
     const uint32_t timeout = doc["timeout"];    // timeout
 
-    if (angular_y > 2)
+    if (abs(angular_y) > 4.0 || abs(linear_x) > 0.4 || abs(linear_y) > 0.4)
     {
-      stream.print(micros() - lastMsgProcess);
-      stream.print("    ALERT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    yaw = ");
-      stream.println(angular_y);
-      stream.print(lightCmd);
+      doc["status"] = "invalid";
+      char buffer[100];
+      serializeJson(doc, buffer);
+      String msg = String(buffer);
+      msg = crc_generate(msg) + msg;
+      stream.println(msg);
       return;
     }
 
     // stream.print("timeout: ");
     // stream.println(timeout);
     if (timeout == 0)
-      velocityProcess(linear_x, linear_y, angular_y);
+      velocity_timeout = CONFIG.DEFAULT_VEL_TIMEOUT;
     else
-      velocityProcessTimeout(linear_x, linear_y, angular_y, timeout);
+      velocity_timeout = timeout;
+    velocityProcess(linear_x, linear_y, angular_y);
   }
   else if (topic_name.compareTo("wheel_control") == 0)
   {
@@ -341,10 +348,17 @@ void msgProcess(String lightCmd, Stream &stream)
     const double rear_right_wheel_speed = doc["velocity"][1];  // rad/s
     const double rear_left_wheel_speed = doc["velocity"][2];   // rad/s
     const double front_left_wheel_speed = doc["velocity"][3];  // rad/s
+    const uint32_t timeout = doc["timeout"];                   // ms
     const double motor_1_velocity = front_right_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
     const double motor_2_velocity = rear_right_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
     const double motor_3_velocity = rear_left_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
     const double motor_4_velocity = front_left_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
+    if (timeout == 0)
+      velocity_timeout = CONFIG.DEFAULT_VEL_TIMEOUT;
+    else
+      velocity_timeout = timeout;
+    velocity_lastcall = millis();
+    OnVelocityControl = true;
     if (CONFIG.EN_MECANUM_WHEEL == true)
     {
       motor1.setVelocity(motor_1_velocity);
@@ -493,23 +507,23 @@ void velocityProcess(double linear_x, double linear_y, double angular)
     motor_3_velocity = linear_x - angular_tmp;
     motor_4_velocity = linear_x - angular_tmp;
   }
-  Bridge.print("=> m/s: ");
-  Bridge.print(motor_1_velocity);
-  Bridge.print("   ");
-  Bridge.print(motor_2_velocity);
-  Bridge.print("   ");
-  Bridge.print(motor_3_velocity);
-  Bridge.print("   ");
-  Bridge.print(motor_4_velocity);
-  Bridge.print("   rpm: ");
-  Bridge.print(motor_1_velocity * CONFIG.MPS_TO_RPM_FACTOR);
-  Bridge.print("   ");
-  Bridge.print(motor_2_velocity * CONFIG.MPS_TO_RPM_FACTOR);
-  Bridge.print("   ");
-  Bridge.print(motor_3_velocity * CONFIG.MPS_TO_RPM_FACTOR);
-  Bridge.print("   ");
-  Bridge.print(motor_4_velocity * CONFIG.MPS_TO_RPM_FACTOR);
-  Bridge.println("");
+  // Bridge.print("=> m/s: ");
+  // Bridge.print(motor_1_velocity);
+  // Bridge.print("   ");
+  // Bridge.print(motor_2_velocity);
+  // Bridge.print("   ");
+  // Bridge.print(motor_3_velocity);
+  // Bridge.print("   ");
+  // Bridge.print(motor_4_velocity);
+  // Bridge.print("   rpm: ");
+  // Bridge.print(motor_1_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.print("   ");
+  // Bridge.print(motor_2_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.print("   ");
+  // Bridge.print(motor_3_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.print("   ");
+  // Bridge.print(motor_4_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.println("");
   motor1.setVelocity(motor_1_velocity);
   motor2.setVelocity(motor_2_velocity);
   motor3.setVelocity(motor_3_velocity);
