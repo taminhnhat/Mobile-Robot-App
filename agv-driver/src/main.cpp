@@ -305,10 +305,10 @@ void msgProcess(String lightCmd, Stream &stream)
   DeserializationError error = deserializeJson(doc, json);
   if (error)
   {
-    Bridge.print("deserializeJson() failed, message: ");
-    Bridge.print(lightCmd);
-    Bridge.print(" error: ");
-    Bridge.println(error.f_str());
+    stream.print("deserializeJson() failed, message: ");
+    stream.print(lightCmd);
+    stream.print(" error: ");
+    stream.println(error.f_str());
     return;
   }
   const char *topic = doc["topic"];

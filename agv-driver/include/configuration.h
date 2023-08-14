@@ -4,7 +4,7 @@ struct CONF_
 {
     bool CRC_Enable = true;
     bool EN_MECANUM_WHEEL = false;
-    bool EN_VELOCITY_LOG = true;                                                      //
+    bool EN_VELOCITY_LOG = false;                                                     //
     const uint32_t DEFAULT_VEL_TIMEOUT = 200;                                         //
     const double WHEEL_SEPARATION = 0.205;                                            // m
     const double WHEEL_DISTANCE = 0.146;                                              // m
