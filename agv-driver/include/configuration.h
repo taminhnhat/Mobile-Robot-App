@@ -9,9 +9,10 @@ struct CONF_
     const double WHEEL_SEPARATION = 0.205;                                            // m
     const double WHEEL_DISTANCE = 0.146;                                              // m
     const double WHEEL_DIAMETER = 0.096;                                              // m
-    const double MOTOR_MAX_PPR = 3960;                                                // motor max speed in pulses per round
+    const double MOTOR_PPR = 3960;                                                    // motor encoder pulses per round
     const double MPS_TO_RPM_FACTOR = 60 / (M_PI * WHEEL_DIAMETER);                    //
     const double RPM_TO_MPS_FACTOR = (M_PI * WHEEL_DIAMETER) / 60;                    //
+    const double PULSE_TO_RAD_FACTOR = (2 * M_PI) / MOTOR_PPR;                        //
     const double MOTOR_MAX_SPEED_IN_RPM = 111;                                        // rpm
     const double MOTOR_MAX_SPEED_IN_MPS = MOTOR_MAX_SPEED_IN_RPM * RPM_TO_MPS_FACTOR; //
     const double MOTOR_ALLOW_MAX_SPEED_IN_MPS = 0.4;                                  //

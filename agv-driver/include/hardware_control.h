@@ -200,7 +200,7 @@ public:
         const uint32_t present_t = millis();
         uint32_t d_t = present_t - this->last_t; // in miliseconds
         this->d_p = present_p - this->p_pre;
-        this->v_ins = (this->d_p * 60000.0 * CONFIG.RPM_TO_MPS_FACTOR) / (d_t * CONFIG.MOTOR_MAX_PPR);
+        this->v_ins = (this->d_p * 60000.0 * CONFIG.RPM_TO_MPS_FACTOR) / (d_t * CONFIG.MOTOR_PPR);
         this->p_pre = present_p;
         this->last_t = present_t;
 
@@ -259,9 +259,9 @@ public:
         this->b = 0;
         this->p_ins = 0;
     }
-    int64_t getPosition()
+    double getPosition()
     {
-        return this->p_ins;
+        return round(this->p_ins * CONFIG.PULSE_TO_RAD_FACTOR * 100) / 100;
     }
     double getVelocity()
     {
@@ -273,11 +273,15 @@ public:
     }
     double getAverageVelocity()
     {
-        return this->v_ave;
+        return round(this->v_ave * 100) / 100;
     }
     double getSpeed()
     {
-        return this->v_ins * CONFIG.MPS_TO_RPM_FACTOR;
+        return this->v_ins * 2 / CONFIG.WHEEL_DIAMETER;
+    }
+    double getAverageSpeed()
+    {
+        return round(this->v_ave * 2 / CONFIG.WHEEL_DIAMETER * 100) / 100;
     }
     int32_t getdp()
     {
@@ -347,7 +351,7 @@ public:
     }
     double getAverageVoltage()
     {
-        return this->vol_ave;
+        return round(this->vol_ave * 100) / 100;
     }
 } battery;
 

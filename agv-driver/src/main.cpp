@@ -186,6 +186,7 @@ void setup()
   motor2.stop();
   motor3.stop();
   motor4.stop();
+  delay(1000);
   motor1.reset();
   motor2.reset();
   motor3.reset();
@@ -305,9 +306,7 @@ void msgProcess(String lightCmd, Stream &stream)
   DeserializationError error = deserializeJson(doc, json);
   if (error)
   {
-    stream.print("deserializeJson() failed, message: ");
-    stream.print(lightCmd);
-    stream.print(" error: ");
+    stream.print("deserializeJson() failed, error: ");
     stream.println(error.f_str());
     return;
   }
@@ -453,11 +452,18 @@ void msgProcess(String lightCmd, Stream &stream)
   {
     doc["battery"] = battery.getAverageVoltage();
 
-    JsonArray data = doc.createNestedArray("data");
-    data.add(48.75);
-    data.add(2.30);
+    JsonArray velocity = doc.createNestedArray("velocity");
+    velocity.add(motor1.getAverageSpeed());
+    velocity.add(motor2.getAverageSpeed());
+    velocity.add(motor3.getAverageSpeed());
+    velocity.add(motor4.getAverageSpeed());
+    JsonArray position = doc.createNestedArray("position");
+    position.add(motor1.getPosition());
+    position.add(motor2.getPosition());
+    position.add(motor3.getPosition());
+    position.add(motor4.getPosition());
 
-    char buffer[100];
+    char buffer[120];
     serializeJson(doc, buffer);
     String msg = String(buffer);
     msg = crc_generate(msg) + msg;
