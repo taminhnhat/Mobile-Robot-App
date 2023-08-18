@@ -224,17 +224,17 @@ void loop()
 
     if (CONFIG.EN_VELOCITY_LOG)
     {
-      Radio.print(motor1.getVelocity());
+      Radio.print(motor1.getAverageSpeed());
       Radio.print(" ");
-      Radio.print(motor2.getVelocity());
+      Radio.print(motor2.getAverageSpeed());
       Radio.print(" ");
-      Radio.print(motor3.getVelocity());
+      Radio.print(motor3.getAverageSpeed());
       Radio.print(" ");
-      Radio.print(motor4.getVelocity());
+      Radio.print(motor4.getAverageSpeed());
       Radio.print(" ");
-      Radio.print(motor1.getSetVelocity());
+      Radio.print(motor1.getSetSpeed());
       Radio.print(" ");
-      Radio.print(motor4.getSetVelocity());
+      Radio.print(motor4.getSetSpeed());
       Radio.println("");
     }
     t_previous += cycle;
@@ -248,6 +248,7 @@ void loop()
     }
     else
     {
+      // Radio.println(messageFromBridge);
       msgProcess(messageFromBridge, Bridge);
       messageFromBridge = "";
     }
@@ -274,8 +275,6 @@ void serialEvent1()
 
 void msgProcess(String lightCmd, Stream &stream)
 {
-  Bridge.print(">>> cmd: ");
-  Bridge.print(lightCmd);
   uint32_t idx = lightCmd.indexOf('{'); //
 
   String cmd_cs = lightCmd.substring(0, idx); // received checksum
@@ -333,15 +332,13 @@ void msgProcess(String lightCmd, Stream &stream)
       return;
     }
 
-    // stream.print("timeout: ");
-    // stream.println(timeout);
     if (timeout == 0)
       velocity_timeout = CONFIG.DEFAULT_VEL_TIMEOUT;
     else
       velocity_timeout = timeout;
     velocityProcess(linear_x, linear_y, angular_y);
   }
-  else if (topic_name.compareTo("wheel_control") == 0)
+  else if (topic_name.compareTo("ros2_control") == 0)
   {
     const double front_right_wheel_speed = doc["velocity"][0]; // rad/s
     const double rear_right_wheel_speed = doc["velocity"][1];  // rad/s
@@ -372,6 +369,34 @@ void msgProcess(String lightCmd, Stream &stream)
       motor3.setVelocity(motor_4_velocity);
       motor4.setVelocity(motor_4_velocity);
     }
+    // ros2 control response
+    doc["status"] = "ok";
+    char buffer[120];
+    serializeJson(doc, buffer);
+    String msg = String(buffer);
+    msg = crc_generate(msg) + msg + "\r\n";
+    stream.print(msg);
+  }
+  else if (topic_name.compareTo("ros2_state") == 0)
+  {
+    doc["battery"] = battery.getAverageVoltage();
+
+    JsonArray velocity = doc.createNestedArray("velocity");
+    velocity.add(motor1.getAverageSpeed());
+    velocity.add(motor2.getAverageSpeed());
+    velocity.add(motor3.getAverageSpeed());
+    velocity.add(motor4.getAverageSpeed());
+    JsonArray position = doc.createNestedArray("position");
+    position.add(motor1.getPosition());
+    position.add(motor2.getPosition());
+    position.add(motor3.getPosition());
+    position.add(motor4.getPosition());
+
+    char buffer[120];
+    serializeJson(doc, buffer);
+    String msg = String(buffer);
+    msg = crc_generate(msg) + msg + "\r\n";
+    stream.print(msg);
   }
   else if (topic_name.compareTo("configPID") == 0)
   {
@@ -447,27 +472,6 @@ void msgProcess(String lightCmd, Stream &stream)
 
     stream.print("Mecanum Wheel Enable: ");
     stream.println(CONFIG.EN_MECANUM_WHEEL);
-  }
-  else if (topic_name.compareTo("status") == 0)
-  {
-    doc["battery"] = battery.getAverageVoltage();
-
-    JsonArray velocity = doc.createNestedArray("velocity");
-    velocity.add(motor1.getAverageSpeed());
-    velocity.add(motor2.getAverageSpeed());
-    velocity.add(motor3.getAverageSpeed());
-    velocity.add(motor4.getAverageSpeed());
-    JsonArray position = doc.createNestedArray("position");
-    position.add(motor1.getPosition());
-    position.add(motor2.getPosition());
-    position.add(motor3.getPosition());
-    position.add(motor4.getPosition());
-
-    char buffer[120];
-    serializeJson(doc, buffer);
-    String msg = String(buffer);
-    msg = crc_generate(msg) + msg;
-    stream.println(msg);
   }
   else if (topic_name.compareTo("stop") == 0)
   {

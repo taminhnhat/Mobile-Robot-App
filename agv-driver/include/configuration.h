@@ -24,6 +24,8 @@ struct CONF_
     const uint32_t BAT_VOL_CAL_CYCLE = 100; // in ms
     const uint32_t DIS_VOL_CAL_CYCLE = 10;  // in ms
     const uint32_t PID_SAMPLE_CYCLE = 10;   // in ms
+    const uint32_t STATUS_CMD_CYCLE = 100;  // in ms
+    uint32_t last_time_call_status = 0;     // in ms
 };
 
 CONF_ CONFIG;

@@ -271,6 +271,10 @@ public:
     {
         return this->v_set;
     }
+    double getSetSpeed()
+    {
+        return this->v_set * 2 / CONFIG.WHEEL_DIAMETER;
+    }
     double getAverageVelocity()
     {
         return round(this->v_ave * 100) / 100;
