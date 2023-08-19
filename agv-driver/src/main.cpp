@@ -459,10 +459,10 @@ void msgProcess(String lightCmd, Stream &stream)
   }
   else if (topic_name.compareTo("info") == 0)
   {
-    motor1.info();
-    motor2.info();
-    motor3.info();
-    motor4.info();
+    motor1.info(stream);
+    motor2.info(stream);
+    motor3.info(stream);
+    motor4.info(stream);
     stream.print("battery voltage: ");
     stream.print(battery.getAverageVoltage());
     stream.println(" V");

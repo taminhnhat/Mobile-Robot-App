@@ -174,24 +174,24 @@ public:
         this->p_ki = p_ki;
         this->p_kd = p_kd;
     }
-    void info()
+    void info(Stream &stream)
     {
-        Bridge.print("Motor ");
-        Bridge.print(this->id);
-        Bridge.print("\tVelocity:");
-        Bridge.print(" kp:");
-        Bridge.print(this->v_kp);
-        Bridge.print(" ki:");
-        Bridge.print(this->v_ki);
-        Bridge.print(" kd:");
-        Bridge.println(this->v_kd);
-        Bridge.print("Position: ");
-        Bridge.print(" kp:");
-        Bridge.print(this->p_kp);
-        Bridge.print(" ki:");
-        Bridge.print(this->p_ki);
-        Bridge.print(" kd:");
-        Bridge.println(this->p_kd);
+        stream.print("Motor ");
+        stream.print(this->id);
+        stream.print("\tVelocity:");
+        stream.print(" kp:");
+        stream.print(this->v_kp);
+        stream.print(" ki:");
+        stream.print(this->v_ki);
+        stream.print(" kd:");
+        stream.print(this->v_kd);
+        stream.print("\tPosition: ");
+        stream.print(" kp:");
+        stream.print(this->p_kp);
+        stream.print(" ki:");
+        stream.print(this->p_ki);
+        stream.print(" kd:");
+        stream.println(this->p_kd);
     }
     void tick(uint32_t t)
     {
