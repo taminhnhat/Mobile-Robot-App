@@ -22,15 +22,15 @@ else
     app.use(morgan('common'))
 
 // authorization
-const auth = require('./middlewares/auth')
-app.use(auth)
+// const auth = require('./middlewares/auth')
+// app.use(auth)
 
 // routing
 const orderRouter = require('./routes/order.route')
 app.use('/api/v1', orderRouter)
 
 // create server
-const httpServer = http.createServer(app)
+// const httpServer = http.createServer(app)
 
 // export
-module.exports = httpServer
+module.exports = app
