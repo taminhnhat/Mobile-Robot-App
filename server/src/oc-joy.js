@@ -71,13 +71,13 @@ let StickStatus =
  * @param callback {StickStatus} - 
  */
 
-const x_scale = -3.9
-const y_scale = 0.4
 var JoyStick = (function (container, parameters, callback) {
     parameters = parameters || {};
     var title = (typeof parameters.title === "undefined" ? "joystick" : parameters.title),
         width = (typeof parameters.width === "undefined" ? 0 : parameters.width),
         height = (typeof parameters.height === "undefined" ? 0 : parameters.height),
+        x_bounc = (typeof parameters.x === "undefined" ? 1 : parameters.x),
+        y_bounc = (typeof parameters.y === "undefined" ? 1 : parameters.x),
         internalFillColor = (typeof parameters.internalFillColor === "undefined" ? "#00AA00" : parameters.internalFillColor),
         internalLineWidth = (typeof parameters.internalLineWidth === "undefined" ? 2 : parameters.internalLineWidth),
         internalStrokeColor = (typeof parameters.internalStrokeColor === "undefined" ? "#003300" : parameters.internalStrokeColor),
@@ -110,9 +110,9 @@ var JoyStick = (function (container, parameters, callback) {
     var centerX = canvas.width / 2;
     var centerY = canvas.height / 2;
     var directionHorizontalLimitPos = canvas.width / 10;
-    var directionHorizontalLimitNeg = directionHorizontalLimitPos * -1;
+    var directionHorizontalLimitNeg = directionHorizontalLimitPos;
     var directionVerticalLimitPos = canvas.height / 10;
-    var directionVerticalLimitNeg = directionVerticalLimitPos * -1;
+    var directionVerticalLimitNeg = directionVerticalLimitPos;
     // Used to save current position of stick
     var movedX = centerX;
     var movedY = centerY;
@@ -199,8 +199,8 @@ var JoyStick = (function (container, parameters, callback) {
             // Set attribute of callback
             StickStatus.xPosition = movedX;
             StickStatus.yPosition = movedY;
-            StickStatus.x = (x_scale * ((movedX - centerX) / maxMoveStick)).toFixed();
-            StickStatus.y = ((y_scale * ((movedY - centerY) / maxMoveStick)) * -1).toFixed();
+            StickStatus.x = (x_bounc * ((movedX - centerX) / maxMoveStick)).toFixed();
+            StickStatus.y = ((y_bounc * ((movedY - centerY) / maxMoveStick))).toFixed();
             StickStatus.cardinalDirection = getCardinalDirection();
 
             callback(StickStatus);
@@ -223,8 +223,8 @@ var JoyStick = (function (container, parameters, callback) {
         // Set attribute of callback
         StickStatus.xPosition = movedX;
         StickStatus.yPosition = movedY;
-        StickStatus.x = (x_scale * ((movedX - centerX) / maxMoveStick)).toFixed();
-        StickStatus.y = ((y_scale * ((movedY - centerY) / maxMoveStick)) * -1).toFixed();
+        StickStatus.x = (x_bounc * ((movedX - centerX) / maxMoveStick)).toFixed();
+        StickStatus.y = ((y_bounc * ((movedY - centerY) / maxMoveStick))).toFixed();
         StickStatus.cardinalDirection = getCardinalDirection();
         callback(StickStatus);
     }
@@ -259,8 +259,8 @@ var JoyStick = (function (container, parameters, callback) {
             // Set attribute of callback
             StickStatus.xPosition = movedX;
             StickStatus.yPosition = movedY;
-            StickStatus.x = (x_scale * ((movedX - centerX) / maxMoveStick)).toFixed();
-            StickStatus.y = ((y_scale * ((movedY - centerY) / maxMoveStick)) * -1).toFixed();
+            StickStatus.x = (x_bounc * ((movedX - centerX) / maxMoveStick)).toFixed();
+            StickStatus.y = ((y_bounc * ((movedY - centerY) / maxMoveStick))).toFixed();
             StickStatus.cardinalDirection = getCardinalDirection();
 
             callback(StickStatus);
@@ -283,8 +283,8 @@ var JoyStick = (function (container, parameters, callback) {
         // Set attribute of callback
         StickStatus.xPosition = movedX;
         StickStatus.yPosition = movedY;
-        StickStatus.x = (x_scale * ((movedX - centerX) / maxMoveStick)).toFixed();
-        StickStatus.y = ((y_scale * ((movedY - centerY) / maxMoveStick)) * -1).toFixed();
+        StickStatus.x = (x_bounc * ((movedX - centerX) / maxMoveStick)).toFixed();
+        StickStatus.y = ((y_bounc * ((movedY - centerY) / maxMoveStick))).toFixed();
         StickStatus.cardinalDirection = getCardinalDirection();
         callback(StickStatus);
     }
@@ -365,7 +365,7 @@ var JoyStick = (function (container, parameters, callback) {
      * @return Integer from -100 to +100
      */
     this.GetX = function () {
-        return (x_scale * ((movedX - centerX) / maxMoveStick)).toFixed(2);
+        return (x_bounc * ((movedX - centerX) / maxMoveStick)).toFixed(2);
     };
 
     /**
@@ -373,7 +373,7 @@ var JoyStick = (function (container, parameters, callback) {
      * @return Integer from -100 to +100
      */
     this.GetY = function () {
-        return ((y_scale * ((movedY - centerY) / maxMoveStick)) * -1).toFixed(2);
+        return ((y_bounc * ((movedY - centerY) / maxMoveStick))).toFixed(2);
     };
 
     /**
