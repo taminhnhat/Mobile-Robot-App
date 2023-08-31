@@ -22,7 +22,7 @@ velocityGenerate = () => {
     socket.emit('ros:topic', {
         topic: 'ws_vel',
         data: {
-            linear: [linear_vel_y, linear_vel_x, 0],
+            linear: [linear_vel_y, 0, 0],
             angular: [0, 0, angular_vel]
         }
     })
@@ -35,9 +35,6 @@ function connecthandler(e) {
 function addgamepad(gamepad) {
     controllers[gamepad.index] = gamepad; var d = document.createElement("div");
     d.setAttribute("id", "controller" + gamepad.index);
-    var t = document.createElement("h1");
-    t.appendChild(document.createTextNode("gamepad: " + gamepad.id));
-    d.appendChild(t);
     var b = document.createElement("div");
     b.className = "buttons";
     for (var i = 0; i < gamepad.buttons.length; i++) {
@@ -64,8 +61,8 @@ function addgamepad(gamepad) {
     d.appendChild(a);
     document.getElementById("start").style.display = "none";
     document.body.appendChild(d);
-    document.getElementById("joy1Div").remove()
-    document.getElementById("joy2Div").remove()
+    document.getElementById("rightPanel").remove()
+    document.getElementById("leftPanel").remove()
     document.getElementById("deviceName").textContent = gamepad.id
     rAF(updateStatus);
 
