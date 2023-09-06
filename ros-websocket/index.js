@@ -6,6 +6,23 @@ socket.on('disconnect', () => console.log('disconnected', socket.id))
 socket.on('error', err => console.log('error', err))
 socket.on('tick', t => console.log('tick', t))
 
+
+const fs = require('fs');
+const fileHandle = fs.openSync('/tmp/ros2_control_out', 'r+');
+let fifoRs = fs.createReadStream(null, { fd: fileHandle });
+
+fifoRs.on('ready', function (err) {
+    console.log('Reading pipe is ready')
+});
+
+fifoRs.on('open', function (err) {
+    console.log('Reading pipe opened')
+});
+
+fifoRs.on('close', function (err) {
+    console.log('Reading pipe closed')
+});
+
 const rclnodejs = require('rclnodejs')
 rclnodejs.init()
     .then(() => {
@@ -26,8 +43,19 @@ rclnodejs.init()
             publisher.publish({
                 linear: { x: d.data.linear[0], y: d.data.linear[1], z: d.data.linear[2] },
                 angular: { x: d.data.angular[0], y: d.data.angular[1], z: d.data.angular[2] },
-            });
+            })
             console.log('ros:topic', d)
+        })
+
+        fifoRs.on('data', d => {
+            const dStr = String(d).substring(d.lastIndexOf('{'), d.lastIndexOf('}') + 1)
+            const dJson = JSON.parse(dStr)
+            let dPro = dJson
+            delete dPro.topic
+            socket.emit('ros:topic', {
+                topic: dJson.topic,
+                data: dPro,
+            })
         })
 
         rclnodejs.spin(node);
