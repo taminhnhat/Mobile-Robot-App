@@ -11,8 +11,7 @@ function onConnection(socket) {
     // socket.on('robot:connect', robotCtrl.onConnect)
     socket.on('ros:topic', d => {
         // console.log(d.topic, d.data)
-        // send to all connected clients except the sender
-        socket.broadcast.emit('ros:topic', d)
+        socket.broadcast.emit('ros:topic', d)// send to all connected clients except the sender
     })
     // socket.on('robot:message', robotCtrl.onMessage)
     setInterval(() => {
