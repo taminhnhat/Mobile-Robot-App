@@ -124,6 +124,10 @@ void OnTimer1Interrupt()
   {
     distance.tick();
   }
+  if (timer_count % 10 == 0)
+  {
+    imu.tick();
+  }
   else if (timer_count % 1000 == 0)
   {
     //
@@ -138,6 +142,9 @@ void setup()
   Bridge.begin(115200);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
+
+  if (imu.init() == 0)
+    CONFIG.IMU_AVAILABLE = true;
 
   pinMode(DISTANCE_SENSOR, INPUT);
   pinMode(MOTOR_1_A, INPUT);
@@ -381,18 +388,29 @@ void msgProcess(String lightCmd, Stream &stream)
   {
     doc["battery"] = battery.getAverageVoltage();
 
-    JsonArray velocity = doc.createNestedArray("velocity");
+    JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());
     velocity.add(motor2.getAverageSpeed());
     velocity.add(motor3.getAverageSpeed());
     velocity.add(motor4.getAverageSpeed());
-    JsonArray position = doc.createNestedArray("position");
+    JsonArray position = doc.createNestedArray("pos");
     position.add(motor1.getPosition());
     position.add(motor2.getPosition());
     position.add(motor3.getPosition());
     position.add(motor4.getPosition());
+    // if (CONFIG.IMU_AVAILABLE)
+    // {
+    //   JsonArray gyroscope = doc.createNestedArray("gyr");
+    //   gyroscope.add(imu.getAngularVelocityX());
+    //   gyroscope.add(imu.getAngularVelocityY());
+    //   gyroscope.add(imu.getAngularVelocityZ());
+    //   JsonArray acceleration = doc.createNestedArray("acc");
+    //   acceleration.add(imu.getLinearAccelerationX());
+    //   acceleration.add(imu.getLinearAccelerationY());
+    //   acceleration.add(imu.getLinearAccelerationZ());
+    // }
 
-    char buffer[120];
+    char buffer[300];
     serializeJson(doc, buffer);
     String msg = String(buffer);
     msg = crc_generate(msg) + msg + "\r\n";

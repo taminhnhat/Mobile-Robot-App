@@ -11,7 +11,7 @@ let reconnectHubInterval
 
 //  NEED TO CONFIG SERIAL PORT FIRST, READ 'README.md'
 const robotHub = new SerialPort({
-    path: 'COM21',
+    path: 'COM14',
     baudRate: 115200,
     autoOpen: true
 });
@@ -26,7 +26,7 @@ robotHub.on('data', function (data) {
     const value = String(data)
     messageBufferFromRgbHub += value.trim()
     if (value[value.length - 1] == '\n') {
-        // console.log('<<<', messageBufferFromRgbHub)
+        console.log('<<<', messageBufferFromRgbHub)
         msgProcess(messageBufferFromRgbHub)
         messageBufferFromRgbHub = ''
     }
@@ -48,6 +48,8 @@ robotHub.on('error', (err) => {
 
 let vel = [0, 0, 0, 0]
 let pos = [0, 0, 0, 0]
+let gyr = [0, 0, 0]
+let acc = [0, 0, 0]
 let lastCall = Date.now()
 function msgProcess(msg) {
     const dStr = msg.substring(msg.lastIndexOf('{'), msg.lastIndexOf('}') + 1)
@@ -69,15 +71,23 @@ function msgProcess(msg) {
             robotHub.write(res)
             break;
         case 'ros2_state':
+            // m = JSON.stringify({
+            //     topic: 'ros2_state',
+            //     velocity: vel,
+            //     position: pos,
+            //     battery: 16.5,
+            // })
             m = JSON.stringify({
-                topic: 'ros2_state',
-                velocity: vel,
-                position: pos,
-                battery: 16.5
+                tp: 'ros2_state',
+                vel: vel,
+                pos: pos,
+                bat: 16.5,
+                gyr: gyr,
+                acc: acc,
             })
             res = robotRes(m)
             robotHub.write(res)
-            // console.log('>>>', res.trim())
+            console.log('>>>', res.trim())
             break;
         default:
             break;
