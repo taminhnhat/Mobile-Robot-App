@@ -460,6 +460,9 @@ private:
     uint8_t fifoBuffer[64]; // FIFO storage buffer
     vector3 gyr;
     vector3 acc;
+    bool rawMode = true;
+    int16_t ax, ay, az;
+    int16_t gx, gy, gz;
 
 public:
     IMU()
@@ -467,60 +470,103 @@ public:
         //
     }
 
-    int init()
+    int init(bool raw = true)
     {
+        this->rawMode = raw;
         Wire.begin();
         mpu.initialize();
-        if (!mpu.testConnection())
-            return -1;
-        devStatus = mpu.dmpInitialize();
-
-        // supply your own gyro offsets here, scaled for min sensitivity
-        mpu.setXGyroOffset(220);
-        mpu.setYGyroOffset(76);
-        mpu.setZGyroOffset(-85);
-        mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
-
-        // make sure it worked (returns 0 if so)
-        if (devStatus == 0)
+        Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+        if (rawMode)
         {
-            mpu.CalibrateAccel(6);
-            mpu.CalibrateGyro(6);
-            mpu.PrintActiveOffsets();
-            mpu.setDMPEnabled(true);
-            mpuIntStatus = mpu.getIntStatus();
-            dmpReady = true;
-            packetSize = mpu.dmpGetFIFOPacketSize();
+            return 0;
         }
         else
         {
-            // ERROR!
-            // 1 = initial memory load failed
-            // 2 = DMP configuration updates failed
-            // (if it's going to break, usually the code will be 1)
-            Serial.print(F("DMP Initialization failed (code "));
-            Serial.print(devStatus);
-            Serial.println(F(")"));
-            return -2;
-        }
+            // enable Digital Motion Processor
+            devStatus = mpu.dmpInitialize();
 
-        return 1;
+            // supply your own gyro offsets here, scaled for min sensitivity
+            mpu.setXGyroOffset(220);
+            mpu.setYGyroOffset(76);
+            mpu.setZGyroOffset(-85);
+            mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+
+            // make sure it worked (returns 0 if so)
+            if (devStatus == 0)
+            {
+                mpu.CalibrateAccel(6);
+                mpu.CalibrateGyro(6);
+                mpu.PrintActiveOffsets();
+                mpu.setDMPEnabled(true);
+                mpuIntStatus = mpu.getIntStatus();
+                dmpReady = true;
+                packetSize = mpu.dmpGetFIFOPacketSize();
+            }
+            return devStatus;
+        }
     }
 
     int tick()
     {
-        if (!dmpReady)
-            return -1;
-        if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer))
+        if (rawMode)
         {
-            mpu.dmpGetQuaternion(&q, fifoBuffer);
-            mpu.dmpGetGravity(&gravity, &q);
-            mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-            mpu.dmpGetAccel(&aa, fifoBuffer);
-            mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-            mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+            mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+            // Serial.print("gyr\t");
+            // Serial.print(gx);
+            // Serial.print("\t");
+            // Serial.print(gy);
+            // Serial.print("\t");
+            // Serial.print(gz);
+            // Serial.print("\tacc\t");
+            // Serial.print(ax);
+            // Serial.print("\t");
+            // Serial.print(ay);
+            // Serial.print("\t");
+            // Serial.println(az);
+        }
+        else
+        {
+            if (!dmpReady)
+                return -1;
+            if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer))
+            {
+                mpu.dmpGetQuaternion(&q, fifoBuffer);
+                mpu.dmpGetGravity(&gravity, &q);
+                mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+                mpu.dmpGetAccel(&aa, fifoBuffer);
+                mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+                mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+
+                Serial.print("ypr\t");
+                Serial.print(ypr[0] * 180 / M_PI);
+                Serial.print("\t");
+                Serial.print(ypr[1] * 180 / M_PI);
+                Serial.print("\t");
+                Serial.print(ypr[2] * 180 / M_PI);
+
+                Serial.print("\t");
+                Serial.print("areal\t");
+                Serial.print(aaReal.x);
+                Serial.print("\t");
+                Serial.print(aaReal.y);
+                Serial.print("\t");
+                Serial.println(aaReal.z);
+            }
+            return 0;
         }
     }
+
+    uint16_t getRawGyrX() { return gx; }
+    uint16_t getRawGyrY() { return gy; }
+    uint16_t getRawGyrZ() { return gz; }
+
+    uint16_t getRawAccX() { return ax; }
+    uint16_t getRawAccY() { return ay; }
+    uint16_t getRawAccZ() { return az; }
+
+    double getYaw() { return ypr[0]; }
+    double getPitch() { return ypr[1]; }
+    double getRoll() { return ypr[2]; }
 
     double getQuaternionX() { return q.x; }
     double getQuaternionY() { return q.x; }

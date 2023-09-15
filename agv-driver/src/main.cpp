@@ -5,7 +5,7 @@
 #include <math.h>
 
 // -------------------------------------------------JSON--------------------------------------------------------
-StaticJsonDocument<200> doc;
+StaticJsonDocument<400> doc;
 
 void EncoderHandle_1_A()
 {
@@ -124,7 +124,7 @@ void OnTimer1Interrupt()
   {
     distance.tick();
   }
-  if (timer_count % 10 == 0)
+  if (timer_count % CONFIG.IMU_RAW_CAL_CYCLE == 0)
   {
     imu.tick();
   }
@@ -142,8 +142,8 @@ void setup()
   Bridge.begin(115200);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
-
-  if (imu.init() == 0)
+  Serial.print("Start imu init....   ");
+  if (imu.init(true) == 0)
     CONFIG.IMU_AVAILABLE = true;
 
   pinMode(DISTANCE_SENSOR, INPUT);
@@ -386,7 +386,7 @@ void msgProcess(String lightCmd, Stream &stream)
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
-    doc["battery"] = battery.getAverageVoltage();
+    doc["bat"] = battery.getAverageVoltage();
 
     JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());
@@ -400,17 +400,17 @@ void msgProcess(String lightCmd, Stream &stream)
     position.add(motor4.getPosition());
     // if (CONFIG.IMU_AVAILABLE)
     // {
-    //   JsonArray gyroscope = doc.createNestedArray("gyr");
-    //   gyroscope.add(imu.getAngularVelocityX());
-    //   gyroscope.add(imu.getAngularVelocityY());
-    //   gyroscope.add(imu.getAngularVelocityZ());
-    //   JsonArray acceleration = doc.createNestedArray("acc");
-    //   acceleration.add(imu.getLinearAccelerationX());
-    //   acceleration.add(imu.getLinearAccelerationY());
-    //   acceleration.add(imu.getLinearAccelerationZ());
     // }
+    JsonArray gyroscope = doc.createNestedArray("gyr");
+    gyroscope.add(imu.getRawGyrX());
+    gyroscope.add(imu.getRawGyrY());
+    gyroscope.add(imu.getRawGyrZ());
+    JsonArray accelerometer = doc.createNestedArray("acc");
+    accelerometer.add(imu.getRawAccX());
+    accelerometer.add(imu.getRawAccY());
+    accelerometer.add(imu.getRawAccZ());
 
-    char buffer[300];
+    char buffer[400];
     serializeJson(doc, buffer);
     String msg = String(buffer);
     msg = crc_generate(msg) + msg + "\r\n";
