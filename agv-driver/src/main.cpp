@@ -142,8 +142,8 @@ void setup()
   Bridge.begin(115200);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
-  Serial.print("Start imu init....   ");
-  if (imu.init(true) == 0)
+  // Serial.print("Start imu init....   ");
+  if (imu.init(false) == 0)
     CONFIG.IMU_AVAILABLE = true;
 
   pinMode(DISTANCE_SENSOR, INPUT);
@@ -242,6 +242,32 @@ void loop()
       Radio.print(motor1.getSetSpeed());
       Radio.print(" ");
       Radio.print(motor4.getSetSpeed());
+      Radio.println("");
+    }
+    else if (CONFIG.EN_IMU_LOG)
+    {
+      sensors sen = imu.getFullSensors();
+      Radio.print(sen.orientation.x);
+      Radio.print(" ");
+      Radio.print(sen.orientation.y);
+      Radio.print(" ");
+      Radio.print(sen.orientation.z);
+      Radio.print(" ");
+      Radio.print(sen.orientation.w);
+      Radio.print(" ");
+      Radio.print(sen.angular_velocity.x);
+      Radio.print(" ");
+      Radio.print(sen.angular_velocity.y);
+      Radio.print(" ");
+      Radio.print(sen.angular_velocity.z);
+      Radio.print(" ");
+      Radio.print(sen.linear_acceleration.x);
+      Radio.print(" ");
+      Radio.print(sen.linear_acceleration.y);
+      Radio.print(" ");
+      Radio.print(sen.linear_acceleration.z);
+      Radio.print(" ");
+      Radio.print(sen.temperature);
       Radio.println("");
     }
     t_previous += cycle;
@@ -386,29 +412,57 @@ void msgProcess(String lightCmd, Stream &stream)
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
-    doc["bat"] = battery.getAverageVoltage();
-
+    // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());
     velocity.add(motor2.getAverageSpeed());
     velocity.add(motor3.getAverageSpeed());
     velocity.add(motor4.getAverageSpeed());
+    // add position value
     JsonArray position = doc.createNestedArray("pos");
     position.add(motor1.getPosition());
     position.add(motor2.getPosition());
     position.add(motor3.getPosition());
     position.add(motor4.getPosition());
-    // if (CONFIG.IMU_AVAILABLE)
-    // {
-    // }
-    JsonArray gyroscope = doc.createNestedArray("gyr");
-    gyroscope.add(imu.getRawGyrX());
-    gyroscope.add(imu.getRawGyrY());
-    gyroscope.add(imu.getRawGyrZ());
-    JsonArray accelerometer = doc.createNestedArray("acc");
-    accelerometer.add(imu.getRawAccX());
-    accelerometer.add(imu.getRawAccY());
-    accelerometer.add(imu.getRawAccZ());
+    // add battery value
+    doc["bat"] = battery.getAverageVoltage();
+    // add imu value
+    if (CONFIG.IMU_AVAILABLE)
+    {
+      sensors sen = imu.getFullSensors();
+      // Serial.print("imu out: ");
+      // Serial.print(sen.gyr.x);
+      // Serial.print('\t');
+      // Serial.print(sen.gyr.y);
+      // Serial.print('\t');
+      // Serial.print(sen.gyr.z);
+      // Serial.print('\t');
+      // Serial.print(sen.acc.x);
+      // Serial.print('\t');
+      // Serial.print(sen.acc.y);
+      // Serial.print('\t');
+      // Serial.print(sen.acc.z);
+      // Serial.print('\t');
+      // Serial.println(sen.tem);
+      JsonArray orientation = doc.createNestedArray("ori");
+      orientation.add(trimDouble(sen.orientation.x, 0));
+      orientation.add(trimDouble(sen.orientation.y, 0));
+      orientation.add(trimDouble(sen.orientation.z, 0));
+      orientation.add(trimDouble(sen.orientation.w, 0));
+
+      JsonArray gyroscope = doc.createNestedArray("gyr");
+      gyroscope.add(trimDouble(sen.angular_velocity.x, 0));
+      gyroscope.add(trimDouble(sen.angular_velocity.y, 0));
+      gyroscope.add(trimDouble(sen.angular_velocity.z, 0));
+
+      JsonArray accelerometer = doc.createNestedArray("acc");
+      accelerometer.add(trimDouble(sen.linear_acceleration.x, 0));
+      accelerometer.add(trimDouble(sen.linear_acceleration.y, 0));
+      accelerometer.add(trimDouble(sen.linear_acceleration.z, 0));
+      doc["tem"] = imu.getRawTemperature();
+    }
+    // add distance sensor value
+    doc["dis"] = distance.getDistance();
 
     char buffer[400];
     serializeJson(doc, buffer);

@@ -38,6 +38,17 @@
 
 HardwareSerial Bridge(PA3, PA2);
 
+double trimDouble(double in, uint16_t num)
+{
+    if (num == 0)
+        return in;
+    else
+    {
+        const uint16_t sc = 10 ^ num;
+        return round(in * sc) / sc;
+    }
+}
+
 class MotorControl
 {
 private:
@@ -421,11 +432,11 @@ public:
     }
     double getDistance()
     {
-        return this->dis_ins;
+        return round(this->dis_ins * 100) / 100;
     }
     double getAverageDistance()
     {
-        return this->dis_ave;
+        return round(this->dis_ave * 100) / 100;
     }
 } distance;
 
@@ -433,24 +444,102 @@ public:
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "Wire.h"
 
+typedef struct
+{
+    union
+    {
+        float c[3];
+        struct
+        {
+            float r;
+            float g;
+            float b;
+        };
+    };
+    uint32_t rgba;
+} sensors_color_t;
+typedef struct
+{
+    union
+    {
+        float v[3];
+        struct
+        {
+            float x;
+            float y;
+            float z;
+        };
+        struct
+        {
+            float roll;
+            float pitch;
+            float heading;
+        };
+    };
+    int8_t status;
+    uint8_t reserved[3];
+} sensors_vec_t;
+typedef struct
+{
+    int32_t version;
+    int32_t sensor_id;
+    int32_t type;
+    int32_t reserved0;
+    int32_t timestamp;
+    union
+    {
+        float data[4];
+        sensors_vec_t acceleration;
+        sensors_vec_t magnetic;
+        sensors_vec_t orientation;
+        sensors_vec_t gyro;
+        float temperature;
+        float distance;
+        float light;
+        float pressure;
+        float relative_humidity;
+        float current;
+        float voltage;
+        sensors_color_t color;
+    };
+} sensors_event_t;
+struct vector4Double
+{
+    double x;
+    double y;
+    double z;
+    double w;
+};
+struct vector3Double
+{
+    double x;
+    double y;
+    double z;
+};
+struct sensors
+{
+    vector4Double orientation;
+    vector3Double angular_velocity;
+    vector3Double linear_acceleration;
+    double temperature;
+};
+
 class IMU
 {
 private:
-    struct vector3
-    {
-        double x;
-        double y;
-        double z;
-    };
+    vector4Double orientation;
+    vector3Double angular_velocity;
+    vector3Double linear_acceleration;
+    double temperature;
     MPU6050 mpu;
-    float euler[3]; // [psi, theta, phi]    Euler angle container
-    float ypr[3];   // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+    float ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
     // orientation/motion vars
     Quaternion q;        // [w, x, y, z]         quaternion container
     VectorInt16 aa;      // [x, y, z]            accel sensor measurements
     VectorInt16 aaReal;  // [x, y, z]            gravity-free accel sensor measurements
     VectorInt16 aaWorld; // [x, y, z]            world-frame accel sensor measurements
     VectorFloat gravity; // [x, y, z]            gravity vector
+    VectorInt16 gg;      // [x, y, z]            gyro sensor measurements
     // MPU control/status vars
     bool dmpReady = false;  // set true if DMP init was successful
     uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
@@ -458,24 +547,24 @@ private:
     uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
     uint16_t fifoCount;     // count of all bytes currently in FIFO
     uint8_t fifoBuffer[64]; // FIFO storage buffer
-    vector3 gyr;
-    vector3 acc;
     bool rawMode = true;
-    int16_t ax, ay, az;
-    int16_t gx, gy, gz;
+    int16_t temp;
+    int16_t accAdcScale = 16384.0;
+    int16_t gyrAdcScale = 131.072;
+    int16_t temAdcScale = 2184.0;
+    int16_t resScale = 1000;
 
 public:
-    IMU()
-    {
-        //
-    }
+    int16_t ax, ay, az;
+    int16_t gx, gy, gz;
+    IMU() {}
 
     int init(bool raw = true)
     {
         this->rawMode = raw;
         Wire.begin();
         mpu.initialize();
-        Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+        // Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
         if (rawMode)
         {
             return 0;
@@ -510,7 +599,24 @@ public:
     {
         if (rawMode)
         {
-            mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+            uint8_t buffer[14];
+            I2Cdev::readBytes(MPU6050_IMU::MPU6050_DEFAULT_ADDRESS, (MPU6050_IMU::MPU6050_RA_ACCEL_XOUT_H), 14, buffer);
+            ax = (((int16_t)buffer[0]) << 8) | buffer[1];
+            ay = (((int16_t)buffer[2]) << 8) | buffer[3];
+            az = (((int16_t)buffer[4]) << 8) | buffer[5];
+            temp = buffer[6] << 8 | buffer[7];
+            gx = (((int16_t)buffer[8]) << 8) | buffer[9];
+            gy = (((int16_t)buffer[10]) << 8) | buffer[11];
+            gz = (((int16_t)buffer[12]) << 8) | buffer[13];
+            linear_acceleration.x = round(resScale * ax / accAdcScale) / resScale;
+            linear_acceleration.y = round(resScale * ay / accAdcScale) / resScale;
+            linear_acceleration.z = round(resScale * az / accAdcScale) / resScale;
+            angular_velocity.x = round(resScale * gx / gyrAdcScale) / resScale;
+            angular_velocity.y = round(resScale * gy / gyrAdcScale) / resScale;
+            angular_velocity.z = round(resScale * gz / gyrAdcScale) / resScale;
+            temperature = temp / 340.0 + 36.53;
+            // mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+            // temp = mpu.getTemperature();
             // Serial.print("gyr\t");
             // Serial.print(gx);
             // Serial.print("\t");
@@ -533,27 +639,60 @@ public:
                 mpu.dmpGetQuaternion(&q, fifoBuffer);
                 mpu.dmpGetGravity(&gravity, &q);
                 mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+
                 mpu.dmpGetAccel(&aa, fifoBuffer);
                 mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
                 mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-                Serial.print("ypr\t");
-                Serial.print(ypr[0] * 180 / M_PI);
-                Serial.print("\t");
-                Serial.print(ypr[1] * 180 / M_PI);
-                Serial.print("\t");
-                Serial.print(ypr[2] * 180 / M_PI);
+                mpu.dmpGetGyro(&gg, fifoBuffer);
 
-                Serial.print("\t");
-                Serial.print("areal\t");
-                Serial.print(aaReal.x);
-                Serial.print("\t");
-                Serial.print(aaReal.y);
-                Serial.print("\t");
-                Serial.println(aaReal.z);
+                orientation.x = q.x;
+                orientation.y = q.y;
+                orientation.z = q.z;
+                orientation.w = q.w;
+
+                angular_velocity.x = gg.x * M_PI / (180 * gyrAdcScale);
+                angular_velocity.y = gg.y * M_PI / (180 * gyrAdcScale);
+                angular_velocity.z = gg.z * M_PI / (180 * gyrAdcScale);
+
+                linear_acceleration.x = aaReal.x * 9.81 / accAdcScale;
+                linear_acceleration.y = aaReal.y * 9.81 / accAdcScale;
+                linear_acceleration.z = aaReal.z * 9.81 / accAdcScale;
+
+                temperature = mpu.getTemperature() / 340.0 + 36.53;
+
+                // Serial.print("ORI\t");
+                // Serial.print(ori.x);
+                // Serial.print("\t");
+                // Serial.print(ori.y);
+                // Serial.print("\t");
+                // Serial.print(ori.z);
+
+                // Serial.print("\tQUA\t");
+                // Serial.print(q.x);
+                // Serial.print("\t");
+                // Serial.print(q.y);
+                // Serial.print("\t");
+                // Serial.print(q.z);
+                // Serial.print("\t");
+                // Serial.print(q.w);
+
+                // Serial.print("\tGYR\t");
+                // Serial.print(gyr.x);
+                // Serial.print("\t");
+                // Serial.print(gyr.y);
+                // Serial.print("\t");
+                // Serial.print(gyr.z);
+
+                // Serial.print("\tACC\t");
+                // Serial.print(acc.x);
+                // Serial.print("\t");
+                // Serial.print(acc.y);
+                // Serial.print("\t");
+                // Serial.println(acc.z);
             }
-            return 0;
         }
+        return 0;
     }
 
     uint16_t getRawGyrX() { return gx; }
@@ -563,6 +702,25 @@ public:
     uint16_t getRawAccX() { return ax; }
     uint16_t getRawAccY() { return ay; }
     uint16_t getRawAccZ() { return az; }
+
+    uint16_t getRawTemperature() { return temp; }
+
+    sensors getFullSensors()
+    {
+        sensors s;
+        s.orientation.x = orientation.x;
+        s.orientation.y = orientation.y;
+        s.orientation.z = orientation.z;
+        s.orientation.w = orientation.w;
+        s.angular_velocity.x = angular_velocity.x;
+        s.angular_velocity.y = angular_velocity.y;
+        s.angular_velocity.z = angular_velocity.z;
+        s.linear_acceleration.x = linear_acceleration.x;
+        s.linear_acceleration.y = linear_acceleration.y;
+        s.linear_acceleration.z = linear_acceleration.z;
+        s.temperature = temperature;
+        return s;
+    }
 
     double getYaw() { return ypr[0]; }
     double getPitch() { return ypr[1]; }
