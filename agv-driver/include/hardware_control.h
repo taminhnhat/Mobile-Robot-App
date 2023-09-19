@@ -33,7 +33,9 @@
 #define DISTANCE_SENSOR PA1
 #define FRONT_LIGHT PC13
 #define BATTERY_SENSOR PB0
-
+#define IMU_INT PB8
+#define IMU_SDA PB7
+#define IMU_SCL PB6
 #define Radio Serial1
 
 HardwareSerial Bridge(PA3, PA2);
