@@ -643,8 +643,8 @@ public:
                 mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
                 mpu.dmpGetAccel(&aa, fifoBuffer);
-                mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-                mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+                // mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+                // mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
                 mpu.dmpGetGyro(&gg, fifoBuffer);
 
@@ -657,9 +657,9 @@ public:
                 angular_velocity.y = gg.y * M_PI / (180 * gyrAdcScale);
                 angular_velocity.z = gg.z * M_PI / (180 * gyrAdcScale);
 
-                linear_acceleration.x = aaReal.x * 9.81 / accAdcScale;
-                linear_acceleration.y = aaReal.y * 9.81 / accAdcScale;
-                linear_acceleration.z = aaReal.z * 9.81 / accAdcScale;
+                linear_acceleration.x = aa.x * 9.81 / accAdcScale;
+                linear_acceleration.y = aa.y * 9.81 / accAdcScale;
+                linear_acceleration.z = aa.z * 9.81 / accAdcScale;
 
                 temperature = mpu.getTemperature() / 340.0 + 36.53;
 

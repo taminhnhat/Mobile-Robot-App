@@ -231,18 +231,31 @@ void loop()
 
     if (CONFIG.EN_VELOCITY_LOG)
     {
+      // Radio.print(motor1.getAverageSpeed());
+      // Radio.print(" ");
+      // Radio.print(motor2.getAverageSpeed());
+      // Radio.print(" ");
+      // Radio.print(motor3.getAverageSpeed());
+      // Radio.print(" ");
+      // Radio.print(motor4.getAverageSpeed());
+      // Radio.print(" ");
+      // Radio.print(motor1.getSetSpeed());
+      // Radio.print(" ");
+      // Radio.print(motor4.getSetSpeed());
+      // Radio.println("");
+      Radio.print("M1=");
       Radio.print(motor1.getAverageSpeed());
-      Radio.print(" ");
+      Radio.print(",M2=");
       Radio.print(motor2.getAverageSpeed());
-      Radio.print(" ");
+      Radio.print(",M3=");
       Radio.print(motor3.getAverageSpeed());
-      Radio.print(" ");
+      Radio.print(",M4=");
       Radio.print(motor4.getAverageSpeed());
-      Radio.print(" ");
+      Radio.print(",SR=");
       Radio.print(motor1.getSetSpeed());
-      Radio.print(" ");
+      Radio.print(",SL=");
       Radio.print(motor4.getSetSpeed());
-      Radio.println("");
+      Radio.print("\r\n");
     }
     else if (CONFIG.EN_IMU_LOG)
     {
