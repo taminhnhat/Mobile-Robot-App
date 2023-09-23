@@ -1,5 +1,8 @@
 const { io } = require("socket.io-client")
-const socket = io('http://192.168.1.42:3003')
+require('dotenv').config({ path: './.env' })
+const url = process.env.SERVER_URL || 'http://192.168.1.42:3003'
+console.log(`connecting to ${url}`)
+const socket = io(url)
 
 socket.on('connect', () => console.log('connected', socket.id))
 socket.on('disconnect', () => console.log('disconnected', socket.id))
