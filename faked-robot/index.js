@@ -48,6 +48,7 @@ robotHub.on('error', (err) => {
 
 let vel = [0, 0, 0, 0]
 let pos = [0, 0, 0, 0]
+let ori = [0, 0, 0, 0]
 let gyr = [0, 0, 0]
 let acc = [0, 0, 0]
 let lastCall = Date.now()
@@ -82,6 +83,8 @@ function msgProcess(msg) {
                 vel: vel,
                 pos: pos,
                 bat: 16.5,
+                tem: 30.0,
+                ori: ori,
                 gyr: gyr,
                 acc: acc,
             })
