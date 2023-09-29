@@ -487,6 +487,16 @@ void msgProcess(String lightCmd, Stream &stream)
     msg = crc_generate(msg) + msg + "\r\n";
     stream.print(msg);
   }
+  else if (topic_name.compareTo("enableMotor") == 0)
+  {
+    enableMotor();
+    stream.println("Succes Enable Motor!");
+  }
+  else if (topic_name.compareTo("disableMotor") == 0)
+  {
+    disableMotor();
+    stream.println("Succes Disable Motor!");
+  }
   else if (topic_name.compareTo("configPID") == 0)
   {
     const String mode = doc["mode"];
