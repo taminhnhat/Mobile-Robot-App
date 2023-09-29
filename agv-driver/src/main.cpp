@@ -147,6 +147,8 @@ void setup()
     CONFIG.IMU_AVAILABLE = true;
 
   pinMode(DISTANCE_SENSOR, INPUT);
+  pinMode(BATTERY_SENSOR, INPUT);
+  pinMode(MOTOR_EN, OUTPUT);
   pinMode(MOTOR_1_A, INPUT);
   pinMode(MOTOR_1_B, INPUT);
   pinMode(MOTOR_2_A, INPUT);
@@ -198,6 +200,8 @@ void setup()
   motor2.reset();
   motor3.reset();
   motor4.reset();
+
+  enableMotor();
 }
 
 void loop()

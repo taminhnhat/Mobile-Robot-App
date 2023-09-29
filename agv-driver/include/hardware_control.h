@@ -33,14 +33,24 @@
 #define DISTANCE_SENSOR PA1
 #define FRONT_LIGHT PC13
 #define BATTERY_SENSOR PB0
-#define IMU_INT PB8
+#define MOTOR_EN PB8
+#define IMU_INT PB9
 #define IMU_SDA PB7
 #define IMU_SCL PB6
 #define Radio Serial1
 
 HardwareSerial Bridge(PA3, PA2);
 
-double trimDouble(double in, uint16_t num)
+void enableMotor()
+{
+    digitalWrite(MOTOR_EN, HIGH);
+}
+void disableMotor()
+{
+    digitalWrite(MOTOR_EN, LOW);
+}
+
+double trimDouble(double in, uint8_t num = 2)
 {
     if (num == 0)
         return in;
@@ -275,11 +285,11 @@ public:
     }
     double getPosition()
     {
-        return round(this->p_ins * CONFIG.PULSE_TO_RAD_FACTOR * 100) / 100;
+        return trimDouble(this->p_ins * CONFIG.PULSE_TO_RAD_FACTOR, 2);
     }
     double getVelocity()
     {
-        return this->v_ins;
+        return trimDouble(this->v_ins, 2);
     }
     double getSetVelocity()
     {
@@ -291,15 +301,15 @@ public:
     }
     double getAverageVelocity()
     {
-        return round(this->v_ave * 100) / 100;
+        return trimDouble(this->v_ave, 2);
     }
     double getSpeed()
     {
-        return this->v_ins * 2 / CONFIG.WHEEL_DIAMETER;
+        return trimDouble(this->v_ins * 2 / CONFIG.WHEEL_DIAMETER, 2);
     }
     double getAverageSpeed()
     {
-        return round(this->v_ave * 2 / CONFIG.WHEEL_DIAMETER * 100) / 100;
+        return trimDouble(this->v_ave * 2 / CONFIG.WHEEL_DIAMETER, 2);
     }
     int32_t getdp()
     {
@@ -351,7 +361,7 @@ public:
     ~Battery() {}
     void tick()
     {
-        this->vol_ins = 3.3 * 5 * analogRead(BATTERY_SENSOR) / 1023;
+        this->vol_ins = 5.0 * 5 * analogRead(BATTERY_SENSOR) / 1023;
         this->vol_sum += this->vol_ins;
         this->vol_cou++;
         const uint64_t present_t = millis();
@@ -365,11 +375,11 @@ public:
     }
     double getVoltage()
     {
-        return this->vol_ins;
+        return trimDouble(this->vol_ins, 2);
     }
     double getAverageVoltage()
     {
-        return round(this->vol_ave * 100) / 100;
+        return trimDouble(this->vol_ave, 2);
     }
 } battery;
 
