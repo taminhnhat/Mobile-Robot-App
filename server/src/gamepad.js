@@ -121,7 +121,7 @@ function updateStatus() {
                 linear_vel_y = Number((-0.4 * controller.axes[i] * isOutDeadZone).toFixed(2))
             }
             else if (i == 2) {
-                angular_vel = Number((-3.9 * controller.axes[i] * isOutDeadZone).toFixed(2))
+                angular_vel = Number((-2.0 * controller.axes[i] * isOutDeadZone).toFixed(2))
             }
             document.getElementById('linear_vel').value = linear_vel_y
             document.getElementById('angular_vel').value = angular_vel

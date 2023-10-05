@@ -42,17 +42,16 @@ rclnodejs.init()
         //     })
         // });
         const ws_velocity_publisher = node.createPublisher('geometry_msgs/msg/Twist', 'ws_vel');
-        // const imu_publisher = node.createPublisher('sensor_msgs/msg/Imu', 'imu');
-        const battery_publisher = node.createPublisher('sensor_msgs/msg/Imu', 'test/battery');
+        console.log(ws_velocity_publisher)
 
         socket.on('ros:topic', d => {
-            console.log(d)
-            if (d.topic == 'ws_vel')
+            if (d.topic == 'ws_vel') {
+                // console.log(d.data)
                 ws_velocity_publisher.publish({
                     linear: { x: d.data.linear[0], y: d.data.linear[1], z: d.data.linear[2] },
                     angular: { x: d.data.angular[0], y: d.data.angular[1], z: d.data.angular[2] },
                 })
-            console.log('ros:topic', d)
+            }
         })
 
         fifoRs.on('data', d => {
@@ -65,16 +64,6 @@ rclnodejs.init()
                 topic: dJson.topic,
                 data: dPro,
             })
-
-            // if (dJson.topic == 'ros2_state') {
-            //     if (dJson.gyr != undefined && dJson.acc != undefined)
-            //         imu_publisher.publish({
-            //             header: { frame_id: 'imu_link', stamp: { sec: t.seconds, nanosec: t.nanoseconds } },
-            //             orientation: { x: dJson.ori[0], y: dJson.ori[1], z: dJson.ori[2], w: dJson.ori[3] },
-            //             angular_velocity: { x: dJson.gyr[0], y: dJson.gyr[1], z: dJson.gyr[2] },
-            //             linear_acceleration: { x: dJson.acc[0], y: dJson.acc[1], z: dJson.acc[2] },
-            //         })
-            // }
         })
 
         rclnodejs.spin(node);

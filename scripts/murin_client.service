@@ -1,0 +1,12 @@
+[Unit]
+Description=GATEWAY process service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/nhattm/Git-repositories/Mobile-Robot-App/ros-websocket
+ExecStart=/home/nhattm/Git-repositories/Mobile-Robot-App/scripts/murin_server.sh
+Restart=on-failure
+StandardOutput=file:/home/nhattm/.murin/murin_server.log
+
+[Install]
+WantedBy=default.target

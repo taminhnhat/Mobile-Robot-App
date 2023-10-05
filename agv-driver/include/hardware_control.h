@@ -30,9 +30,9 @@
 #define MOTOR_4_DIR PB14
 
 // define sensor
-#define DISTANCE_SENSOR PA1
+#define DISTANCE_SENSOR PB0
 #define FRONT_LIGHT PC13
-#define BATTERY_SENSOR PB0
+#define BATTERY_SENSOR PA1
 #define MOTOR_EN PB8
 #define IMU_INT PB9
 #define IMU_SDA PB7
@@ -361,7 +361,7 @@ public:
     ~Battery() {}
     void tick()
     {
-        this->vol_ins = 5.0 * 5 * analogRead(BATTERY_SENSOR) / 1023;
+        this->vol_ins = 3.3 * 5 * analogRead(BATTERY_SENSOR) / 1023;
         this->vol_sum += this->vol_ins;
         this->vol_cou++;
         const uint64_t present_t = millis();
@@ -649,8 +649,8 @@ public:
             if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer))
             {
                 mpu.dmpGetQuaternion(&q, fifoBuffer);
-                mpu.dmpGetGravity(&gravity, &q);
-                mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+                // mpu.dmpGetGravity(&gravity, &q);
+                // mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
                 mpu.dmpGetAccel(&aa, fifoBuffer);
                 // mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
