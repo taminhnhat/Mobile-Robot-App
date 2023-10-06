@@ -13,18 +13,26 @@ var rAF = window.mozRequestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
     window.requestAnimationFrame;
 
+var digitalTrigger = []
+var analogTrigger = []
 var linear_vel_x = 0
 var linear_vel_y = 0
 var angular_vel = 0
 const joyDeadzone = 0.1
 
-velocityGenerate = () => {
+const velocityGenerate = () => {
     socket.emit('ros:topic', {
         topic: 'ws_vel',
         data: {
             linear: [linear_vel_y, 0, 0],
             angular: [0, 0, angular_vel]
         }
+    })
+}
+const gamepadCallback = () => {
+    socket.emit('gamepad', {
+        buttons: digitalTrigger,
+        axes: analogTrigger
     })
 }
 
@@ -67,11 +75,13 @@ function addgamepad(gamepad) {
     rAF(updateStatus);
 
     setInterval(velocityGenerate, 100)
+    setInterval(gamepadCallback, 100)
 }
 
 function disconnecthandler(e) {
     removegamepad(e.gamepad);
     clearInterval(velocityGenerate)
+    clearInterval(gamepadCallback)
 }
 
 function removegamepad(gamepad) {
@@ -82,6 +92,8 @@ function removegamepad(gamepad) {
 
 function updateStatus() {
     scangamepads();
+    digitalTrigger = []
+    analogTrigger = []
     for (j in controllers) {
         var controller = controllers[j];
         var d = document.getElementById("controller" + j);
@@ -98,6 +110,7 @@ function updateStatus() {
                 }
                 val = val.value;
             }
+            digitalTrigger.push({ id: i, val: val })
             var pct = Math.round(val * 100) + "%";
             b.style.backgroundSize = pct + " " + pct;
             b.className = "button";
@@ -113,6 +126,7 @@ function updateStatus() {
         for (var i = 0; i < controller.axes.length; i++) {
             var a = axes[i];
             var isOutDeadZone = 1
+            analogTrigger.push({ id: i, val: controller.axes[i] })
             // if (Math.abs(controller.axes[i]) > joyDeadzone) isOutDeadZone = 0
             if (i == 0) {
                 linear_vel_x = Number((-0.4 * controller.axes[i] * isOutDeadZone).toFixed(2))

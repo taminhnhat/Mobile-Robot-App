@@ -13,6 +13,10 @@ function onConnection(socket) {
         // console.log(d.topic, d.data)
         socket.broadcast.emit('ros:topic', d)// send to all connected clients except the sender
     })
+    socket.on('gamepad', d => {
+        // console.log(d.topic, d.data)
+        socket.broadcast.emit('gamepad', d)// send to all connected clients except the sender
+    })
     // socket.on('robot:message', robotCtrl.onMessage)
     setInterval(() => {
         // socket.emit('ros:topic', 'control')

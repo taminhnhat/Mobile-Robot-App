@@ -1,7 +1,9 @@
 const { SerialPort } = require('serialport');
 const CRC = require('crc')
+require('dotenv').config()
 
 let isRgbHubOpen = false
+const usbPath = process.env.USB_PORT || '/dev/ttyUSB0'
 
 let messageBufferFromRgbHub = ''
 
@@ -11,7 +13,7 @@ let reconnectHubInterval
 
 //  NEED TO CONFIG SERIAL PORT FIRST, READ 'README.md'
 const robotHub = new SerialPort({
-    path: 'COM12',
+    path: usbPath,
     baudRate: 115200,
     autoOpen: true
 });
@@ -90,7 +92,7 @@ function msgProcess(msg) {
             })
             res = robotRes(m)
             robotHub.write(res)
-            console.log('>>>', res.trim())
+            // console.log('>>>', res.trim())
             break;
         default:
             break;
