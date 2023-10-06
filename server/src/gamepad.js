@@ -41,7 +41,9 @@ function connecthandler(e) {
 }
 
 function addgamepad(gamepad) {
-    controllers[gamepad.index] = gamepad; var d = document.createElement("div");
+    controllers[gamepad.index] = gamepad;
+    // var d = document.createElement("div");
+    var d = document.getElementById('centerPanel');
     d.setAttribute("id", "controller" + gamepad.index);
     var b = document.createElement("div");
     b.className = "buttons";

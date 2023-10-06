@@ -31,6 +31,7 @@
 	<meta name="description" content="Example page of use pure Javascript JoyStick">
 	<meta name="author" content="Roberto D'Amico">
 	<link rel="shortcut icon" type="image/png" href="https://bobboteck.github.io/img/roberto-damico-bobboteck.png">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<style>
 		* {
 			box-sizing: border-box;
@@ -51,7 +52,7 @@
 		.columnLateral {
 			float: left;
 			width: 15%;
-			min-width: 200px;
+			min-width: 140px;
 		}
 
 		.columnCetral {
@@ -60,18 +61,28 @@
 			min-width: 300px;
 		}
 
-		#joy2Div {
-			width: 200px;
-			height: 200px;
-			margin: 50px
-		}
-
 		#joystick {
 			border: 0px solid #FF0000;
 		}
 
 		#joystick2 {
 			border: 0px solid #0000FF;
+		}
+
+		#Home {
+			background-color: #efefef;
+		}
+
+		#News {
+			background-color: #efefef;
+		}
+
+		#Contact {
+			background-color: #efefef;
+		}
+
+		#About {
+			background-color: #efefef;
 		}
 	</style>
 	<script src="/socket.io/socket.io.js"></script>
@@ -88,7 +99,8 @@
 
 		/*meter*/
 		.axis {
-			min-width: 200px;
+			width: 20%;
+			min-width: 100px;
 			height: 50px;
 			margin: 1em;
 		}
@@ -123,7 +135,9 @@
 		/* Style tab links */
 		.tablink {
 			background-color: #555;
-			color: white;
+			color: #efefef;
+			font-weight: bold;
+			border-radius: 4px;
 			float: left;
 			border: none;
 			outline: none;
@@ -136,6 +150,10 @@
 		.tablink:hover {
 			background-color: #777;
 		}
+
+		.tabcontent {
+			height: 80%;
+		}
 	</style>
 </head>
 
@@ -143,27 +161,29 @@
 	<!-- Example of two JoyStick integrated in the page structure -->
 	<div class="row" id="vitualjoystick">
 		<div id="leftPanel" class="columnLateral">
-			<div id="joy1Div" style="width:200px;height:200px;margin:0px"></div>
+			<div id="joy1Div" style="width:100%;padding-top: 100%;margin:0px"></div>
 			Posizione X:<input id="joy1PosizioneX" type="text" /><br />
 			Posizione Y:<input id="joy1PosizioneY" type="text" /><br />
 			Direzione:<input id="joy1Direzione" type="text" /><br />
 			X :<input id="joy1X" type="text" /></br>
 			Y :<input id="joy1Y" type="text" />
 		</div>
-		<div class="columnCetral">
-			<button class="tablink" onclick="openPage('Home', this, 'black')">Home</button>
-			<button class="tablink" onclick="openPage('News', this, 'black')" id="defaultOpen">News</button>
-			<button class="tablink" onclick="openPage('Contact', this, 'black')">Contact</button>
-			<button class="tablink" onclick="openPage('About', this, 'black')">About</button>
+		<div id="centerPanel" class="columnCetral">
+			<button class="tablink" onclick="openPage('Home', this, 'orange')" id="homeButton">Home</button>
+			<button class="tablink" onclick="openPage('News', this, 'orange')" id="defaultOpen">Console</button>
+			<button class="tablink" onclick="openPage('Contact', this, 'orange')" id="contactButton">Control</button>
+			<button class="tablink" onclick="openPage('About', this, 'orange')" id="aboutButton">Graph</button>
 
 			<div id="Home" class="tabcontent">
-				<h3>Home</h3>
+				<h3 id="deviceName">Vitual JoyStick</h3>
 				<p>Home is where the heart is..</p>
 			</div>
 
 			<div id="News" class="tabcontent">
 				<h3>Robot Topic</h3>
-				<p>Some news this fine day!</p>
+				<div id="card" style="height:120px;border:1px;overflow:hidden;">
+					<ul style="list-style: none;" id="messages"></ul>
+				</div>
 			</div>
 
 			<div id="Contact" class="tabcontent">
@@ -184,34 +204,54 @@
 					}
 					tablinks = document.getElementsByClassName("tablink");
 					for (i = 0; i < tablinks.length; i++) {
-						tablinks[i].style.backgroundColor = "";
+						tablinks[i].style.backgroundColor = '#0e263d';
+						tablinks[i].style.color = '#efefef';
 					}
 					document.getElementById(pageName).style.display = "block";
-					elmnt.style.backgroundColor = color;
+					elmnt.style.backgroundColor = '#efefef';
+					elmnt.style.color = '#0e263d';
+				}
+				var elem = document.documentElement;
+				var fullscreenFlag = false;
+				function fullscreenToggle() {
+					fullscreenFlag = !fullscreenFlag;
+					if (fullscreenFlag) {
+						if (elem.requestFullscreen) {
+							elem.requestFullscreen();
+						} else if (elem.webkitRequestFullscreen) { /* Safari */
+							elem.webkitRequestFullscreen();
+						} else if (elem.msRequestFullscreen) { /* IE11 */
+							elem.msRequestFullscreen();
+						}
+					} else {
+						if (document.exitFullscreen) {
+							document.exitFullscreen();
+						} else if (document.webkitExitFullscreen) { /* Safari */
+							document.webkitExitFullscreen();
+						} else if (document.msExitFullscreen) { /* IE11 */
+							document.msExitFullscreen();
+						}
+					}
 				}
 
 				// Get the element with id="defaultOpen" and click on it
 				document.getElementById("defaultOpen").click();
 			</script>
 
-			<h2 id="deviceName">Vitual JoyStick</h2>
-			<div id="card"
-				style="height:120px;border:1px solid #747474;background-color:#747474;color:#cfcfcf;overflow:hidden;">
-				<ul style="list-style: none;" id="messages"></ul>
-			</div>
 			<h2 id="start">Press a button on your controller to start</h2>
+			<div>
+				Linear:<input id="linear_vel" type="text">m/s Angular:<input id="angular_vel" type="text">rad/s
+			</div>
+			<button onclick="fullscreenToggle()" id="fullscreen"><i class="material-icons">&#xe5d0;</i></button>
 		</div>
 		<div id="rightPanel" class="columnLateral">
-			<div id="joy2Div" style="width:200px;height:200px;margin:0px"></div>
+			<div id="joy2Div" style="width:100%;padding-top: 100%;margin:0px"></div>
 			Posizione X:<input id="joy2PosizioneX" type="text" /></br>
 			Posizione Y:<input id="joy2PosizioneY" type="text" /></br>
 			Direzione:<input id="joy2Direzione" type="text" /></br>
 			X :<input id="joy2X" type="text" /></br>
 			Y :<input id="joy2Y" type="text" />
 		</div>
-	</div>
-	<div>
-		Linear:<input id="linear_vel" type="text"> Angular:<input id="angular_vel" type="text">
 	</div>
 	<script src="/src?path=main.js"></script>
 </body>
