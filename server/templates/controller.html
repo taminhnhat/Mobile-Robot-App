@@ -51,7 +51,7 @@
 
 		.columnLateral {
 			float: left;
-			width: 15%;
+			width: 12%;
 			min-width: 140px;
 		}
 
@@ -65,14 +65,14 @@
 			border: 0px solid #FF0000;
 			width: 100%;
 			border-radius: 50%;
-			background-color: #80d5ff;
+			background-color: #a88c6f;
 		}
 
 		#joystick2 {
 			border: 0px solid #0000FF;
 			width: 100%;
 			border-radius: 50%;
-			background-color: #80d5ff;
+			background-color: #a88c6f;
 		}
 
 		#Home {
@@ -153,6 +153,20 @@
 			width: 25%;
 		}
 
+		.controlButton {
+			background-color: #f39300;
+			color: #f39300;
+			font-weight: bold;
+			border-radius: 4px;
+			float: left;
+			border: none;
+			outline: none;
+			cursor: pointer;
+			padding: 14px 16px;
+			font-size: 17px;
+			width: 50%;
+		}
+
 		.tablink:hover {
 			background-color: #777;
 		}
@@ -167,12 +181,15 @@
 	<!-- Example of two JoyStick integrated in the page structure -->
 	<div class="row" id="vitualjoystick">
 		<div id="leftPanel" class="columnLateral">
-			<div id="joy1Div" style="width:100%;padding-top: 100%;margin:0px"></div>
-			Posizione X:<input id="joy1PosizioneX" type="text" /><br />
-			Posizione Y:<input id="joy1PosizioneY" type="text" /><br />
-			Direzione:<input id="joy1Direzione" type="text" /><br />
-			X :<input id="joy1X" type="text" /></br>
-			Y :<input id="joy1Y" type="text" />
+			<div id="joy1Div" style="width:100%;margin:0px">
+				<canvas id="newCanvas" style="width:100%;"></canvas>
+				<!-- <button class="controlButton" id="stopButton"></button> -->
+			</div>
+			<!-- Posizione X:<input id="joy1PosizioneX" type="text" /><br />
+				Posizione Y:<input id="joy1PosizioneY" type="text" /><br />
+				Direzione:<input id="joy1Direzione" type="text" /><br /> -->
+			X :<input id="joy1X" type="text" maxlength="4" size="4" /></br>
+			Y :<input id="joy1Y" type="text" maxlength="4" size="4" />
 		</div>
 		<div id="centerPanel" class="columnCetral">
 			<button class="tablink" onclick="openPage('Home', this, 'orange')" id="homeButton">Home</button>
@@ -195,6 +212,8 @@
 			<div id="Contact" class="tabcontent">
 				<h3>Map</h3>
 				<p>Get in touch, or swing by for a cup of coffee.</p>
+				<h3 id="start">Press a button on your controller to start</h3>
+
 			</div>
 
 			<div id="About" class="tabcontent">
@@ -239,26 +258,45 @@
 						}
 					}
 				}
+				function onscreenJoystickToggle() {
+					var r = document.getElementById("rightPanel");
+					var l = document.getElementById("leftPanel");
+					if (r.style.display == "none") {
+						r.style.display = "block";
+						l.style.display = "block";
+					}
+					else {
+						r.style.display = "none";
+						l.style.display = "none";
+					}
+				}
 
 				// Get the element with id="defaultOpen" and click on it
 				document.getElementById("defaultOpen").click();
 			</script>
-
-			<h2 id="start">Press a button on your controller to start</h2>
-			<div>
-				Linear:<input id="linear_vel" type="text">m/s Angular:<input id="angular_vel" type="text">rad/s
-			</div>
-			<button onclick="fullscreenToggle()" id="fullscreen"><i class="material-icons">&#xe5d0;</i></button>
 		</div>
 		<div id="rightPanel" class="columnLateral">
-			<div id="joy2Div" style="width:100%;padding-top: 100%;margin:0px"></div>
-			Posizione X:<input id="joy2PosizioneX" type="text" /></br>
+			<div id="joy2Div" style="width:100%;margin:0px"></div>
+			<!-- Posizione X:<input id="joy2PosizioneX" type="text" /></br>
 			Posizione Y:<input id="joy2PosizioneY" type="text" /></br>
-			Direzione:<input id="joy2Direzione" type="text" /></br>
-			X :<input id="joy2X" type="text" /></br>
-			Y :<input id="joy2Y" type="text" />
+			Direzione:<input id="joy2Direzione" type="text" /></br> -->
+			X :<input id="joy2X" type="text" maxlength="4" size="4" /></br>
+			Y :<input id="joy2Y" type="text" maxlength="4" size="4" />
 		</div>
 	</div>
+	<div class="row" id="bottom">
+		<div class="columnLateral">
+			<button onclick="fullscreenToggle()" id="fullscreen"><i class="material-icons">&#xe5d0;</i></button>
+		</div>
+		<div class="columnCetral">
+			Linear:<input id="linear_vel" type="text">m/s Angular:<input id="angular_vel" type="text">rad/s
+		</div>
+		<div class="columnLateral">
+			<button onclick="onscreenJoystickToggle()" id="ocJoystick" style="float: right;">Onscreen
+		</div>
+		JoyStick</button>
+	</div>
+	<script src="/src?path=canvas.js"></script>
 	<script src="/src?path=main.js"></script>
 </body>
 

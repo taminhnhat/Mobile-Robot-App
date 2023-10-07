@@ -31,11 +31,11 @@ var JoyStick = (function (container, parameters, callback) {
         height = (typeof parameters.height === "undefined" ? 0 : parameters.height),
         x_bounc = (typeof parameters.x === "undefined" ? 1 : parameters.x),
         y_bounc = (typeof parameters.y === "undefined" ? 1 : parameters.x),
-        internalFillColor = (typeof parameters.internalFillColor === "undefined" ? "#00AA00" : parameters.internalFillColor),
+        internalFillColor = (typeof parameters.internalFillColor === "undefined" ? "#778c74" : parameters.internalFillColor),
         internalLineWidth = (typeof parameters.internalLineWidth === "undefined" ? 2 : parameters.internalLineWidth),
-        internalStrokeColor = (typeof parameters.internalStrokeColor === "undefined" ? "#003300" : parameters.internalStrokeColor),
+        internalStrokeColor = (typeof parameters.internalStrokeColor === "undefined" ? "#002000" : parameters.internalStrokeColor),
         externalLineWidth = (typeof parameters.externalLineWidth === "undefined" ? 2 : parameters.externalLineWidth),
-        externalStrokeColor = (typeof parameters.externalStrokeColor === "undefined" ? "#008000" : parameters.externalStrokeColor),
+        externalStrokeColor = (typeof parameters.externalStrokeColor === "undefined" ? "#002000" : parameters.externalStrokeColor),
         autoReturnToCenter = (typeof parameters.autoReturnToCenter === "undefined" ? true : parameters.autoReturnToCenter);
 
     callback = callback || function (StickStatus) { };
@@ -51,15 +51,17 @@ var JoyStick = (function (container, parameters, callback) {
     if (width === 0) { width = objContainer.clientWidth; }
     if (height === 0) { height = objContainer.clientHeight; }
     canvas.width = width;
-    canvas.height = height;
+    canvas.height = width;
+    // canvas.cursor = "all-scroll";
     objContainer.appendChild(canvas);
-    var context = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
+    const info = document.querySelector("p");
 
     var pressed = 0; // Bool - 1=Yes - 0=No
     var circumference = 2 * Math.PI;
     var internalRadius = (canvas.width - ((canvas.width / 2) + 10)) / 2;
     var maxMoveStick = internalRadius + 5;
-    var externalRadius = internalRadius + 30;
+    var externalRadius = canvas.width / 2 - internalRadius;
     var centerX = canvas.width / 2;
     var centerY = canvas.height / 2;
     var directionHorizontalLimitPos = canvas.width / 10;
@@ -93,34 +95,40 @@ var JoyStick = (function (container, parameters, callback) {
      * @desc Draw the external circle used as reference position
      */
     function drawExternal() {
-        context.beginPath();
-        context.arc(centerX, centerY, externalRadius, 0, circumference, false);
-        context.lineWidth = externalLineWidth;
-        context.strokeStyle = externalStrokeColor;
-        context.stroke();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, externalRadius, 0, circumference, false);
+        ctx.lineWidth = externalLineWidth;
+        ctx.strokeStyle = externalStrokeColor;
+        ctx.stroke();
     }
 
     /**
      * @desc Draw the internal stick in the current position the user have moved it
      */
     function drawInternal() {
-        context.beginPath();
+        ctx.beginPath();
         if (movedX < internalRadius) { movedX = maxMoveStick; }
         if ((movedX + internalRadius) > canvas.width) { movedX = canvas.width - (maxMoveStick); }
         if (movedY < internalRadius) { movedY = maxMoveStick; }
         if ((movedY + internalRadius) > canvas.height) { movedY = canvas.height - (maxMoveStick); }
-        context.arc(movedX, movedY, internalRadius, 0, circumference, false);
+        const tmpRadius = (movedX ** 2 + movedY ** 2) ** 0.5
+        if (tmpRadius > internalRadius) {
+            movedX = movedX * internalRadius / tmpRadius
+            movedY = movedY * internalRadius / tmpRadius
+        }
+
+        ctx.arc(movedX, movedY, internalRadius, 0, circumference, false);
         // create radial gradient
-        var grd = context.createRadialGradient(centerX, centerY, 5, centerX, centerY, 200);
+        var grd = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 200);
         // Light color
         grd.addColorStop(0, internalFillColor);
         // Dark color
         grd.addColorStop(1, internalStrokeColor);
-        context.fillStyle = grd;
-        context.fill();
-        context.lineWidth = internalLineWidth;
-        context.strokeStyle = internalStrokeColor;
-        context.stroke();
+        ctx.fillStyle = grd;
+        ctx.fill();
+        ctx.lineWidth = internalLineWidth;
+        ctx.strokeStyle = internalStrokeColor;
+        ctx.stroke();
     }
 
     /**
@@ -144,7 +152,7 @@ var JoyStick = (function (container, parameters, callback) {
                 movedY -= canvas.offsetParent.offsetTop;
             }
             // Delete canvas
-            context.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             // Redraw object
             drawExternal();
             drawInternal();
@@ -168,7 +176,7 @@ var JoyStick = (function (container, parameters, callback) {
             movedY = centerY;
         }
         // Delete canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         // Redraw object
         drawExternal();
         drawInternal();
@@ -204,7 +212,7 @@ var JoyStick = (function (container, parameters, callback) {
                 movedY -= canvas.offsetParent.offsetTop;
             }
             // Delete canvas
-            context.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             // Redraw object
             drawExternal();
             drawInternal();
@@ -228,7 +236,7 @@ var JoyStick = (function (container, parameters, callback) {
             movedY = centerY;
         }
         // Delete canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         // Redraw object
         drawExternal();
         drawInternal();

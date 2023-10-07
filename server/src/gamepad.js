@@ -73,9 +73,9 @@ function addgamepad(gamepad) {
     d.appendChild(a);
     document.getElementById("start").style.display = "none";
     document.body.appendChild(d);
-    document.getElementById("rightPanel").remove()
-    document.getElementById("leftPanel").remove()
-    document.getElementById("deviceName").textContent = gamepad.id
+    document.getElementById("rightPanel").style.display = "none";
+    document.getElementById("leftPanel").style.display = "none";
+    document.getElementById("deviceName").textContent = gamepad.id;
     rAF(updateStatus);
 
     setInterval(velocityGenerate, 100)
