@@ -21,11 +21,13 @@ var angular_vel = 0
 const joyDeadzone = 0.1
 
 const velocityGenerate = () => {
+    var v = (abs(linear_vel_x) >= 0.1) ? linear_vel_x : 0;
+    var w = (abs(angular_vel) >= 0.5) ? angular_vel : 0;
     socket.emit('ros:topic', {
         topic: 'ws_vel',
         data: {
-            linear: [linear_vel_y, 0, 0],
-            angular: [0, 0, angular_vel]
+            linear: [v, 0, 0],
+            angular: [0, 0, w]
         }
     })
 }
@@ -43,8 +45,8 @@ function connecthandler(e) {
 function addgamepad(gamepad) {
     controllers[gamepad.index] = gamepad;
     // var d = document.createElement("div");
-    var d = document.getElementById('centerPanel');
-    d.setAttribute("id", "controller" + gamepad.index);
+    // d.setAttribute("id", "controller" + gamepad.index);
+    var d = document.getElementById('Contact');
     var b = document.createElement("div");
     b.className = "buttons";
     for (var i = 0; i < gamepad.buttons.length; i++) {
@@ -96,55 +98,55 @@ function updateStatus() {
     scangamepads();
     digitalTrigger = []
     analogTrigger = []
-    for (j in controllers) {
-        var controller = controllers[j];
-        var d = document.getElementById("controller" + j);
-        var buttons = d.getElementsByClassName("button");
-        for (var i = 0; i < controller.buttons.length; i++) {
-            var b = buttons[i];
-            var val = controller.buttons[i];
-            var pressed = val == 1.0;
-            var touched = false;
-            if (typeof (val) == "object") {
-                pressed = val.pressed;
-                if ('touched' in val) {
-                    touched = val.touched;
-                }
-                val = val.value;
+    // for (j in controllers) {
+    var controller = controllers[0];
+    var d = document.getElementById("Contact");
+    var buttons = d.getElementsByClassName("button");
+    for (var i = 0; i < controller.buttons.length; i++) {
+        var b = buttons[i];
+        var val = controller.buttons[i];
+        var pressed = val == 1.0;
+        var touched = false;
+        if (typeof (val) == "object") {
+            pressed = val.pressed;
+            if ('touched' in val) {
+                touched = val.touched;
             }
-            digitalTrigger.push({ id: i, val: val })
-            var pct = Math.round(val * 100) + "%";
-            b.style.backgroundSize = pct + " " + pct;
-            b.className = "button";
-            if (pressed) {
-                b.className += " pressed";
-            }
-            if (touched) {
-                b.className += " touched";
-            }
+            val = val.value;
         }
-
-        var axes = d.getElementsByClassName("axis");
-        for (var i = 0; i < controller.axes.length; i++) {
-            var a = axes[i];
-            var isOutDeadZone = 1
-            analogTrigger.push({ id: i, val: controller.axes[i] })
-            // if (Math.abs(controller.axes[i]) > joyDeadzone) isOutDeadZone = 0
-            if (i == 0) {
-                linear_vel_x = Number((-0.4 * controller.axes[i] * isOutDeadZone).toFixed(2))
-            }
-            else if (i == 1) {
-                linear_vel_y = Number((-0.4 * controller.axes[i] * isOutDeadZone).toFixed(2))
-            }
-            else if (i == 2) {
-                angular_vel = Number((-2.0 * controller.axes[i] * isOutDeadZone).toFixed(2))
-            }
-            document.getElementById('linear_vel').value = linear_vel_y
-            document.getElementById('angular_vel').value = angular_vel
-            a.innerHTML = i + ": " + controller.axes[i].toFixed(4);
-            a.setAttribute("value", controller.axes[i]);
+        digitalTrigger.push({ id: i, val: val })
+        var pct = Math.round(val * 100) + "%";
+        b.style.backgroundSize = pct + " " + pct;
+        b.className = "button";
+        if (pressed) {
+            b.className += " pressed";
+        }
+        if (touched) {
+            b.className += " touched";
         }
     }
+
+    var axes = d.getElementsByClassName("axis");
+    for (var i = 0; i < controller.axes.length; i++) {
+        var a = axes[i];
+        var isOutDeadZone = 1
+        analogTrigger.push({ id: i, val: controller.axes[i] })
+        // if (Math.abs(controller.axes[i]) > joyDeadzone) isOutDeadZone = 0
+        if (i == 0) {
+            linear_vel_x = Number((-0.4 * controller.axes[i] * isOutDeadZone).toFixed(2))
+        }
+        else if (i == 1) {
+            linear_vel_y = Number((-0.4 * controller.axes[i] * isOutDeadZone).toFixed(2))
+        }
+        else if (i == 2) {
+            angular_vel = Number((-2.0 * controller.axes[i] * isOutDeadZone).toFixed(2))
+        }
+        document.getElementById('linear_vel').value = linear_vel_y
+        document.getElementById('angular_vel').value = angular_vel
+        a.innerHTML = i + ": " + controller.axes[i].toFixed(4);
+        a.setAttribute("value", controller.axes[i]);
+    }
+    // }
     rAF(updateStatus);
 }
 

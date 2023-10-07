@@ -1,7 +1,7 @@
 const socket = io()
 console.log('script start')
 // Create JoyStick object into the DIV 'joy1Div'
-var Joy1 = new JoyStick('joy1Div', { x: 0.4, y: 0.4 });
+var Joy1 = new JoyStick('joy1Div', { "title": "joystick1", "autoReturnToCenter": true, "internalFillColor": '#', x: 3.9, y: 3.9 });
 
 var joy1IinputPosX = document.getElementById("joy1PosizioneX");
 var joy1InputPosY = document.getElementById("joy1PosizioneY");
@@ -16,8 +16,7 @@ setInterval(function () { joy1X.value = Joy1.GetX(); }, 50);
 setInterval(function () { joy1Y.value = Joy1.GetY(); }, 50);
 
 // Create JoyStick object into the DIV 'joy2Div'
-var joy2Param = { "title": "joystick2", "autoReturnToCenter": true, x: 3.9, y: 3.9 };
-var Joy2 = new JoyStick('joy2Div', joy2Param);
+var Joy2 = new JoyStick('joy2Div', { "title": "joystick2", "autoReturnToCenter": true, x: 3.9, y: 3.9 });
 
 var joy2IinputPosX = document.getElementById("joy2PosizioneX");
 var joy2InputPosY = document.getElementById("joy2PosizioneY");
