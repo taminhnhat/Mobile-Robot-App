@@ -1,5 +1,9 @@
 const socket = io()
 console.log('script start')
+
+document.getElementById("agentType").textContent = navigator.userAgent;
+// document.getElementById(vitualjoystick).style.height = window.innerHeight - 100;
+
 // Create JoyStick object into the DIV 'joy1Div'
 var Joy1 = new JoyStick('joy1Div', { "title": "joystick1", "autoReturnToCenter": true, x: 0.4, y: 0.4 });
 

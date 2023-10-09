@@ -10,5 +10,18 @@
     "socket.io-client": "^4.7.2",
     "winston": "^3.10.0",
     "winston-daily-rotate-file": "^4.7.1"
-  }
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "Ta Minh Nhat",
+  "license": "ISC",
+  "description": ""
 }

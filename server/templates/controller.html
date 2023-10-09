@@ -32,7 +32,14 @@
 	<meta name="author" content="Roberto D'Amico">
 	<link rel="shortcut icon" type="image/png" href="https://bobboteck.github.io/img/roberto-damico-bobboteck.png">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet"
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 	<style>
+		body {
+			min-height: 100vh;
+		}
+
 		* {
 			box-sizing: border-box;
 		}
@@ -91,9 +98,6 @@
 			background-color: #efefef;
 		}
 	</style>
-	<script src="/socket.io/socket.io.js"></script>
-	<script src="/src?path=oc-joy.js"></script>
-	<script src="/src?path=gamepad.js"></script>
 	<style>
 		.axes {
 			padding: 1em;
@@ -153,6 +157,13 @@
 			width: 25%;
 		}
 
+		.shortcut {
+			border: none;
+			outline: none;
+			/* height: 100%;
+			padding-top: 100%; */
+		}
+
 		.controlButton {
 			background-color: #f39300;
 			color: #f39300;
@@ -172,22 +183,37 @@
 		}
 
 		.tabcontent {
-			height: 80%;
+			height: 90%;
+			bottom: 0;
+		}
+
+		.my-canvas {
+			width: 100px;
+			height: 100px;
+		}
+
+		.canvas-container {
+			display: flex;
+			width: 50%;
+		}
+
+		.navbar {
+			display: inline-flex;
+			/* overflow: hidden; */
+			position: fixed;
+			bottom: 0;
+			width: 100%;
 		}
 	</style>
 </head>
 
 <body>
 	<!-- Example of two JoyStick integrated in the page structure -->
-	<div class="row" id="vitualjoystick">
+	<div class="row" id="vitualjoystick" style="float: top;height: 95vh;">
 		<div id="leftPanel" class="columnLateral">
 			<div id="joy1Div" style="width:100%;margin:0px">
-				<canvas id="newCanvas" style="width:100%;"></canvas>
 				<!-- <button class="controlButton" id="stopButton"></button> -->
 			</div>
-			<!-- Posizione X:<input id="joy1PosizioneX" type="text" /><br />
-				Posizione Y:<input id="joy1PosizioneY" type="text" /><br />
-				Direzione:<input id="joy1Direzione" type="text" /><br /> -->
 			X :<input id="joy1X" type="text" maxlength="4" size="4" /></br>
 			Y :<input id="joy1Y" type="text" maxlength="4" size="4" />
 		</div>
@@ -199,6 +225,7 @@
 
 			<div id="Home" class="tabcontent">
 				<h3 id="deviceName">Vitual JoyStick</h3>
+				<h3 id="agentType">Unknown Web browser</h3>
 				<p>Home is where the heart is..</p>
 			</div>
 
@@ -213,90 +240,110 @@
 				<h3>Map</h3>
 				<p>Get in touch, or swing by for a cup of coffee.</p>
 				<h3 id="start">Press a button on your controller to start</h3>
-
 			</div>
 
 			<div id="About" class="tabcontent">
-				<h3>About</h3>
-				<p>Who we are and what we do.</p>
-			</div>
-			<script>
-				function openPage(pageName, elmnt, color) {
-					var i, tabcontent, tablinks;
-					tabcontent = document.getElementsByClassName("tabcontent");
-					for (i = 0; i < tabcontent.length; i++) {
-						tabcontent[i].style.display = "none";
-					}
-					tablinks = document.getElementsByClassName("tablink");
-					for (i = 0; i < tablinks.length; i++) {
-						tablinks[i].style.backgroundColor = '#0e263d';
-						tablinks[i].style.color = '#efefef';
-					}
-					document.getElementById(pageName).style.display = "block";
-					elmnt.style.backgroundColor = '#efefef';
-					elmnt.style.color = '#0e263d';
-				}
-				var elem = document.documentElement;
-				var fullscreenFlag = false;
-				function fullscreenToggle() {
-					fullscreenFlag = !fullscreenFlag;
-					if (fullscreenFlag) {
-						if (elem.requestFullscreen) {
-							elem.requestFullscreen();
-						} else if (elem.webkitRequestFullscreen) { /* Safari */
-							elem.webkitRequestFullscreen();
-						} else if (elem.msRequestFullscreen) { /* IE11 */
-							elem.msRequestFullscreen();
-						}
-					} else {
-						if (document.exitFullscreen) {
-							document.exitFullscreen();
-						} else if (document.webkitExitFullscreen) { /* Safari */
-							document.webkitExitFullscreen();
-						} else if (document.msExitFullscreen) { /* IE11 */
-							document.msExitFullscreen();
-						}
-					}
-				}
-				function onscreenJoystickToggle() {
-					var r = document.getElementById("rightPanel");
-					var l = document.getElementById("leftPanel");
-					if (r.style.display == "none") {
-						r.style.display = "block";
-						l.style.display = "block";
-					}
-					else {
-						r.style.display = "none";
-						l.style.display = "none";
-					}
-				}
+				<h3>Graph</h3>
+				<div class="canvas-container">
+					<canvas id="linearVelocityChart"></canvas>
+					<canvas id="angularVelocityChart"></canvas>
+				</div>
 
-				// Get the element with id="defaultOpen" and click on it
-				document.getElementById("defaultOpen").click();
-			</script>
+			</div>
 		</div>
 		<div id="rightPanel" class="columnLateral">
-			<div id="joy2Div" style="width:100%;margin:0px"></div>
-			<!-- Posizione X:<input id="joy2PosizioneX" type="text" /></br>
-			Posizione Y:<input id="joy2PosizioneY" type="text" /></br>
-			Direzione:<input id="joy2Direzione" type="text" /></br> -->
 			X :<input id="joy2X" type="text" maxlength="4" size="4" /></br>
 			Y :<input id="joy2Y" type="text" maxlength="4" size="4" />
+			<div id="joy2Div" style="width:100%;margin:0px"></div>
+		</div>
+		<script>
+			function openPage(pageName, elmnt, color) {
+				var i, tabcontent, tablinks;
+				tabcontent = document.getElementsByClassName("tabcontent");
+				for (i = 0; i < tabcontent.length; i++) {
+					tabcontent[i].style.display = "none";
+				}
+				tablinks = document.getElementsByClassName("tablink");
+				for (i = 0; i < tablinks.length; i++) {
+					tablinks[i].style.backgroundColor = '#0e263d';
+					tablinks[i].style.color = '#efefef';
+				}
+				document.getElementById(pageName).style.display = "block";
+				elmnt.style.backgroundColor = '#efefef';
+				elmnt.style.color = '#0e263d';
+			}
+
+			var elem = document.documentElement;
+			var fullscreenFlag = false;
+
+			function fullscreenToggle() {
+				fullscreenFlag = !fullscreenFlag;
+				if (fullscreenFlag) {
+					if (elem.requestFullscreen) {
+						elem.requestFullscreen();
+					} else if (elem.webkitRequestFullscreen) { /* Safari */
+						elem.webkitRequestFullscreen();
+					} else if (elem.msRequestFullscreen) { /* IE11 */
+						elem.msRequestFullscreen();
+					}
+				} else {
+					if (document.exitFullscreen) {
+						document.exitFullscreen();
+					} else if (document.webkitExitFullscreen) { /* Safari */
+						document.webkitExitFullscreen();
+					} else if (document.msExitFullscreen) { /* IE11 */
+						document.msExitFullscreen();
+					}
+				}
+			}
+			function onscreenJoystickToggle() {
+				var r = document.getElementById("rightPanel");
+				var l = document.getElementById("leftPanel");
+				if (r.style.display == "none") {
+					r.style.display = "block";
+					l.style.display = "block";
+				}
+				else {
+					r.style.display = "none";
+					l.style.display = "none";
+				}
+			}
+
+			// Get the element with id="defaultOpen" and click on it
+			document.getElementById("defaultOpen").click();
+		</script>
+	</div>
+
+	<div class="row" style="background-color: #f0f0f0;height: 100%;font-weight: bold;">
+		<div>
+			<!-- <button onclick="fullscreenToggle()" id="fullscreen"><i class="material-icons">&#xe5d0;</i></button> -->
+			<button onclick="fullscreenToggle()" class="shortcut"
+				style="background-color: #ff9028;min-width: 12vh;"><span
+					class="material-symbols-outlined">fullscreen</span></button>
+		</div>
+		<div style="width: 100%;">
+			Linear:<input id="linear_vel" type="text" style="border: none;width: 50px;font-weight: bold;">m/s
+		</div>
+		<div style="width: 100%;">
+			Angular:<input id="angular_vel" type="text" style="width: 50px;font-weight: bold;">rad/s
+		</div>
+		<div style="width: 100%;">
+			Battery:<input id="battery_voltage" type="text" style="width: 50px;font-weight: bold;">vols
+		</div>
+		<div>
+			<button onClick="window.location.reload();" class="shortcut" style="min-width: 20vh;"><span
+					class="material-symbols-outlined">cached</span></button><br>
+		</div>
+		<div>
+			<button onclick="onscreenJoystickToggle()" class="shortcut"
+				style="float: right;background-color: #ff9028;min-width: 12vh;"><span
+					class="material-symbols-outlined">videogame_asset</span></button>
 		</div>
 	</div>
-	<div class="row" id="bottom">
-		<div class="columnLateral">
-			<button onclick="fullscreenToggle()" id="fullscreen"><i class="material-icons">&#xe5d0;</i></button>
-		</div>
-		<div class="columnCetral">
-			Linear:<input id="linear_vel" type="text">m/s Angular:<input id="angular_vel" type="text">rad/s
-		</div>
-		<div class="columnLateral">
-			<button onclick="onscreenJoystickToggle()" id="ocJoystick" style="float: right;">Onscreen
-		</div>
-		JoyStick</button>
-	</div>
-	<script src="/src?path=canvas.js"></script>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="/src?path=oc-joy.js"></script>
+	<script src="/src?path=gamepad.js"></script>
 	<script src="/src?path=main.js"></script>
 </body>
 

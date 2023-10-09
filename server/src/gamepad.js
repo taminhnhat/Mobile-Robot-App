@@ -20,9 +20,81 @@ var linear_vel_y = 0
 var angular_vel = 0
 const joyDeadzone = 0.1
 
+const chartSize = 20;
+var linear_vel_chart = new Array(chartSize).fill(0)
+var angular_vel_chart = new Array(chartSize).fill(0)
+var chartData_L = new Array(chartSize).fill(0)
+var chartData_A = new Array(chartSize).fill(0)
+
+var linearVelocityChart = new Chart("linearVelocityChart", {
+    type: "line",
+    data: {
+        labels: new Array(chartSize).fill(0),
+        datasets: [{
+            fill: false,
+            lineTension: 0,
+            backgroundColor: "rgba(0,0,255,1.0)",
+            borderColor: "rgba(0,0,255,0.1)",
+            data: chartData_L
+        }]
+    },
+    options: {
+        legend: { display: false },
+        scales: {
+            yAxes: [{ ticks: { min: -0.5, max: 0.5 } }],
+        },
+        overrides: {
+            scales: true
+        }
+    }
+});
+var angularVelocityChart = new Chart("angularVelocityChart", {
+    type: "line",
+    data: {
+        labels: new Array(chartSize).fill(0),
+        datasets: [{
+            fill: false,
+            lineTension: 0,
+            backgroundColor: "rgba(0,0,255,1.0)",
+            borderColor: "rgba(0,0,255,0.1)",
+            data: chartData_A
+        }]
+    },
+    options: {
+        legend: { display: false },
+        scales: {
+            yAxes: [{ ticks: { min: -2.5, max: 2.5 } }],
+        }
+    }
+});
+
+function updateLinearVel() {
+    linear_vel_chart.push(linear_vel_y)
+    while (linear_vel_chart.length > chartSize) {
+        linear_vel_chart.shift()
+    }
+    angular_vel_chart.push(angular_vel)
+    while (angular_vel_chart.length > chartSize) {
+        angular_vel_chart.shift()
+    }
+    chartData_L = JSON.parse(JSON.stringify(linear_vel_chart))
+    chartData_A = JSON.parse(JSON.stringify(angular_vel_chart))
+    linearVelocityChart.data.datasets[0].data = chartData_L
+    linearVelocityChart.update()
+    angularVelocityChart.data.datasets[0].data = chartData_A
+    angularVelocityChart.update()
+
+}
+setInterval(() => updateLinearVel(), 100)
+
+setInterval(() => {
+    document.getElementById('linear_vel').value = linear_vel_y
+    document.getElementById('angular_vel').value = angular_vel
+}, 100)
+
 const velocityGenerate = () => {
-    var v = (abs(linear_vel_x) >= 0.1) ? linear_vel_x : 0;
-    var w = (abs(angular_vel) >= 0.5) ? angular_vel : 0;
+    var v = (Math.abs(linear_vel_x) >= 0.1) ? linear_vel_x : 0;
+    var w = (Math.abs(angular_vel) >= 0.5) ? angular_vel : 0;
     socket.emit('ros:topic', {
         topic: 'ws_vel',
         data: {
@@ -72,7 +144,7 @@ function addgamepad(gamepad) {
     }
     d.appendChild(a);
     document.getElementById("start").style.display = "none";
-    document.body.appendChild(d);
+    // document.body.appendChild(d);
     document.getElementById("rightPanel").style.display = "none";
     document.getElementById("leftPanel").style.display = "none";
     document.getElementById("deviceName").textContent = gamepad.id;
@@ -141,8 +213,6 @@ function updateStatus() {
         else if (i == 2) {
             angular_vel = Number((-2.0 * controller.axes[i] * isOutDeadZone).toFixed(2))
         }
-        document.getElementById('linear_vel').value = linear_vel_y
-        document.getElementById('angular_vel').value = angular_vel
         a.innerHTML = i + ": " + controller.axes[i].toFixed(4);
         a.setAttribute("value", controller.axes[i]);
     }

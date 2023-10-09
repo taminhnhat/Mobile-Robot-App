@@ -59,9 +59,11 @@ var JoyStick = (function (container, parameters, callback) {
 
     var pressed = 0; // Bool - 1=Yes - 0=No
     var circumference = 2 * Math.PI;
-    var internalRadius = (canvas.width - ((canvas.width / 2) + 10)) / 2;
+    var chopRadius = canvas.width / 4;
+    var internalRadius = canvas.width / 4 - 5;
     var maxMoveStick = internalRadius + 5;
-    var externalRadius = canvas.width / 2 - internalRadius;
+    var externalRadius = internalRadius + 30;
+    // var externalRadius = canvas.width / 2 - 10;
     var centerX = canvas.width / 2;
     var centerY = canvas.height / 2;
     var directionHorizontalLimitPos = canvas.width / 10;
@@ -97,6 +99,7 @@ var JoyStick = (function (container, parameters, callback) {
     function drawExternal() {
         ctx.beginPath();
         ctx.arc(centerX, centerY, externalRadius, 0, circumference, false);
+        ctx.arc(centerX, centerY, internalRadius, 0, circumference, false);
         ctx.lineWidth = externalLineWidth;
         ctx.strokeStyle = externalStrokeColor;
         ctx.stroke();
@@ -111,13 +114,13 @@ var JoyStick = (function (container, parameters, callback) {
         if ((movedX + internalRadius) > canvas.width) { movedX = canvas.width - (maxMoveStick); }
         if (movedY < internalRadius) { movedY = maxMoveStick; }
         if ((movedY + internalRadius) > canvas.height) { movedY = canvas.height - (maxMoveStick); }
-        const tmpRadius = (movedX ** 2 + movedY ** 2) ** 0.5
-        if (tmpRadius > internalRadius) {
-            movedX = movedX * internalRadius / tmpRadius
-            movedY = movedY * internalRadius / tmpRadius
+        const tmpRadius = ((movedX - centerX) ** 2 + (movedY - centerY) ** 2) ** 0.5
+        if (tmpRadius > maxMoveStick) {
+            movedX = centerX + (movedX - centerX) * maxMoveStick / tmpRadius
+            movedY = centerY + (movedY - centerY) * maxMoveStick / tmpRadius
         }
 
-        ctx.arc(movedX, movedY, internalRadius, 0, circumference, false);
+        ctx.arc(movedX, movedY, chopRadius, 0, circumference, false);
         // create radial gradient
         var grd = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 200);
         // Light color
@@ -125,6 +128,7 @@ var JoyStick = (function (container, parameters, callback) {
         // Dark color
         grd.addColorStop(1, internalStrokeColor);
         ctx.fillStyle = grd;
+        ctx.globalAlpha = 0.4;
         ctx.fill();
         ctx.lineWidth = internalLineWidth;
         ctx.strokeStyle = internalStrokeColor;
