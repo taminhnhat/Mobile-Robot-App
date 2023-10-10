@@ -20,54 +20,6 @@ var linear_vel_y = 0
 var angular_vel = 0
 const joyDeadzone = 0.1
 
-const chartSize = 20;
-var linear_vel_chart = new Array(chartSize).fill(0)
-var angular_vel_chart = new Array(chartSize).fill(0)
-var chartData_L = new Array(chartSize).fill(0)
-var chartData_A = new Array(chartSize).fill(0)
-
-var linearVelocityChart = new Chart("linearVelocityChart", {
-    type: "line",
-    data: {
-        labels: new Array(chartSize).fill(0),
-        datasets: [{
-            fill: false,
-            lineTension: 0,
-            backgroundColor: "rgba(0,0,255,1.0)",
-            borderColor: "rgba(0,0,255,0.1)",
-            data: chartData_L
-        }]
-    },
-    options: {
-        legend: { display: false },
-        scales: {
-            yAxes: [{ ticks: { min: -0.5, max: 0.5 } }],
-        },
-        overrides: {
-            scales: true
-        }
-    }
-});
-var angularVelocityChart = new Chart("angularVelocityChart", {
-    type: "line",
-    data: {
-        labels: new Array(chartSize).fill(0),
-        datasets: [{
-            fill: false,
-            lineTension: 0,
-            backgroundColor: "rgba(0,0,255,1.0)",
-            borderColor: "rgba(0,0,255,0.1)",
-            data: chartData_A
-        }]
-    },
-    options: {
-        legend: { display: false },
-        scales: {
-            yAxes: [{ ticks: { min: -2.5, max: 2.5 } }],
-        }
-    }
-});
-
 function updateLinearVel() {
     linear_vel_chart.push(linear_vel_y)
     while (linear_vel_chart.length > chartSize) {
@@ -77,23 +29,26 @@ function updateLinearVel() {
     while (angular_vel_chart.length > chartSize) {
         angular_vel_chart.shift()
     }
-    chartData_L = JSON.parse(JSON.stringify(linear_vel_chart))
-    chartData_A = JSON.parse(JSON.stringify(angular_vel_chart))
-    linearVelocityChart.data.datasets[0].data = chartData_L
+    // update chart
+    linearVelocityChart.data.datasets[0].data = JSON.parse(JSON.stringify(linear_vel_chart))
     linearVelocityChart.update()
-    angularVelocityChart.data.datasets[0].data = chartData_A
+    angularVelocityChart.data.datasets[0].data = JSON.parse(JSON.stringify(angular_vel_chart))
     angularVelocityChart.update()
 
+    // if (angular_vel > 0) {
+    //     angularMiniChart.data.datasets[0].backgroundColor[0] = "#FF3860";
+    //     angularMiniChart.data.datasets[0].backgroundColor[1] = "#FF3860";
+    // }
+    // else {
+    // }
+    angularMiniChart.data.datasets[0].data[0] = Math.abs(angular_vel) * 40
+    angularMiniChart.data.datasets[0].data[1] = 100 - Math.abs(angular_vel) * 40
+    angularMiniChart.update()
 }
 setInterval(() => updateLinearVel(), 100)
 
-setInterval(() => {
-    document.getElementById('linear_vel').value = linear_vel_y
-    document.getElementById('angular_vel').value = angular_vel
-}, 100)
-
 const velocityGenerate = () => {
-    var v = (Math.abs(linear_vel_x) >= 0.1) ? linear_vel_x : 0;
+    var v = (Math.abs(linear_vel_y) >= 0.1) ? linear_vel_y : 0;
     var w = (Math.abs(angular_vel) >= 0.5) ? angular_vel : 0;
     socket.emit('ros:topic', {
         topic: 'ws_vel',
@@ -151,13 +106,13 @@ function addgamepad(gamepad) {
     rAF(updateStatus);
 
     setInterval(velocityGenerate, 100)
-    setInterval(gamepadCallback, 100)
+    // setInterval(gamepadCallback, 100)
 }
 
 function disconnecthandler(e) {
     removegamepad(e.gamepad);
     clearInterval(velocityGenerate)
-    clearInterval(gamepadCallback)
+    // clearInterval(gamepadCallback)
 }
 
 function removegamepad(gamepad) {

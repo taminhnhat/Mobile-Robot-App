@@ -10,7 +10,8 @@ function onConnection(socket) {
 
     // socket.on('robot:connect', robotCtrl.onConnect)
     socket.on('ros:topic', d => {
-        // console.log(d.topic, d.data)
+        // if (d.topic == 'ros2_state')
+        //     console.log(d.data.vel)
         socket.broadcast.emit('ros:topic', d)// send to all connected clients except the sender
     })
     socket.on('gamepad', d => {

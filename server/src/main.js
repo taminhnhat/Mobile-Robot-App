@@ -35,10 +35,36 @@ setInterval(function () { joy2X.value = Joy2.GetX(); }, 50);
 setInterval(function () { joy2Y.value = Joy2.GetY(); }, 50);
 
 socket.on('ros:topic', d => {
+    console.log(d);
     var item = document.createElement('li')
     item.textContent = JSON.stringify(d)
     var messages = document.getElementById('messages');
     messages.appendChild(item);
     var c = document.getElementById('card')
     c.scrollTo(0, c.scrollHeight)
+    if (d.topic == 'ros2_state') {
+        const vel = d.data.vel;
+        chartData_front_right_wheel.push(vel[0]);
+        while (chartData_front_right_wheel.length > chartSize) chartData_front_right_wheel.shift();
+        chartData_rear_right_wheel.push(vel[1]);
+        while (chartData_rear_right_wheel.length > chartSize) chartData_rear_right_wheel.shift();
+        chartData_rear_left_wheel.push(vel[2]);
+        while (chartData_rear_left_wheel.length > chartSize) chartData_rear_left_wheel.shift();
+        chartData_front_left_wheel.push(vel[3]);
+        while (chartData_front_left_wheel.length > chartSize) chartData_front_left_wheel.shift();
+        // update chart
+        wheelVelocityChart.data.datasets[0].data = JSON.parse(JSON.stringify(chartData_front_right_wheel));
+        wheelVelocityChart.data.datasets[1].data = JSON.parse(JSON.stringify(chartData_rear_right_wheel));
+        wheelVelocityChart.data.datasets[2].data = JSON.parse(JSON.stringify(chartData_rear_left_wheel));
+        wheelVelocityChart.data.datasets[3].data = JSON.parse(JSON.stringify(chartData_front_left_wheel));
+        wheelVelocityChart.update();
+        // update bottom row
+        linear_vel_average = 0;
+        vel.forEach(v => linear_vel_average += v / 4)
+        angular_vel_average = 0;
+        vel.forEach(a => angular_vel_average += a / 4)
+        document.getElementById('linear_vel').value = linear_vel_average
+        document.getElementById('angular_vel').value = angular_vel_average
+        document.getElementById('battery_voltage').value = d.data.bat;
+    }
 })
