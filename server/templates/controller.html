@@ -161,8 +161,15 @@
 		.shortcut {
 			border: none;
 			outline: none;
-			/* height: 100%;
-			padding-top: 100%; */
+			height: 100%;
+		}
+
+		.robot_state {
+			float: right;
+			background-color: #f0f0f0;
+			border: none;
+			width: 50px;
+			font-weight: bold;
 		}
 
 		.controlButton {
@@ -205,12 +212,17 @@
 			bottom: 0;
 			width: 100%;
 		}
+
+		li {
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
 	</style>
 </head>
 
 <body>
 	<!-- Example of two JoyStick integrated in the page structure -->
-	<div class="row" id="vitualjoystick" style="float: top;height: 95vh;">
+	<div class="row" id="vitualjoystick" style="float: top;height: 90vh;">
 		<div id="leftPanel" class="columnLateral">
 			<div id="joy1Div" style="width:100%;margin:0px">
 				<!-- <button class="controlButton" id="stopButton"></button> -->
@@ -233,7 +245,7 @@
 			<div id="News" class="tabcontent">
 				<h3>Robot Topic</h3>
 				<div id="card" style="height:120px;border:1px;overflow:hidden;">
-					<ul style="list-style: none;" id="messages"></ul>
+					<ul style="list-style: none;overflow: auto;" id="messages"></ul>
 				</div>
 			</div>
 
@@ -246,8 +258,6 @@
 			<div id="About" class="tabcontent">
 				<h3>Graph</h3>
 				<div class="canvas-container">
-					<canvas id="linearVelocityChart"></canvas>
-					<canvas id="angularVelocityChart"></canvas>
 					<canvas id="wheelVelocityChart"></canvas>
 				</div>
 
@@ -316,30 +326,32 @@
 		</script>
 	</div>
 
-	<div class="row" style="background-color: #f0f0f0;height: 100%;font-weight: bold;">
+	<div class="row" style="background-color: #f0f0f0;height: 30px;font-weight: bold;">
 		<div>
 			<!-- <button onclick="fullscreenToggle()" id="fullscreen"><i class="material-icons">&#xe5d0;</i></button> -->
 			<button onclick="fullscreenToggle()" class="shortcut"
 				style="background-color: #ff9028;min-width: 12vh;"><span
 					class="material-symbols-outlined">fullscreen</span></button>
 		</div>
-		<div style="width: 100%;">
-			Linear:<input id="linear_vel" type="text" style="border: none;width: 50px;font-weight: bold;">m/s
-		</div>
 		<div>
-			<canvas id="linearMiniChart" style="width: 50px;height: 15px auto;"></canvas>
+			<button class="shortcut" style="background-color: #f0f0f0;"><span
+					class="material-symbols-outlined">link_off</span></button>
 		</div>
 		<div style="width: 100%;">
-			Angular:<input id="angular_vel" type="text" style="width: 50px;font-weight: bold;">rad/s
+			<input id="linear_vel" type="text" class="robot_state" value="---">
 		</div>
+		<div style="text-align: left;width: 100%;">m/s</div>
+		<div style="width: 100%;">
+			<input id="angular_vel" type="text" class="robot_state" value="---">
+		</div>
+		<div style="text-align: left;width: 100%;">rad/s</div>
+		<div style="width: 100%;">
+			<input id="battery_voltage" type="text" class="robot_state" value="---">
+		</div>
+		<div style="text-align: left;width: 100%;">V</div>
 		<div>
-			<canvas id="angularMiniChart" style="width: 50px;height: 15px auto;"></canvas>
+			<canvas id="linearMiniChart" style="width: 100px;height: 15px auto;"></canvas>
 		</div>
-		<div style="width: 100%;">
-			Battery:<input id="battery_voltage" type="text" style="width: 50px;font-weight: bold;">vols
-		</div>
-		<meter min="0" max="9" low="2" high="7" value="3"
-			style="width:100px;height: 50px auto;transform: rotate(-90deg);"></meter>
 		<div style="width: 100%;">
 			<button onClick="window.location.reload();" class="shortcut" style="min-width: 20vh;"><span
 					class="material-symbols-outlined">cached</span></button><br>

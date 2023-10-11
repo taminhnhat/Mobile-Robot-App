@@ -20,33 +20,6 @@ var linear_vel_y = 0
 var angular_vel = 0
 const joyDeadzone = 0.1
 
-function updateLinearVel() {
-    linear_vel_chart.push(linear_vel_y)
-    while (linear_vel_chart.length > chartSize) {
-        linear_vel_chart.shift()
-    }
-    angular_vel_chart.push(angular_vel)
-    while (angular_vel_chart.length > chartSize) {
-        angular_vel_chart.shift()
-    }
-    // update chart
-    linearVelocityChart.data.datasets[0].data = JSON.parse(JSON.stringify(linear_vel_chart))
-    linearVelocityChart.update()
-    angularVelocityChart.data.datasets[0].data = JSON.parse(JSON.stringify(angular_vel_chart))
-    angularVelocityChart.update()
-
-    // if (angular_vel > 0) {
-    //     angularMiniChart.data.datasets[0].backgroundColor[0] = "#FF3860";
-    //     angularMiniChart.data.datasets[0].backgroundColor[1] = "#FF3860";
-    // }
-    // else {
-    // }
-    angularMiniChart.data.datasets[0].data[0] = Math.abs(angular_vel) * 40
-    angularMiniChart.data.datasets[0].data[1] = 100 - Math.abs(angular_vel) * 40
-    angularMiniChart.update()
-}
-setInterval(() => updateLinearVel(), 100)
-
 const velocityGenerate = () => {
     var v = (Math.abs(linear_vel_y) >= 0.1) ? linear_vel_y : 0;
     var w = (Math.abs(angular_vel) >= 0.5) ? angular_vel : 0;
@@ -57,6 +30,8 @@ const velocityGenerate = () => {
             angular: [0, 0, w]
         }
     })
+    document.getElementById('linear_vel').value = linear_vel_y.toFixed(1)
+    document.getElementById('angular_vel').value = angular_vel.toFixed(1)
 }
 const gamepadCallback = () => {
     socket.emit('gamepad', {
