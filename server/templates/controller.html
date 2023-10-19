@@ -67,6 +67,7 @@
 			float: left;
 			width: 100%;
 			min-width: 300px;
+			overflow: auto;
 		}
 
 		#joystick1 {
@@ -203,6 +204,7 @@
 		.canvas-container {
 			display: flex;
 			width: 50%;
+			height: 100%;
 		}
 
 		.navbar {
@@ -243,9 +245,18 @@
 			</div>
 
 			<div id="News" class="tabcontent">
-				<h3>Robot Topic</h3>
-				<div id="card" style="height:120px;border:1px;overflow:hidden;">
-					<ul style="list-style: none;overflow: auto;" id="messages"></ul>
+				<h3>Robot State</h3>
+				<div id="card" style="height:80px;border:1px;overflow:hidden;">
+					<ul style="list-style: none;overflow: hidden;" id="messages"></ul>
+				</div>
+				<h3>Ros Monitor</h3>
+				<div style="border:1px;overflow:auto;">
+					<table id="nodelist" style="width: 100%;">
+						<tr>
+							<th style="width: 30%;">Active Node</th>
+							<th>Info</th>
+						</tr>
+					</table>
 				</div>
 			</div>
 
@@ -256,7 +267,7 @@
 			</div>
 
 			<div id="About" class="tabcontent">
-				<h3>Graph</h3>
+				<h3>Wheel velocity (rad/s)</h3>
 				<div class="canvas-container">
 					<canvas id="wheelVelocityChart"></canvas>
 				</div>
@@ -334,8 +345,8 @@
 					class="material-symbols-outlined">fullscreen</span></button>
 		</div>
 		<div>
-			<button class="shortcut" style="background-color: #f0f0f0;"><span
-					class="material-symbols-outlined">link_off</span></button>
+			<button id="connectShortcut" class="shortcut" style="background-color: #f0f0f0;min-width: 12vh;"><span
+					id="connectIcon" class="material-symbols-outlined">link_off</span></button>
 		</div>
 		<div style="width: 100%;">
 			<input id="linear_vel" type="text" class="robot_state" value="---">

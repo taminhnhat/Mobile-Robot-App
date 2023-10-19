@@ -1,5 +1,5 @@
 const socket = io()
-console.log('script start')
+// console.log('script start')
 
 document.getElementById("agentType").textContent = navigator.userAgent;
 // document.getElementById(vitualjoystick).style.height = window.innerHeight - 100;
@@ -36,7 +36,7 @@ setInterval(function () { joy2Y.value = Joy2.GetY(); }, 50);
 
 socket.on('ros:topic', d => {
     var item = document.createElement('li')
-    item.textContent = JSON.stringify(d)
+    item.textContent = JSON.stringify(d.data)
     var messages = document.getElementById('messages');
     messages.appendChild(item);
     var c = document.getElementById('card')
@@ -63,9 +63,37 @@ socket.on('ros:topic', d => {
         angular_vel_average = 0;
         vel.forEach(a => angular_vel_average += a / 4)
 
-        document.getElementById('battery_voltage').value = d.data.bat.toFixed(1);
+        document.getElementById('battery_voltage').value = d.data.bat.toFixed(2);
         linearMiniChart.data.datasets[0].data[0] = 2 + Math.abs(linear_vel_average) * 3
         linearMiniChart.data.datasets[0].data[1] = 28 - Math.abs(linear_vel_average) * 3
         linearMiniChart.update()
+    }
+})
+
+let tempTable = [];
+socket.on('ros:monitor', d => {
+    var table = document.getElementById('nodelist')
+    // remove all rows
+    while (table.rows.length > 1)
+        table.deleteRow(1)
+    const nodes = d.nodes
+    // create new rows
+    let isRobotActivated = false
+    nodes.forEach(node => {
+        let row = table.insertRow(1)
+        let cell1 = row.insertCell(0)
+        let cell2 = row.insertCell(0)
+        cell1.innerHTML = "---"
+        cell2.innerHTML = node
+        if (node == '/controller_manager')
+            isRobotActivated = true
+    })
+    if (isRobotActivated) {
+        document.getElementById('connectShortcut').style.backgroundColor = '#23D160'
+        document.getElementById('connectIcon').textContent = 'link'
+    }
+    else {
+        document.getElementById('connectShortcut').style.backgroundColor = '#f0f0f0'
+        document.getElementById('connectIcon').textContent = 'link_off'
     }
 })

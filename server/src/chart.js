@@ -36,6 +36,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
             lineTension: 0,
             backgroundColor: "rgba(254, 119, 123, 0.5)",
             borderColor: "rgba(254, 119, 123, 0.5)",
+            borderWidth: 1,
             data: new Array(chartSize).fill(0)
         },
         {
@@ -43,6 +44,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
             lineTension: 0,
             backgroundColor: "rgba(255, 206, 86, 0.5)",
             borderColor: "rgba(255, 206, 86, 0.5)",
+            borderWidth: 1,
             data: new Array(chartSize).fill(1)
         },
         {
@@ -50,6 +52,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
             lineTension: 0,
             backgroundColor: "rgba(54, 162, 235, 0.5)",
             borderColor: "rgba(54, 162, 235, 0.5)",
+            borderWidth: 1,
             data: new Array(chartSize).fill(2)
         },
         {
@@ -57,6 +60,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
             lineTension: 0,
             backgroundColor: "rgba(75, 192, 192, 0.5)",
             borderColor: "rgba(75, 192, 192, 0.5)",
+            borderWidth: 1,
             data: new Array(chartSize).fill(3)
         }]
     },
@@ -64,7 +68,14 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
         events: [],
         legend: { display: false },
         scales: {
-            yAxes: [{ ticks: { min: -8.0, max: 8.0 } }],
+            yAxes: [{
+                ticks: { min: -8.0, max: 8.0 },
+                // gridLines: { display: false }
+            }],
+            xAxes: [{
+                ticks: { display: false },
+                gridLines: { display: false }
+            }],
         },
         overrides: {
             scales: true
