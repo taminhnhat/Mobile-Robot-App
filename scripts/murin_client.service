@@ -3,8 +3,8 @@ Description=rosbridge process service
 
 [Service]
 Type=simple
-WorkingDirectory=/home/nhattm/Git-repositories/Mobile-Robot-App/ros-websocket
-ExecStart=/home/nhattm/Git-repositories/Mobile-Robot-App/scripts/murin_server.sh
+WorkingDirectory=/home/nhattm/Git-repositories/Mobile-Robot-App/client
+ExecStart=/home/nhattm/Git-repositories/Mobile-Robot-App/scripts/murin_client.sh
 Restart=on-failure
 StandardOutput=file:/home/nhattm/.murin/murin_client.log
 
