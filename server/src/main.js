@@ -25,7 +25,7 @@ socket.on('ros:topic', d => {
     item.textContent = JSON.stringify(d.data)
     var messages = document.getElementById('messages');
     messages.appendChild(item);
-    var c = document.getElementById('card')
+    var c = document.getElementById('messageBox')
     c.scrollTo(0, c.scrollHeight)
     if (d.topic == 'ros2_state') {
         const vel = d.data.vel;
@@ -58,15 +58,15 @@ socket.on('ros:topic', d => {
 
 let tempTable = [];
 socket.on('ros:monitor', d => {
-    var table = document.getElementById('nodelist')
+    var nodeTable = document.getElementById('nodelist')
     // remove all rows
-    while (table.rows.length > 1)
-        table.deleteRow(1)
+    while (nodeTable.rows.length > 1)
+        nodeTable.deleteRow(1)
     const nodes = d.nodes
     // create new rows
     let isRobotActivated = false
     nodes.forEach(node => {
-        let row = table.insertRow(1)
+        let row = nodeTable.insertRow(1)
         let cell1 = row.insertCell(0)
         let cell2 = row.insertCell(0)
         cell1.innerHTML = "---"
@@ -74,6 +74,20 @@ socket.on('ros:monitor', d => {
         if (node == '/controller_manager')
             isRobotActivated = true
     })
+
+    var topicTable = document.getElementById('topiclist')
+    // remove all rows
+    while (topicTable.rows.length > 1)
+        topicTable.deleteRow(1)
+    const topics = d.topics
+    topics.forEach(topic => {
+        let row = topicTable.insertRow(1)
+        let cell1 = row.insertCell(0)
+        let cell2 = row.insertCell(0)
+        cell1.innerHTML = topic.type || "---"
+        cell2.innerHTML = topic.name
+    })
+
     if (isRobotActivated) {
         document.getElementById('connectShortcut').style.backgroundColor = '#23D160'
         document.getElementById('connectIcon').textContent = 'link'

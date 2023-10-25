@@ -38,16 +38,13 @@
 	<style>
 		body {
 			min-height: 100vh;
+			margin: 0px;
+			padding: 0px;
+			font-family: monospace;
 		}
 
 		* {
 			box-sizing: border-box;
-		}
-
-		body {
-			margin: 0px;
-			padding: 0px;
-			font-family: monospace;
 		}
 
 		.row {
@@ -56,7 +53,7 @@
 			clear: both;
 		}
 
-		.columnLateral {
+		.controlPanel {
 			float: left;
 			width: 12%;
 			min-width: 140px;
@@ -144,6 +141,33 @@
 			opacity: 0.7;
 		}
 
+		.vertialTab {
+			float: left;
+			border: 1px solid #efefef;
+			background-color: #cccccc;
+			width: 12%;
+			height: 100%;
+		}
+
+		.vertialTab button {
+			display: block;
+			background-color: inherit;
+			color: black;
+			padding: 22px 16px;
+			width: 100%;
+			border: none;
+			outline: none;
+			text-align: left;
+			cursor: pointer;
+			transition: 0.3s;
+			font-size: 17px;
+		}
+
+		/* Create an active/current "tab button" class */
+		.vertialTab button.active {
+			background-color: #efefef;
+		}
+
 		/* Style tab links */
 		.tablink {
 			background-color: #555;
@@ -159,7 +183,18 @@
 			width: 25%;
 		}
 
+		.verticaltablink {
+			height: 50px;
+		}
+
 		.shortcut {
+			border: none;
+			outline: none;
+			height: 100%;
+		}
+
+		.serviceShortcut {
+			background-color: transparent;
 			border: none;
 			outline: none;
 			height: 100%;
@@ -192,8 +227,21 @@
 		}
 
 		.tabcontent {
+			display: inline-flex;
+			float: top;
+			clear: both;
 			height: 90%;
 			bottom: 0;
+		}
+
+		.minitabcontent {
+			background-color: #efefef;
+			float: left;
+			padding: 0px 12px;
+			border: 1px solid #efefef;
+			width: 88%;
+			border-left: none;
+			height: 100%;
 		}
 
 		.my-canvas {
@@ -202,8 +250,9 @@
 		}
 
 		.canvas-container {
+			float: left;
 			display: flex;
-			width: 50%;
+			width: 40%;
 			height: 100%;
 		}
 
@@ -223,10 +272,8 @@
 </head>
 
 <body>
-	<!-- Example of two JoyStick integrated in the page structure -->
 	<div class="row" id="vitualjoystick" style="float: top;height: 90vh;">
-		<!-- <div id="leftPanel" class="columnLateral" style="display: none;"> -->
-		<div id="leftPanel" class="columnLateral">
+		<div id="leftPanel" class="controlPanel">
 			<div id="joy1Div" style="width:100%;margin:0px">
 				<!-- <button class="controlButton" id="stopButton"></button> -->
 			</div>
@@ -239,26 +286,92 @@
 			<button class="tablink" onclick="openPage('Contact', this, 'orange')" id="contactButton">Control</button>
 			<button class="tablink" onclick="openPage('About', this, 'orange')" id="aboutButton">Graph</button>
 
-			<div id="Home" class="tabcontent">
+			<div id="Home" class="tabcontent" style="float: left;">
 				<h3 id="deviceName">Vitual JoyStick</h3>
 				<h3 id="agentType">Unknown Web browser</h3>
-				<p>Home is where the heart is..</p>
+
 			</div>
 
 			<div id="News" class="tabcontent">
-				<h3>Robot State</h3>
-				<div id="card" style="height:80px;border:1px;overflow:hidden;">
-					<ul style="list-style: none;overflow: hidden;" id="messages"></ul>
+				<div class="vertialTab">
+					<button class="verticaltablink" onclick="openMiniTab(event, 'Service')">Service</button>
+					<button class="verticaltablink" onclick="openMiniTab(event, 'Pipe')"
+						id="minitabdefaultOpen">Pipe</button>
+					<button class="verticaltablink" onclick="openMiniTab(event, 'Node')">Node</button>
+					<button class="verticaltablink" onclick="openMiniTab(event, 'Topic')">Topic</button>
+					<button class="verticaltablink" onclick="openMiniTab(event, 'Terminal')">Terminal</button>
 				</div>
-				<h3>Ros Monitor</h3>
-				<div style="border:1px;overflow:auto;">
-					<table id="nodelist" style="width: 100%;">
-						<tr>
-							<th style="width: 30%;">Active Node</th>
-							<th>Info</th>
-						</tr>
-					</table>
+				<div id="Pipe" class="minitabcontent">
+					<div id="messageBox"
+						style="height:220px;margin: 10px;background-color: #555;border:1px;overflow:hidden;">
+						<ul style="list-style: none;overflow: hidden;" id="messages"></ul>
+					</div>
 				</div>
+
+				<div id="Service" class="minitabcontent">
+					<div style="display: inline-flex;">
+						<table>
+							<tr>
+								<th>service</th>
+								<th>restart</th>
+							</tr>
+							<tr>
+								<th>murin_bringup</th>
+								<th>
+									<button class="serviceShortcut"><span
+											class="material-symbols-outlined">cached</span></button><br>
+								</th>
+							</tr>
+						</table>
+					</div>
+				</div>
+
+				<div id="Node" class="minitabcontent">
+					<div style="width: 50%;border:1px;overflow:auto;">
+						<table id="nodelist" style="width: 100%;">
+							<tr>
+								<th style="width: 30%;">Active Node</th>
+								<th>Info</th>
+							</tr>
+						</table>
+					</div>
+				</div>
+
+				<div id="Topic" class="minitabcontent">
+					<div style="width: 100%;border:1px;overflow:auto;">
+						<table id="topiclist" style="width: 100%;">
+							<tr>
+								<th style="width: 30%;">Active Topic</th>
+								<th>Type</th>
+							</tr>
+						</table>
+					</div>
+				</div>
+
+				<div id="Terminal" class="minitabcontent">
+					<div id="terminalBox" style="height:200px;background-color: #555;border:1px;overflow:hidden;">
+						<ul style="list-style: none;overflow: hidden;" id="terminal"></ul>
+					</div>
+				</div>
+
+				<script>
+					function openMiniTab(evt, cityName) {
+						var i, tabcontent, tablinks;
+						tabcontent = document.getElementsByClassName("minitabcontent");
+						for (i = 0; i < tabcontent.length; i++) {
+							tabcontent[i].style.display = "none";
+						}
+						tablinks = document.getElementsByClassName("verticaltablink");
+						for (i = 0; i < tablinks.length; i++) {
+							tablinks[i].className = tablinks[i].className.replace(" active", "");
+						}
+						document.getElementById(cityName).style.display = "block";
+						evt.currentTarget.className += " active";
+					}
+
+					// Get the element with id="defaultOpen" and click on it
+					document.getElementById("minitabdefaultOpen").click();
+				</script>
 			</div>
 
 			<div id="Contact" class="tabcontent">
@@ -275,7 +388,7 @@
 
 			</div>
 		</div>
-		<div id="rightPanel" class="columnLateral">
+		<div id="rightPanel" class="controlPanel">
 			X :<input id="joy2X" type="text" maxlength="4" size="4" /></br>
 			Y :<input id="joy2Y" type="text" maxlength="4" size="4" />
 			<div id="joy2Div" style="width:100%;margin:0px"></div>

@@ -45,7 +45,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
             backgroundColor: "rgba(255, 206, 86, 0.5)",
             borderColor: "rgba(255, 206, 86, 0.5)",
             borderWidth: 1,
-            data: new Array(chartSize).fill(1)
+            data: new Array(chartSize).fill(0)
         },
         {
             fill: false,
@@ -53,7 +53,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
             backgroundColor: "rgba(54, 162, 235, 0.5)",
             borderColor: "rgba(54, 162, 235, 0.5)",
             borderWidth: 1,
-            data: new Array(chartSize).fill(2)
+            data: new Array(chartSize).fill(0)
         },
         {
             fill: false,
@@ -61,7 +61,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
             backgroundColor: "rgba(75, 192, 192, 0.5)",
             borderColor: "rgba(75, 192, 192, 0.5)",
             borderWidth: 1,
-            data: new Array(chartSize).fill(3)
+            data: new Array(chartSize).fill(0)
         }]
     },
     options: {

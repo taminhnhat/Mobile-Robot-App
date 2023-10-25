@@ -41,7 +41,16 @@ const gamepadCallback = () => {
 }
 
 function connecthandler(e) {
-    addgamepad(e.gamepad);
+    addgamepad(e.gamepad)
+    // fullscreenToggle()
+    var elem = document.documentElement
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+    }
 }
 
 function addgamepad(gamepad) {
@@ -141,7 +150,7 @@ function updateStatus() {
             linear_vel_y = Number((-0.4 * controller.axes[i] * isOutDeadZone).toFixed(2))
         }
         else if (i == 2) {
-            angular_vel = Number((-2.0 * controller.axes[i] * isOutDeadZone).toFixed(2))
+            angular_vel = Number((-3.0 * controller.axes[i] * isOutDeadZone).toFixed(2))
         }
         a.innerHTML = i + ": " + controller.axes[i].toFixed(4);
         a.setAttribute("value", controller.axes[i]);
