@@ -82,7 +82,7 @@ void EncoderHandle_4_B()
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 uint32_t t_previous = millis();
-String messageFromRadio = "";
+String messageFromSerial = "";
 String messageFromBridge = "";
 uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
@@ -313,12 +313,12 @@ void serialEvent1()
     char tempChar = (char)Radio.read();
     if (tempChar != '\n')
     {
-      messageFromRadio += tempChar;
+      messageFromSerial += tempChar;
     }
     else
     {
-      msgProcess(messageFromRadio, Radio);
-      messageFromRadio = "";
+      msgProcess(messageFromSerial, Radio);
+      messageFromSerial = "";
     }
   }
 }
