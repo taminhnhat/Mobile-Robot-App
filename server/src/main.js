@@ -58,6 +58,7 @@ socket.on('ros:topic', d => {
 
 let tempTable = [];
 socket.on('ros:monitor', d => {
+    console.log(d)
     var nodeTable = document.getElementById('nodelist')
     // remove all rows
     while (nodeTable.rows.length > 1)
@@ -86,6 +87,21 @@ socket.on('ros:monitor', d => {
         let cell2 = row.insertCell(0)
         cell1.innerHTML = topic.type || "---"
         cell2.innerHTML = topic.name
+    })
+
+    var serviceTable = document.getElementById('serviceTable')
+    // remove all rows
+    while (serviceTable.rows.length > 1)
+        serviceTable.deleteRow(1)
+    const services = d.services
+    services.forEach(service => {
+        let row = serviceTable.insertRow(1)
+        let cell1 = row.insertCell(0)
+        let cell2 = row.insertCell(0)
+        let cell3 = row.insertCell(0)
+        cell1.innerHTML = service.active || "---"
+        cell2.innerHTML = service.loaded || "---"
+        cell3.innerHTML = service.service
     })
 
     if (isRobotActivated) {
