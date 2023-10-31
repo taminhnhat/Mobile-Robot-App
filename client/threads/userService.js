@@ -79,6 +79,27 @@ const process = () => {
         })
     }
     getMurinClientStatus()
+    // get murin_websocket status
+    const getMurinWebsocketStatus = () => {
+        let _Loaded = 'unknown'
+        let _Active = 'unknown'
+        try {
+            const out = execSync('systemctl --user status murin_websocket.service')
+            console.log(String(out))
+            const d = String(out).split('\n')
+            _Loaded = d[1].trim().split(':')[1].split(' ')[1]
+            _Active = d[2].trim().split(':')[1].split(' ')[1]
+            // console.log('murin_websocket.service', _Loaded, _Active)
+        }
+        catch (err) { }
+        services.push({
+            service: 'murin_websocket',
+            loaded: _Loaded,
+            active: _Active
+        })
+    }
+    getMurinWebsocketStatus()
+
     parentPort.postMessage(services)
 
     setTimeout(process, 3000)
