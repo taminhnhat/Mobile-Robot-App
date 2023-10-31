@@ -120,10 +120,6 @@ void OnTimer1Interrupt()
   {
     battery.tick();
   }
-  if (timer_count % CONFIG.DIS_VOL_CAL_CYCLE == 0)
-  {
-    distance.tick();
-  }
   if (timer_count % CONFIG.IMU_RAW_CAL_CYCLE == 0)
   {
     imu.tick();
@@ -146,8 +142,9 @@ void setup()
   if (imu.init(false) == 0)
     CONFIG.IMU_AVAILABLE = true;
 
-  pinMode(DISTANCE_SENSOR, INPUT);
   pinMode(BATTERY_SENSOR, INPUT);
+  pinMode(CURRENT_SENSOR_1_2, INPUT);
+  pinMode(CURRENT_SENSOR_3_4, INPUT);
   pinMode(MOTOR_EN, OUTPUT);
   pinMode(MOTOR_1_A, INPUT);
   pinMode(MOTOR_1_B, INPUT);
@@ -229,8 +226,6 @@ void loop()
     // Bridge.print("battery: ");
     // Bridge.println(battery.getAverageVoltage());
 
-    // Bridge.print("distance: ");
-    // Bridge.println(distance.getVoltage());
     // Bridge.println(analogRead(PA1));
 
     if (CONFIG.EN_VELOCITY_LOG)
@@ -478,8 +473,6 @@ void msgProcess(String lightCmd, Stream &stream)
       accelerometer.add(trimDouble(sen.linear_acceleration.z, 0));
       doc["tem"] = imu.getRawTemperature();
     }
-    // add distance sensor value
-    doc["dis"] = distance.getDistance();
 
     char buffer[400];
     serializeJson(doc, buffer);
