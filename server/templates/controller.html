@@ -80,22 +80,6 @@
 			border-radius: 50%;
 			background-color: #a88c6f;
 		}
-
-		#Home {
-			background-color: #efefef;
-		}
-
-		#News {
-			background-color: #efefef;
-		}
-
-		#Contact {
-			background-color: #efefef;
-		}
-
-		#About {
-			background-color: #efefef;
-		}
 	</style>
 	<style>
 		.axes {
@@ -173,7 +157,7 @@
 			background-color: #555;
 			color: #efefef;
 			font-weight: bold;
-			border-radius: 4px;
+			border-radius: 2px;
 			float: left;
 			border: none;
 			outline: none;
@@ -181,6 +165,7 @@
 			padding: 14px 16px;
 			font-size: 17px;
 			width: 25%;
+			height: 10vh;
 		}
 
 		.verticaltablink {
@@ -227,10 +212,12 @@
 		}
 
 		.tabcontent {
-			display: inline-flex;
+			/* display: inline-flex; */
+			background-color: #efefef;
 			float: top;
 			clear: both;
-			height: 90%;
+			height: 80vh;
+			width: 100%;
 			bottom: 0;
 		}
 
@@ -247,13 +234,6 @@
 		.my-canvas {
 			width: 100px;
 			height: 100px;
-		}
-
-		.canvas-container {
-			float: left;
-			display: flex;
-			width: 40%;
-			height: 100%;
 		}
 
 		.navbar {
@@ -281,15 +261,24 @@
 			Y :<input id="joy1Y" type="text" maxlength="4" size="4" />
 		</div>
 		<div id="centerPanel" class="columnCetral">
-			<button class="tablink" onclick="openPage('Home', this, 'orange')" id="homeButton">Home</button>
-			<button class="tablink" onclick="openPage('News', this, 'orange')" id="defaultOpen">Console</button>
+			<button class="tablink" onclick="openPage('Home', this, 'orange')" id="defaultOpen">Home</button>
+			<button class="tablink" onclick="openPage('News', this, 'orange')" id="newsButton">Console</button>
 			<button class="tablink" onclick="openPage('Contact', this, 'orange')" id="contactButton">Control</button>
 			<button class="tablink" onclick="openPage('About', this, 'orange')" id="aboutButton">Graph</button>
 
-			<div id="Home" class="tabcontent" style="float: left;">
-				<h3 id="deviceName">Vitual JoyStick</h3>
-				<h3 id="agentType">Unknown Web browser</h3>
-
+			<div id="Home" class="tabcontent">
+				<div style="width: 25%;float: left;">
+					<p>Left</p>
+				</div>
+				<div style="width: 50%;float: left;min-height: 80vh;">
+					<img id="robot_view" style="width: 100%;padding: 5px;background-color: #333;height: 300px;"
+						src="http://172.27.1.252:8080/stream?topic=/camera/color/image_raw">
+					<h3 id="deviceName">Vitual JoyStick</h3>
+					<h3 id="agentType">Unknown Web browser</h3>
+				</div>
+				<div style="width: 25%;float: left;">
+					<p>Right</p>
+				</div>
 			</div>
 
 			<div id="News" class="tabcontent">
@@ -382,10 +371,11 @@
 			</div>
 
 			<div id="About" class="tabcontent">
-				<h3>Wheel velocity (rad/s)</h3>
-				<div class="canvas-container">
-					<canvas id="wheelVelocityChart"></canvas>
+				<div class="canvas-container" style="width: 50%;">
+					<h3>Wheel velocity (rad/s)</h3>
+					<canvas style="width: 100%;" id="wheelVelocityChart"></canvas>
 				</div>
+				<div style="width: 50%;"></div>
 
 			</div>
 		</div>

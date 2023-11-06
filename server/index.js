@@ -31,6 +31,9 @@ app.get('/', (req, res) => {
 app.get('/test', (req, res) => {
     res.sendFile(__dirname + '/templates/gamepadTest.html');
 })
+app.get('/video', (req, res) => {
+    res.sendFile(__dirname + '/templates/video.html');
+})
 app.get('/src', (req, res) => {
     res.sendFile(__dirname + '/src/' + req.query.path);
 })

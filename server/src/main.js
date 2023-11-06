@@ -20,6 +20,13 @@ var joy2Y = document.getElementById("joy2Y");
 setInterval(function () { joy2X.value = Joy2.GetX(); }, 50);
 setInterval(function () { joy2Y.value = Joy2.GetY(); }, 50);
 
+const img = document.getElementById('robot_view');
+
+img.addEventListener('load', event => {
+    img.style.height = "auto"
+})
+
+
 socket.on('ros:topic', d => {
     var item = document.createElement('li')
     item.textContent = JSON.stringify(d.data)
