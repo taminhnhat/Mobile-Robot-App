@@ -250,10 +250,14 @@ void loop()
       Radio.print(motor3.getAverageSpeed());
       Radio.print(",M4=");
       Radio.print(motor4.getAverageSpeed());
-      Radio.print(",SR=");
-      Radio.print(motor1.getSetSpeed());
-      Radio.print(",SL=");
-      Radio.print(motor4.getSetSpeed());
+      // Radio.print(",SR=");
+      // Radio.print(motor1.getSetSpeed());
+      // Radio.print(",SL=");
+      // Radio.print(motor4.getSetSpeed());
+      Radio.print(",CR=");
+      Radio.print(motor1.getAverageCurrent());
+      Radio.print(",CL=");
+      Radio.print(motor4.getAverageCurrent());
       Radio.print("\r\n");
     }
     else if (CONFIG.EN_IMU_LOG)

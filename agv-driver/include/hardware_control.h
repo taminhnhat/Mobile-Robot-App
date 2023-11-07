@@ -243,6 +243,13 @@ public:
         this->cur_ins = analogRead(this->CUR_SEN_PIN_ADDR);
         this->cur_sum += this->cur_ins;
         this->cur_cou += 1;
+        if (cur_cou >= 10)
+        {
+            // calculate average current
+            this->cur_ave = this->cur_sum / this->cur_cou;
+            this->cur_sum = 0;
+            this->cur_cou = 0;
+        }
 
         // calculate Integral
         this->vol_Int += (this->v_set - this->v_ins) * d_t;
@@ -261,10 +268,6 @@ public:
             this->v_ave = this->v_sum / this->v_cou;
             this->v_sum = 0;
             this->v_cou = 0;
-            // calculate average current
-            this->cur_ave = this->cur_sum / this->cur_cou;
-            this->cur_sum = 0;
-            this->cur_cou = 0;
         }
     }
     void pidCompute()
@@ -326,6 +329,10 @@ public:
     double getAverageSpeed()
     {
         return trimDouble(this->v_ave * 2 / CONFIG.WHEEL_DIAMETER, 2);
+    }
+    double getCurrent()
+    {
+        return this->cur_ins;
     }
     double getAverageCurrent()
     {
