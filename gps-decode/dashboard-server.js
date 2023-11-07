@@ -2,12 +2,14 @@
 const app = require('express')();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+require('dotenv').config({ path: '.env' })
 
 const { SerialPort } = require('serialport');
 
-const port = new SerialPort({
-    path: 'COM18',
-    baudRate: 4800
+const port = process.env.GPS_PORT
+const serialPort = new SerialPort({
+    path: port,
+    baudRate: 9600
 });
 
 app.get('/', function (req, res) {
@@ -33,7 +35,7 @@ http.listen(3000, function () {
         ;
     });
 
-    port.on('data', function (data) {
+    serialPort.on('data', function (data) {
         gps.updatePartial(data);
     });
 });

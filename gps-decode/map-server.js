@@ -1,5 +1,5 @@
 require('dotenv').config({ path: './.env' })
-const serverPort = Number(process.env.SERVER_PORT)
+const serverPort = Number(process.env.SERVER_PORT) || 3001
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
@@ -9,8 +9,9 @@ var Kalman = require('kalman').KF;
 
 const { SerialPort } = require('serialport');
 
-const port = new SerialPort({
-    path: 'COM18',
+const port = process.env.GPS_PORT
+const serialPort = new SerialPort({
+    path: port,
     baudRate: 9600
 });
 
@@ -32,6 +33,7 @@ var u = $V([0, 0]);
 var filter = new Kalman($V([0, 0]), $M([[1, 0], [0, 1]]));
 
 gps.on('data', function (data) {
+    console.log('data', data)
 
     if (data.lat && data.lon) {
 
@@ -51,7 +53,7 @@ gps.on('data', function (data) {
             pos: filter.x.elements
         };
     }
-
+    console.log('gps', gps.state)
     io.emit('position', gps.state);
 });
 
@@ -63,6 +65,7 @@ http.listen(serverPort, function () {
     console.log(`listening on port ${serverPort}`);
 });
 
-port.on('data', function (data) {
+serialPort.on('data', function (data) {
+    // console.log(String(data).trim())
     gps.updatePartial(data);
 });

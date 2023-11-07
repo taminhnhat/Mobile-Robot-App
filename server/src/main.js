@@ -2,29 +2,32 @@ const socket = io()
 // console.log('script start')
 
 document.getElementById("agentType").textContent = navigator.userAgent;
-// document.getElementById(vitualjoystick).style.height = window.innerHeight - 100;
+if (navigator.userAgent.includes('Android')) {
+    // window.alert('mobile device detected')
+    document.getElementById('vitualjoystick').style.height = '92vh'
+    document.getElementById('footer').style.height = '8vh'
+}
+else {
+    document.getElementById('vitualjoystick').style.height = '95vh'
+    document.getElementById('footer').style.height = '5vh'
+    let tablinks = document.getElementsByClassName('tablink')
+    // tablinks.forEach(tablink => tablink.style.height = '5vh')
+    // console.log(tablinks.length())
+}
 
 // Create JoyStick object into the DIV 'joy1Div'
 var Joy1 = new JoyStick('joy1Div', { "title": "joystick1", "autoReturnToCenter": true, x: 0.4, y: 0.4 });
-var joy1X = document.getElementById("joy1X");
-var joy1Y = document.getElementById("joy1Y");
-// setInterval(function () { joy1InputPosY.value = Joy1.GetPosY(); }, 50);
-// setInterval(function () { joy1Direzione.value = Joy1.GetDir(); }, 50);
-setInterval(function () { joy1X.value = Joy1.GetX(); }, 50);
-setInterval(function () { joy1Y.value = Joy1.GetY(); }, 50);
 
 // Create JoyStick object into the DIV 'joy2Div'
 var Joy2 = new JoyStick('joy2Div', { "title": "joystick2", "autoReturnToCenter": true, x: 3.9, y: 3.9 });
-var joy2X = document.getElementById("joy2X");
-var joy2Y = document.getElementById("joy2Y");
-setInterval(function () { joy2X.value = Joy2.GetX(); }, 50);
-setInterval(function () { joy2Y.value = Joy2.GetY(); }, 50);
 
 const img = document.getElementById('robot_view');
-
 img.addEventListener('load', event => {
     img.style.height = "auto"
 })
+
+document.getElementById("rightPanel").style.display = 'none'
+document.getElementById("leftPanel").style.display = 'none'
 
 
 socket.on('ros:topic', d => {

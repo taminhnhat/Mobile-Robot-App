@@ -92,6 +92,9 @@ private:
     double vol_Int = 0;        // velocity integral
     double vol_Der = 0;        // velocity derivative
     double cur_ins = 0;        // instant current in Ampe
+    double cur_ave = 0;        // average current in Ampe
+    double cur_sum = 0;        // sum current in Ampe
+    double cur_cou = 0;        //
     double cur_pre = 0;        // previous current in Ampe
     double cur_set = 0;        // setpoint current in Ampe
     uint32_t timeout = 500;    // velocity timeout, after this velocity set to 0
@@ -238,6 +241,8 @@ public:
 
         // get instant current
         this->cur_ins = analogRead(this->CUR_SEN_PIN_ADDR);
+        this->cur_sum += this->cur_ins;
+        this->cur_cou += 1;
 
         // calculate Integral
         this->vol_Int += (this->v_set - this->v_ins) * d_t;
@@ -256,6 +261,10 @@ public:
             this->v_ave = this->v_sum / this->v_cou;
             this->v_sum = 0;
             this->v_cou = 0;
+            // calculate average current
+            this->cur_ave = this->cur_sum / this->cur_cou;
+            this->cur_sum = 0;
+            this->cur_cou = 0;
         }
     }
     void pidCompute()
@@ -317,6 +326,10 @@ public:
     double getAverageSpeed()
     {
         return trimDouble(this->v_ave * 2 / CONFIG.WHEEL_DIAMETER, 2);
+    }
+    double getAverageCurrent()
+    {
+        return this->cur_ave;
     }
     int32_t getdp()
     {

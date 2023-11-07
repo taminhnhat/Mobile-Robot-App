@@ -254,14 +254,10 @@
 <body>
 	<div class="row" id="vitualjoystick" style="float: top;height: 90vh;">
 		<div id="leftPanel" class="controlPanel">
-			<div id="joy1Div" style="width:100%;margin:0px">
-				<!-- <button class="controlButton" id="stopButton"></button> -->
-			</div>
-			X :<input id="joy1X" type="text" maxlength="4" size="4" /></br>
-			Y :<input id="joy1Y" type="text" maxlength="4" size="4" />
+			<div id="joy1Div" style="width:100%;margin:0px"></div>
 		</div>
 		<div id="centerPanel" class="columnCetral">
-			<button class="tablink" onclick="openPage('Home', this, 'orange')" id="defaultOpen">Home</button>
+			<button class="tablink" onclick="openPage('Home', this, 'orange')" id="homeButton">Home</button>
 			<button class="tablink" onclick="openPage('News', this, 'orange')" id="newsButton">Console</button>
 			<button class="tablink" onclick="openPage('Contact', this, 'orange')" id="contactButton">Control</button>
 			<button class="tablink" onclick="openPage('About', this, 'orange')" id="aboutButton">Graph</button>
@@ -380,8 +376,6 @@
 			</div>
 		</div>
 		<div id="rightPanel" class="controlPanel">
-			X :<input id="joy2X" type="text" maxlength="4" size="4" /></br>
-			Y :<input id="joy2Y" type="text" maxlength="4" size="4" />
 			<div id="joy2Div" style="width:100%;margin:0px"></div>
 		</div>
 		<script>
@@ -438,11 +432,11 @@
 			}
 
 			// Get the element with id="defaultOpen" and click on it
-			document.getElementById("defaultOpen").click();
+			document.getElementById("homeButton").click();
 		</script>
 	</div>
 
-	<div class="row" style="background-color: #f0f0f0;height: 30px;font-weight: bold;">
+	<div class="row" id="footer" style=" background-color: #f0f0f0;height: 30px;font-weight: bold;">
 		<div>
 			<!-- <button onclick="fullscreenToggle()" id="fullscreen"><i class="material-icons">&#xe5d0;</i></button> -->
 			<button onclick="fullscreenToggle()" class="shortcut"
