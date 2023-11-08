@@ -62,6 +62,100 @@ double trimDouble(double in, uint8_t num = 2)
     }
 }
 
+class CurrentSensor
+{
+private:
+    uint32_t sig_calibrate = 0;  //
+    uint32_t sig_ins = 0;        //
+    uint32_t sig_pre = 0;        //
+    uint32_t sig_sum = 0;        //
+    uint32_t sig_cou = 0;        //
+    uint32_t sig_ave = 0;        // average signal
+    uint32_t sig_exp_filter = 0; // recursive filtered signal
+    uint32_t sig_ave_filter = 0; // running average filtered signal
+    double cur_ins = 0;          // instant current in Ampe
+    double cur_ave = 0;          // average current in Ampe
+    uint32_t CURRENT_SENSOR_PIN;
+    double alpha = 0.5;
+    uint32_t filterSize = 20;
+    uint32_t filterBuffer[20];
+    uint32_t filterIndex = 0;
+    bool ifBufferReady = false;
+
+public:
+    CurrentSensor(uint32_t PIN)
+    {
+        this->CURRENT_SENSOR_PIN = PIN;
+    }
+    void tick()
+    {
+        this->sig_pre = this->sig_ins;
+        this->sig_ins = analogRead(this->CURRENT_SENSOR_PIN);
+        // averaging
+        this->sig_sum += this->sig_ins;
+        this->sig_cou += 1;
+        if (this->sig_cou >= 50)
+        {
+            this->sig_ave = this->sig_sum / this->sig_cou;
+            this->sig_sum = 0;
+            this->sig_cou = 0;
+        }
+        // recursive filter
+        this->sig_exp_filter = this->alpha * this->sig_ins + (1 - alpha) * this->sig_pre;
+        // average filter
+        filterBuffer[filterIndex] = sig_ins;
+        filterIndex += 1;
+        if (filterIndex >= filterSize)
+        {
+            filterIndex = 0;
+            if (!ifBufferReady)
+                ifBufferReady = true;
+        }
+        if (ifBufferReady)
+        {
+            uint32_t sum = 0;
+            for (uint32_t v : filterBuffer)
+            {
+                sum += v;
+            }
+            this->sig_ave_filter = sum / filterSize;
+        }
+    }
+    void calibrate()
+    {
+        uint32_t i = 0;
+        uint32_t sum = 0;
+        while (i < 100)
+        {
+            sum += analogRead(CURRENT_SENSOR_PIN);
+            delay(10);
+        }
+        sig_calibrate = sum / 100;
+    }
+    uint32_t getRawValue()
+    {
+        return this->sig_ins;
+    }
+    uint32_t getAverageRawValue()
+    {
+        return this->sig_ave;
+    }
+    uint32_t getRecursiveFilterRawValue()
+    {
+        return this->sig_exp_filter;
+    }
+    uint32_t getAverageFilterRawValue()
+    {
+        return this->sig_ave_filter;
+    }
+
+    double getCurrent()
+    {
+        return this->cur_ins;
+    }
+} currentSensor_1_2(CURRENT_SENSOR_1_2),
+    currentSensor_3_4(CURRENT_SENSOR_3_4);
+
 class MotorControl
 {
 private:
@@ -91,12 +185,6 @@ private:
     double vol_Pro = 0;        // velocity proportional
     double vol_Int = 0;        // velocity integral
     double vol_Der = 0;        // velocity derivative
-    double cur_ins = 0;        // instant current in Ampe
-    double cur_ave = 0;        // average current in Ampe
-    double cur_sum = 0;        // sum current in Ampe
-    double cur_cou = 0;        //
-    double cur_pre = 0;        // previous current in Ampe
-    double cur_set = 0;        // setpoint current in Ampe
     uint32_t timeout = 500;    // velocity timeout, after this velocity set to 0
     uint32_t lastcall = 0;     // last time set velocity
     uint32_t last_t;           // last time call in milisecond
@@ -239,18 +327,6 @@ public:
         this->v_sum += v_ins;
         this->v_cou++;
 
-        // get instant current
-        this->cur_ins = analogRead(this->CUR_SEN_PIN_ADDR);
-        this->cur_sum += this->cur_ins;
-        this->cur_cou += 1;
-        if (cur_cou >= 10)
-        {
-            // calculate average current
-            this->cur_ave = this->cur_sum / this->cur_cou;
-            this->cur_sum = 0;
-            this->cur_cou = 0;
-        }
-
         // calculate Integral
         this->vol_Int += (this->v_set - this->v_ins) * d_t;
         // calculate derivative
@@ -329,14 +405,6 @@ public:
     double getAverageSpeed()
     {
         return trimDouble(this->v_ave * 2 / CONFIG.WHEEL_DIAMETER, 2);
-    }
-    double getCurrent()
-    {
-        return this->cur_ins;
-    }
-    double getAverageCurrent()
-    {
-        return this->cur_ave;
     }
     int32_t getdp()
     {
@@ -483,64 +551,6 @@ public:
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "Wire.h"
 
-typedef struct
-{
-    union
-    {
-        float c[3];
-        struct
-        {
-            float r;
-            float g;
-            float b;
-        };
-    };
-    uint32_t rgba;
-} sensors_color_t;
-typedef struct
-{
-    union
-    {
-        float v[3];
-        struct
-        {
-            float x;
-            float y;
-            float z;
-        };
-        struct
-        {
-            float roll;
-            float pitch;
-            float heading;
-        };
-    };
-    int8_t status;
-    uint8_t reserved[3];
-} sensors_vec_t;
-typedef struct
-{
-    int32_t version;
-    int32_t sensor_id;
-    int32_t type;
-    int32_t reserved0;
-    int32_t timestamp;
-    union
-    {
-        float data[4];
-        sensors_vec_t acceleration;
-        sensors_vec_t magnetic;
-        sensors_vec_t orientation;
-        sensors_vec_t gyro;
-        float temperature;
-        float light;
-        float pressure;
-        float relative_humidity;
-        float current;
-        float voltage;
-        sensors_color_t color;
-    };
-} sensors_event_t;
 struct vector4Double
 {
     double x;

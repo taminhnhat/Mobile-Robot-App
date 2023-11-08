@@ -109,12 +109,12 @@ void OnTimer1Interrupt()
     motor4.stop();
     OnVelocityControl = false;
   }
-  if (timer_count % CONFIG.VEL_CAL_CYCLE == 0)
+  if (timer_count % CONFIG.MOTOR_CYCLE == 0)
   {
-    motor1.tick(CONFIG.VEL_CAL_CYCLE);
-    motor2.tick(CONFIG.VEL_CAL_CYCLE);
-    motor3.tick(CONFIG.VEL_CAL_CYCLE);
-    motor4.tick(CONFIG.VEL_CAL_CYCLE);
+    motor1.tick(CONFIG.MOTOR_CYCLE);
+    motor2.tick(CONFIG.MOTOR_CYCLE);
+    motor3.tick(CONFIG.MOTOR_CYCLE);
+    motor4.tick(CONFIG.MOTOR_CYCLE);
   }
   if (timer_count % CONFIG.BAT_VOL_CAL_CYCLE == 0)
   {
@@ -124,9 +124,10 @@ void OnTimer1Interrupt()
   {
     imu.tick();
   }
-  else if (timer_count % 1000 == 0)
+  if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
   {
-    //
+    currentSensor_1_2.tick();
+    currentSensor_3_4.tick();
   }
 }
 
@@ -199,6 +200,9 @@ void setup()
   motor4.reset();
 
   enableMotor();
+  delay(100);
+  currentSensor_1_2.calibrate();
+  currentSensor_3_4.calibrate();
 }
 
 void loop()
@@ -255,9 +259,17 @@ void loop()
       // Radio.print(",SL=");
       // Radio.print(motor4.getSetSpeed());
       Radio.print(",CR=");
-      Radio.print(motor1.getAverageCurrent());
+      Radio.print(currentSensor_1_2.getAverageFilterRawValue());
       Radio.print(",CL=");
-      Radio.print(motor4.getAverageCurrent());
+      Radio.print(currentSensor_3_4.getAverageFilterRawValue());
+      Radio.print(",AR=");
+      Radio.print(currentSensor_1_2.getAverageRawValue());
+      Radio.print(",AL=");
+      Radio.print(currentSensor_3_4.getAverageRawValue());
+      Radio.print(",IR=");
+      Radio.print(currentSensor_1_2.getRawValue());
+      Radio.print(",IL=");
+      Radio.print(currentSensor_3_4.getRawValue());
       Radio.print("\r\n");
     }
     else if (CONFIG.EN_IMU_LOG)

@@ -22,7 +22,8 @@ struct CONF_
     const double MAX_ANGULAR_VELOCITY = (2 * MOTOR_MAX_SPEED_IN_RPM * RPM_TO_MPS_FACTOR) / WHEEL_SEPARATION;
     const int32_t PWM_RESOLUTION_SET = 16;
     const uint32_t PWM_MAX_VAL = pow(2, PWM_RESOLUTION_SET) - 1;
-    const uint32_t VEL_CAL_CYCLE = 5;       // in ms
+    const uint32_t CURRENT_CAL_CYCLE = 2;   // in ms
+    const uint32_t MOTOR_CYCLE = 10;        // in ms
     const uint32_t BAT_VOL_CAL_CYCLE = 100; // in ms
     const uint32_t DIS_VOL_CAL_CYCLE = 10;  // in ms
     const uint32_t IMU_RAW_CAL_CYCLE = 10;  // in ms
