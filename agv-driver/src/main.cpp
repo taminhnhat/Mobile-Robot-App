@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include "checksum.h"
 #include "hardware_control.h"
+#include "currentSensor.hpp"
 #include <math.h>
 
 // -------------------------------------------------JSON--------------------------------------------------------
@@ -132,6 +133,10 @@ void OnTimer1Interrupt()
 }
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
+CurrentSensor currentSensor_1_2(CURRENT_SENSOR_1_2),
+    currentSensor_3_4(CURRENT_SENSOR_3_4);
+
+// -------------------------------------------------MAIN CODE--------------------------------------------------------
 void setup()
 {
   analogWriteResolution(CONFIG.PWM_RESOLUTION_SET);
@@ -258,18 +263,18 @@ void loop()
       // Radio.print(motor1.getSetSpeed());
       // Radio.print(",SL=");
       // Radio.print(motor4.getSetSpeed());
-      Radio.print(",CR=");
-      Radio.print(currentSensor_1_2.getAverageFilterRawValue());
-      Radio.print(",CL=");
-      Radio.print(currentSensor_3_4.getAverageFilterRawValue());
-      Radio.print(",AR=");
-      Radio.print(currentSensor_1_2.getAverageRawValue());
-      Radio.print(",AL=");
-      Radio.print(currentSensor_3_4.getAverageRawValue());
-      Radio.print(",IR=");
-      Radio.print(currentSensor_1_2.getRawValue());
-      Radio.print(",IL=");
-      Radio.print(currentSensor_3_4.getRawValue());
+      Radio.print("INS_R=");
+      Radio.print(currentSensor_1_2.getInstantCurrent());
+      Radio.print("INS_L=");
+      Radio.print(currentSensor_3_4.getInstantCurrent());
+      Radio.print(",AVE_R=");
+      Radio.print(currentSensor_1_2.getAverageCurrent());
+      Radio.print(",AVE_L=");
+      Radio.print(currentSensor_3_4.getAverageCurrent());
+      Radio.print(",FIL_R=");
+      Radio.print(currentSensor_1_2.getAverageFilterCurrent());
+      Radio.print(",FIL_L=");
+      Radio.print(currentSensor_3_4.getAverageFilterCurrent());
       Radio.print("\r\n");
     }
     else if (CONFIG.EN_IMU_LOG)
