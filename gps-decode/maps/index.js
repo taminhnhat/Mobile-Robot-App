@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './.env' })
+require('dotenv').config({ path: '../.env' })
 const serverPort = Number(process.env.SERVER_PORT) || 3001
 var app = require('express')();
 var http = require('http').Server(app);
@@ -33,28 +33,33 @@ var u = $V([0, 0]);
 var filter = new Kalman($V([0, 0]), $M([[1, 0], [0, 1]]));
 
 gps.on('data', function (data) {
-    console.log('data', data)
+    console.log('<<<', data.raw)
 
-    if (data.lat && data.lon) {
+    try {
+        if (data.lat && data.lon) {
 
-        filter.update({
-            A: A,
-            B: B,
-            C: C,
-            H: H,
-            R: R,
-            Q: Q,
-            u: u,
-            y: $V([data.lat, data.lon])
-        });
+            filter.update({
+                A: A,
+                B: B,
+                C: C,
+                H: H,
+                R: R,
+                Q: Q,
+                u: u,
+                y: $V([data.lat, data.lon])
+            });
 
-        gps.state.position = {
-            cov: filter.P.elements,
-            pos: filter.x.elements
-        };
+            gps.state.position = {
+                cov: filter.P.elements,
+                pos: filter.x.elements
+            };
+        }
+        // console.log('gps', gps.state)
+        io.emit('position', gps.state);
     }
-    console.log('gps', gps.state)
-    io.emit('position', gps.state);
+    catch (err) {
+        console.log(err)
+    }
 });
 
 app.get('/', function (req, res) {
