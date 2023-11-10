@@ -307,6 +307,7 @@ void serialEvent1()
 
 void msgProcess(String lightCmd, Stream &stream)
 {
+  stream.print(lightCmd);
   uint32_t idx = lightCmd.indexOf('{'); //
 
   String cmd_cs = lightCmd.substring(0, idx); // received checksum
@@ -469,48 +470,48 @@ void msgProcess(String lightCmd, Stream &stream)
     if (motorEnabled.compareTo("true") == 0)
     {
       enableMotor();
-      stream.println("Succes Enable Motor!");
+      stream.println("Success Enable Motor!");
     }
-    else if (motorEnabled.compareTo("false"))
+    else if (motorEnabled.compareTo("false") == 0)
     {
       disableMotor();
-      stream.println("Succes Disable Motor!");
+      stream.println("Success Disable Motor!");
     }
     // velocity log
     const String enableVelocityLog = doc["vel"];
     if (enableVelocityLog.compareTo("true") == 0)
     {
       CONFIG.EN_VELOCITY_LOG = true;
-      stream.println("Succes Enable Velocity Log!");
+      stream.println("Success Enable Velocity Log!");
     }
     else if (enableVelocityLog.compareTo("false") == 0)
     {
       CONFIG.EN_VELOCITY_LOG = false;
-      stream.println("Succes Disable Velocity Log!");
+      stream.println("Success Disable Velocity Log!");
     }
     // current log
     const String enableCurrentLog = doc["cur"];
     if (enableCurrentLog.compareTo("true") == 0)
     {
-      CONFIG.EN_VELOCITY_LOG = true;
-      stream.println("Succes Enable Current Log!");
+      CONFIG.EN_CURRENT_LOG = true;
+      stream.println("Success Enable Current Log!");
     }
     if (enableCurrentLog.compareTo("false") == 0)
     {
-      CONFIG.EN_VELOCITY_LOG = false;
-      stream.println("Succes Disable Current Log!");
+      CONFIG.EN_CURRENT_LOG = false;
+      stream.println("Success Disable Current Log!");
     }
     // crc
     const String enableCRC = doc["crc"];
     if (enableCRC.compareTo("true") == 0)
     {
       CONFIG.CRC_Enable = true;
-      stream.println("Succes Enable CRC!");
+      stream.println("Success Enable CRC!");
     }
     if (enableCRC.compareTo("false") == 0)
     {
       CONFIG.CRC_Enable = false;
-      stream.println("Succes Disable CRC!");
+      stream.println("Success Disable CRC!");
     }
     // pid
   }
