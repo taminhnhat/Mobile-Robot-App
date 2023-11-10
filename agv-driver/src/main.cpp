@@ -95,6 +95,10 @@ void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
 void velocityProcess_base(double, double, double);
 
+// -------------------------------------------------MAIN CODE--------------------------------------------------------
+CurrentSensor currentSensor_1_2(CURRENT_SENSOR_1_2),
+    currentSensor_3_4(CURRENT_SENSOR_3_4);
+
 // -------------------------------------------------TIMER--------------------------------------------------------
 HardwareTimer timer(TIM1);
 uint64_t timer_count = 0;
@@ -131,10 +135,6 @@ void OnTimer1Interrupt()
     currentSensor_3_4.tick();
   }
 }
-
-// -------------------------------------------------MAIN CODE--------------------------------------------------------
-CurrentSensor currentSensor_1_2(CURRENT_SENSOR_1_2),
-    currentSensor_3_4(CURRENT_SENSOR_3_4);
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
 void setup()
