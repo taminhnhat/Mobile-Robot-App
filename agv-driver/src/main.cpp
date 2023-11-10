@@ -212,7 +212,7 @@ void setup()
 
 void loop()
 {
-  const uint32_t cycle = 20;
+  const uint32_t cycle = 50;
   const uint32_t t = millis();
   if (t - t_previous >= cycle)
   {
@@ -251,21 +251,18 @@ void loop()
       // Radio.print(" ");
       // Radio.print(motor4.getSetSpeed());
       // Radio.println("");
-      Radio.print("M1=");
-      Radio.print(motor1.getAverageSpeed());
-      Radio.print(",M2=");
-      Radio.print(motor2.getAverageSpeed());
-      Radio.print(",M3=");
-      Radio.print(motor3.getAverageSpeed());
-      Radio.print(",M4=");
-      Radio.print(motor4.getAverageSpeed());
-      // Radio.print(",SR=");
-      // Radio.print(motor1.getSetSpeed());
-      // Radio.print(",SL=");
-      // Radio.print(motor4.getSetSpeed());
+      // Radio.print("M1=");
+      // Radio.print(motor1.getAverageSpeed());
+      // Radio.print(",M2=");
+      // Radio.print(motor2.getAverageSpeed());
+      // Radio.print(",M3=");
+      // Radio.print(motor3.getAverageSpeed());
+      // Radio.print(",M4=");
+      // Radio.print(motor4.getAverageSpeed());
+      // Radio.print(",");
       Radio.print("INS_R=");
       Radio.print(currentSensor_1_2.getInstantCurrent());
-      Radio.print("INS_L=");
+      Radio.print(",INS_L=");
       Radio.print(currentSensor_3_4.getInstantCurrent());
       Radio.print(",AVE_R=");
       Radio.print(currentSensor_1_2.getAverageCurrent());
