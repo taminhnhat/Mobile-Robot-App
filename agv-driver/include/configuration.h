@@ -5,7 +5,9 @@ struct CONF_
     bool CRC_Enable = true;
     bool EN_MECANUM_WHEEL = false;
     bool EN_VELOCITY_LOG = false;
+    bool EN_CURRENT_LOG = false;
     bool EN_IMU_LOG = false;
+    uint32_t LOG_CYCLE = 50;
     bool IMU_AVAILABLE = false;                                                       //
     const uint32_t DEFAULT_VEL_TIMEOUT = 1000;                                        //
     const double WHEEL_SEPARATION = 0.205;                                            // m
