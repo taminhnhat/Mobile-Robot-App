@@ -307,7 +307,6 @@ void serialEvent1()
 
 void msgProcess(String lightCmd, Stream &stream)
 {
-  stream.print(lightCmd);
   uint32_t idx = lightCmd.indexOf('{'); //
 
   String cmd_cs = lightCmd.substring(0, idx); // received checksum

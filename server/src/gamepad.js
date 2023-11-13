@@ -89,7 +89,7 @@ function addgamepad(gamepad) {
     document.getElementById("deviceName").textContent = gamepad.id;
     rAF(updateStatus);
 
-    setInterval(velocityGenerate, 100)
+    setInterval(velocityGenerate, 50)
     // setInterval(gamepadCallback, 100)
 }
 
