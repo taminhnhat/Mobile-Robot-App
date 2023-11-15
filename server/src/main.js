@@ -25,11 +25,6 @@ const img = document.getElementById('robot_view');
 img.addEventListener('load', event => {
     img.style.height = "auto"
 })
-img.addEventListener('click', event => {
-    socket.emit('robot:camera', {
-        action: "start"
-    })
-})
 
 document.getElementById("rightPanel").style.display = 'none'
 document.getElementById("leftPanel").style.display = 'none'

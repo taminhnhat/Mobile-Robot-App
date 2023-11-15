@@ -264,13 +264,18 @@
 
 			<div id="Home" class="tabcontent">
 				<div style="width: 25%;float: left;">
-					<p>Left</p>
-				</div>
-				<div style="width: 50%;float: left;min-height: 80vh;">
-					<img id="robot_view" style="width: 100%;padding: 5px;background-color: #333;height: 300px;"
-						src="http://172.27.1.252:8080/stream?topic=/camera/color/image_raw">
 					<h3 id="deviceName">Vitual JoyStick</h3>
 					<h3 id="agentType">Unknown Web browser</h3>
+				</div>
+				<div style="width: 50%;float: left;height: 300px;position: relative;">
+					<img id="robot_view" onclick="startCamera()"
+						style="width: 100%;padding: 5px;background-color: #333;height: 100%;"
+						src="http://172.27.1.252:8080/stream?topic=/camera/color/image_raw">
+					<div style="position: absolute;bottom: 0;display: block;">
+						<button><span class="material-symbols-outlined"
+								onclick="startCamera()">play_circle</span></button>
+						<button><span class="material-symbols-outlined">stop_circle</span></button>
+					</div>
 				</div>
 				<div style="width: 25%;float: left;">
 					<p>Right</p>
