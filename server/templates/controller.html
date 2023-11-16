@@ -80,8 +80,7 @@
 			border-radius: 50%;
 			background-color: #a88c6f;
 		}
-	</style>
-	<style>
+
 		.axes {
 			padding: 1em;
 		}
@@ -272,9 +271,10 @@
 						style="width: 100%;padding: 5px;background-color: #333;height: 100%;"
 						src="http://172.27.1.252:8080/stream?topic=/camera/color/image_raw">
 					<div style="position: absolute;bottom: 0;display: block;">
-						<button><span class="material-symbols-outlined"
-								onclick="startCamera()">play_circle</span></button>
-						<button><span class="material-symbols-outlined">stop_circle</span></button>
+						<button id="startCameraButton"><span
+								class="material-symbols-outlined">play_circle</span></button>
+						<button id="stopCameraButton"><span
+								class="material-symbols-outlined">stop_circle</span></button>
 					</div>
 				</div>
 				<div style="width: 25%;float: left;">
@@ -482,6 +482,7 @@
 	<script src="/src?path=oc-joy.js"></script>
 	<script src="/src?path=chart.js"></script>
 	<script src="/src?path=gamepad.js"></script>
+	<script src="/src?path=terminal.js"></script>
 	<script src="/src?path=main.js"></script>
 </body>
 

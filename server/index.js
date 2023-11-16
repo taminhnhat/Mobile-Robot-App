@@ -22,6 +22,9 @@ function onConnection(socket) {
     socket.on('robot:camera:start', () => {
         socket.broadcast.emit('robot:camera:start', {})
     })
+    socket.on('robot:camera:stop', () => {
+        socket.broadcast.emit('robot:camera:stop', {})
+    })
     // socket.on('robot:message', robotCtrl.onMessage)
     setInterval(() => {
         // socket.emit('ros:topic', 'control')

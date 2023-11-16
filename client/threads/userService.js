@@ -65,7 +65,6 @@ const process = () => {
         let _Active = 'unknown'
         try {
             const out = execSync('systemctl --user status murin_client.service')
-            console.log(String(out))
             const d = String(out).split('\n')
             _Loaded = d[1].trim().split(':')[1].split(' ')[1]
             _Active = d[2].trim().split(':')[1].split(' ')[1]
@@ -85,7 +84,6 @@ const process = () => {
         let _Active = 'unknown'
         try {
             const out = execSync('systemctl --user status murin_websocket.service')
-            console.log(String(out))
             const d = String(out).split('\n')
             _Loaded = d[1].trim().split(':')[1].split(' ')[1]
             _Active = d[2].trim().split(':')[1].split(' ')[1]
