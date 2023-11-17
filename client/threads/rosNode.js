@@ -1,5 +1,5 @@
 const { parentPort, workerData } = require('worker_threads');
-const { exec, execSync } = require('child_process');
+const { exec, execSync, spawn } = require('child_process');
 
 let nodes = []
 let isRefreshed = false

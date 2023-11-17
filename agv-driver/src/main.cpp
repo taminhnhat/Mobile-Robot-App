@@ -476,6 +476,7 @@ void msgProcess(String lightCmd, Stream &stream)
       disableMotor();
       stream.println("Success Disable Motor!");
     }
+
     // velocity log
     const String enableVelocityLog = doc["vel"];
     if (enableVelocityLog.compareTo("true") == 0)
@@ -488,6 +489,7 @@ void msgProcess(String lightCmd, Stream &stream)
       CONFIG.EN_VELOCITY_LOG = false;
       stream.println("Success Disable Velocity Log!");
     }
+
     // current log
     const String enableCurrentLog = doc["cur"];
     if (enableCurrentLog.compareTo("true") == 0)
@@ -500,6 +502,7 @@ void msgProcess(String lightCmd, Stream &stream)
       CONFIG.EN_CURRENT_LOG = false;
       stream.println("Success Disable Current Log!");
     }
+
     // crc
     const String enableCRC = doc["crc"];
     if (enableCRC.compareTo("true") == 0)
@@ -512,7 +515,21 @@ void msgProcess(String lightCmd, Stream &stream)
       CONFIG.CRC_Enable = false;
       stream.println("Success Disable CRC!");
     }
+
     // pid
+    const String pid = doc["pid"];
+    if(pid.compareTo("vel")==0){
+      const double p = doc["kp"];
+      const double i = doc["ki"];
+      const double d = doc["kd"];
+      disableMotor();
+      motor1.setVelocityPID(p,i,d);
+      motor2.setVelocityPID(p,i,d);
+      motor3.setVelocityPID(p,i,d);
+      motor4.setVelocityPID(p,i,d);
+      enableMotor();
+      stream.println("Success config pid");
+    }
   }
   else if (topic_name.compareTo("stop") == 0)
   {

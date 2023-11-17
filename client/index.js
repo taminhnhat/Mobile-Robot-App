@@ -1,5 +1,5 @@
 const { io } = require("socket.io-client")
-const { exec, execSync } = require('child_process');
+const { exec, execSync, execFile, spawn } = require('child_process');
 const { Worker } = require('worker_threads');
 require('dotenv').config({ path: './.env' })
 const url = process.env.SERVER_URL || 'http://localhost:3003'
@@ -10,7 +10,8 @@ socket.on('connect', () => console.log('connected', socket.id))
 socket.on('disconnect', () => console.log('disconnected', socket.id))
 socket.on('error', err => console.log('error', err))
 socket.on('tick', t => console.log('tick', t))
-socket.on('robot:camera:start', startCamera())
+socket.on('robot:camera:start', startCamera)
+socket.on('robot:camera:stop', stopCamera)
 
 let robotMonitorData = {
     nodes: [],
@@ -20,19 +21,10 @@ let robotMonitorData = {
     topicsUpdated: false,
 }
 
-getRosInfo()
+// getRosInfo()
 function getRosInfo() {
     let wk = new Worker(__dirname + '/threads/rosNode.js')
     let wk2 = new Worker(__dirname + '/threads/rosTopic.js')
-
-    wk2.on('message', (msg) => {
-        robotMonitorData.topics = msg
-        robotMonitorData.topicsUpdated = true
-        if (rosInfoCheck()) {
-            wk.postMessage('run')
-            wk2.postMessage('run')
-        }
-    });
 
     wk.on('error', err => console.log(err));
 
@@ -54,10 +46,19 @@ function getRosInfo() {
     wk2.on('exit', (code) => {
         if (code !== 0) console.error(new Error(`Worker stopped Code ${code}`))
     });
+
+    wk2.on('message', (msg) => {
+        robotMonitorData.topics = msg
+        robotMonitorData.topicsUpdated = true
+        if (rosInfoCheck()) {
+            wk.postMessage('run')
+            wk2.postMessage('run')
+        }
+    });
     // setTimeout(getRosState, 2000)
 }
 
-getServiceInfo()
+// getServiceInfo()
 function getServiceInfo() {
     let wk = new Worker(__dirname + '/threads/userService.js')
 
@@ -82,22 +83,55 @@ function rosInfoCheck() {
     else return false
 }
 
+let cameraThread
+let rsChild
+
 function startCamera() {
-    console.log('start camera')
-    let wk = new Worker(__dirname + '/threads/cameraService.js')
+    console.log('start realsense')
+    // const child = spawn('ls', ['.'])
+    // child.stdout.on('data', data => {
+    //     console.log(`stdout:\n${data}`);
+    // });
 
-    wk.on('message', (msg) => {
-        console.log(msg)
-    });
+    // child.stderr.on('data', data => {
+    //     console.error(`stderr: ${data}`);
+    // });
+    rsChild = exec('./threads/realsense.sh', (err, stdout, stderr) => {
+        if (err) {
+            console.error(`error: ${error.message}`);
+            return;
+        }
 
-    wk.on('error', err => console.log(err));
+        if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout:\n${stdout}`);
+    })
+    console.log(rsChild.pid);
+    // setTimeout(() => process.kill(rsChild.pid), 5000)
+    // cameraThread = new Worker(__dirname + '/threads/cameraService.js')
+    // console.log('start camera thread, id: ', cameraThread.threadId)
 
-    wk.on('exit', (code) => {
-        if (code !== 0) console.error(new Error(`Worker stopped Code ${code}`))
-    });
+    // cameraThread.on('message', (msg) => {
+    //     console.log(msg)
+    // });
+
+    // cameraThread.on('error', err => console.log(err));
+
+    // cameraThread.on('exit', (code) => {
+    //     if (code !== 0) console.error(new Error(`Worker stopped Code ${code}`))
+    // });
+}
+function stopCamera() {
+    rsChild.kill('SIGINT')
+    //     cameraThread.terminate();
+    // console.log('topic stop camera')
 }
 
 const fs = require('fs');
+const { Console } = require("console");
+const { stderr } = require("process");
 const fileHandle = fs.openSync('/tmp/ros2_control_out', 'r+');
 let fifoRs = fs.createReadStream(null, { fd: fileHandle });
 

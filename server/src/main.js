@@ -68,7 +68,6 @@ socket.on('ros:topic', d => {
 
 let tempTable = [];
 socket.on('ros:monitor', d => {
-    console.log(d)
     var nodeTable = document.getElementById('nodelist')
     // remove all rows
     while (nodeTable.rows.length > 1)
