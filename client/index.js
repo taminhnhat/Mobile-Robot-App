@@ -1,6 +1,7 @@
 const { io } = require("socket.io-client")
 const { exec, execSync, execFile, spawn } = require('child_process');
 const { Worker } = require('worker_threads');
+const kill = require('tree-kill')
 require('dotenv').config({ path: './.env' })
 const url = process.env.SERVER_URL || 'http://localhost:3003'
 console.log(`connecting to ${url}`)
@@ -88,28 +89,36 @@ let rsChild
 
 function startCamera() {
     console.log('start realsense')
-    // const child = spawn('ls', ['.'])
-    // child.stdout.on('data', data => {
-    //     console.log(`stdout:\n${data}`);
-    // });
-
-    // child.stderr.on('data', data => {
-    //     console.error(`stderr: ${data}`);
-    // });
-    rsChild = exec('./threads/realsense.sh', (err, stdout, stderr) => {
-        if (err) {
-            console.error(`error: ${error.message}`);
-            return;
-        }
-
-        if (stderr) {
-            console.error(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout:\n${stdout}`);
+    const child = spawn('./threads/realsense.sh')
+    child.stdout.on('data', data => {
+        console.log(`stdout:\n${data}`);
+        setTimeout(() => {
+            // kill(child.pid)
+            // child.kill('SIGINT')
+            process.kill(child.pid, 'SIGINT')
+        }, 5000)
+    });
+    child.stderr.on('data', data => {
+        console.error(`stderr: ${data}`);
+    });
+    child.on('exit', code => {
+        console.log(`process stop with code ${code}`)
     })
-    console.log(rsChild.pid);
-    // setTimeout(() => process.kill(rsChild.pid), 5000)
+    console.log(child.pid)
+    // rsChild = exec('./threads/realsense.sh', { killSignal: 'SIGTERM' }, (err, stdout, stderr) => {
+    // if (err) {
+    //     console.error(`error: ${error.message}`);
+    //     return;
+    // }
+
+    // if (stderr) {
+    //     console.error(`stderr: ${stderr}`);
+    //     return;
+    // }
+    // console.log(`stdout:\n${stdout}`);
+
+    // console.log(rsChild)
+    // setInterval(() => console.log(rsChild.pid), 1000)
     // cameraThread = new Worker(__dirname + '/threads/cameraService.js')
     // console.log('start camera thread, id: ', cameraThread.threadId)
 
