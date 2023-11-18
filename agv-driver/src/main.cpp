@@ -114,6 +114,11 @@ void OnTimer1Interrupt()
   }
   if (timer_count % CONFIG.MOTOR_CYCLE == 0)
   {
+    // if (!CONFIG.EN_MECANUM_WHEEL)
+    // {
+    //   motor2.setVelocity(motor1.getVelocity());
+    //   motor3.setVelocity(motor4.getVelocity());
+    // }
     motor1.tick(CONFIG.MOTOR_CYCLE);
     motor2.tick(CONFIG.MOTOR_CYCLE);
     motor3.tick(CONFIG.MOTOR_CYCLE);
@@ -518,15 +523,16 @@ void msgProcess(String lightCmd, Stream &stream)
 
     // pid
     const String pid = doc["pid"];
-    if(pid.compareTo("vel")==0){
+    if (pid.compareTo("vel") == 0)
+    {
       const double p = doc["kp"];
       const double i = doc["ki"];
       const double d = doc["kd"];
       disableMotor();
-      motor1.setVelocityPID(p,i,d);
-      motor2.setVelocityPID(p,i,d);
-      motor3.setVelocityPID(p,i,d);
-      motor4.setVelocityPID(p,i,d);
+      motor1.setVelocityPID(p, i, d);
+      motor2.setVelocityPID(p, i, d);
+      motor3.setVelocityPID(p, i, d);
+      motor4.setVelocityPID(p, i, d);
       enableMotor();
       stream.println("Success config pid");
     }

@@ -288,6 +288,9 @@ public:
     {
         return trimDouble(this->p_ins * CONFIG.PULSE_TO_RAD_FACTOR, 2);
     }
+    /**
+     * get instant wheel velocity in m/s
+     */
     double getVelocity()
     {
         return trimDouble(this->v_ins, 2);
@@ -321,6 +324,9 @@ public:
         this->p_set = p;
         this->controlMode = IF_POSITION_CONTROL_MODE;
     }
+    /**
+     * set wheel velocity in m/s
+     */
     void setVelocity(double v)
     {
         if (v > CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS)
