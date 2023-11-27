@@ -69,7 +69,7 @@ var wheelVelocityChart = new Chart("wheelVelocityChart", {
         legend: { display: false },
         scales: {
             yAxes: [{
-                ticks: { min: -8.0, max: 8.0 },
+                ticks: { min: -8.0, max: 8.0, display: false },
                 // gridLines: { display: false }
             }],
             xAxes: [{

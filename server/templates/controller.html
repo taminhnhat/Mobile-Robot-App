@@ -156,15 +156,16 @@
 			background-color: #555;
 			color: #efefef;
 			font-weight: bold;
+			text-align: center;
 			border-radius: 2px;
 			float: left;
 			border: none;
 			outline: none;
 			cursor: pointer;
-			padding: 14px 16px;
-			font-size: 17px;
+			margin: auto;
+			font-size: 16px;
 			width: 25%;
-			height: 10vh;
+			height: 100%;
 		}
 
 		.verticaltablink {
@@ -215,9 +216,14 @@
 			background-color: #efefef;
 			float: top;
 			clear: both;
-			height: 80vh;
+			overflow: auto;
+			height: 100%;
 			width: 100%;
 			bottom: 0;
+		}
+
+		.tabcontent::-webkit-scrollbar {
+			display: none;
 		}
 
 		.minitabcontent {
@@ -251,34 +257,38 @@
 </head>
 
 <body>
+	<!-- <div class="row" id="header"></div> -->
+	<div id="tabHeader">
+		<button class="tablink" onclick="openPage('Home', this, 'orange')" id="homeButton">Manual</button>
+		<button class="tablink" onclick="openPage('News', this, 'orange')" id="newsButton">Console</button>
+		<button class="tablink" onclick="openPage('Contact', this, 'orange')" id="contactButton">Control</button>
+		<button class="tablink" onclick="openPage('About', this, 'orange')" id="aboutButton">Graph</button>
+	</div>
 	<div class="row" id="vitualjoystick" style="float: top;height: 90vh;">
 		<div id="leftPanel" class="controlPanel">
 			<div id="joy1Div" style="width:100%;margin:0px"></div>
 		</div>
 		<div id="centerPanel" class="columnCetral">
-			<button class="tablink" onclick="openPage('Home', this, 'orange')" id="homeButton">Home</button>
-			<button class="tablink" onclick="openPage('News', this, 'orange')" id="newsButton">Console</button>
-			<button class="tablink" onclick="openPage('Contact', this, 'orange')" id="contactButton">Control</button>
-			<button class="tablink" onclick="openPage('About', this, 'orange')" id="aboutButton">Graph</button>
 
 			<div id="Home" class="tabcontent">
-				<div style="width: 25%;float: left;">
-					<h3 id="deviceName">Vitual JoyStick</h3>
-					<h3 id="agentType">Unknown Web browser</h3>
+				<div id="leftVideoContainer" style="width: 20%;float: left;">
+					<p id="deviceName">Vitual JoyStick</p>
+					<p id="agentType">Unknown Web browser</p>
 				</div>
-				<div style="width: 50%;float: left;min-height: 300px;position: relative;">
-					<img id="robot_view" onclick="startCamera()"
-						style="width: 100%;padding: 5px;background-color: #333;height: 100%;"
+				<div id="videoContainer" style="width: 60%;float: left;height: 100%;position: relative;">
+					<img id="robot_view" style="background-color: #333;"
 						src="http://172.27.1.252:8080/stream?topic=/camera/color/image_raw">
 					<div style="position: absolute;bottom: 0;display: block;">
-						<button id="startCameraButton"><span
+						<button id="startCameraButton"
+							style="background-color: rgba(4, 170, 109, 0.8);border: none;"><span id="startCameraIcon"
 								class="material-symbols-outlined">play_circle</span></button>
-						<button id="stopCameraButton"><span
-								class="material-symbols-outlined">stop_circle</span></button>
 					</div>
 				</div>
-				<div style="width: 25%;float: left;">
-					<p>Right</p>
+				<div id="rightVideoContainer" style="width: 20%;float: left;">
+					<div class="canvas-container" style="width: 80%;">
+						<!-- <p>Wheel velocity (rad/s)</p> -->
+						<canvas style="width: 100%;" id="wheelVelocityChart"></canvas>
+					</div>
 				</div>
 			</div>
 
@@ -372,10 +382,6 @@
 			</div>
 
 			<div id="About" class="tabcontent">
-				<div class="canvas-container" style="width: 50%;">
-					<h3>Wheel velocity (rad/s)</h3>
-					<canvas style="width: 100%;" id="wheelVelocityChart"></canvas>
-				</div>
 				<div style="width: 50%;"></div>
 
 			</div>

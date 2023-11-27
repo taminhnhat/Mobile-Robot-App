@@ -11,8 +11,8 @@ socket.on('connect', () => console.log('connected', socket.id))
 socket.on('disconnect', () => console.log('disconnected', socket.id))
 socket.on('error', err => console.log('error', err))
 socket.on('tick', t => console.log('tick', t))
-socket.on('robot:camera:start', startCamera)
-socket.on('robot:camera:stop', stopCamera)
+// socket.on('robot:camera:start', startCamera)
+// socket.on('robot:camera:stop', stopCamera)
 
 let robotMonitorData = {
     nodes: [],

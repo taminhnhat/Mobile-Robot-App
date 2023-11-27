@@ -4,13 +4,15 @@ const socket = io()
 document.getElementById("agentType").textContent = navigator.userAgent;
 if (navigator.userAgent.includes('Android')) {
     // window.alert('mobile device detected')
-    document.getElementById('vitualjoystick').style.height = '92vh'
-    document.getElementById('footer').style.height = '8vh'
+    document.getElementById('vitualjoystick').style.height = '86vh'
+    document.getElementById('footer').style.height = '7vh'
+    document.getElementById('tabHeader').style.height = '7vh'
 }
 else {
-    document.getElementById('vitualjoystick').style.height = '95vh'
+    document.getElementById('vitualjoystick').style.height = '90vh'
     document.getElementById('footer').style.height = '5vh'
-    let tablinks = document.getElementsByClassName('tablink')
+    document.getElementById('tabHeader').style.height = '5vh'
+    // let tablinks = document.getElementsByClassName('tablink')
     // tablinks.forEach(tablink => tablink.style.height = '5vh')
     // console.log(tablinks.length())
 }
@@ -21,9 +23,29 @@ var Joy1 = new JoyStick('joy1Div', { "title": "joystick1", "autoReturnToCenter":
 // Create JoyStick object into the DIV 'joy2Div'
 var Joy2 = new JoyStick('joy2Div', { "title": "joystick2", "autoReturnToCenter": true, x: 3.9, y: 3.9 });
 
-const img = document.getElementById('robot_view');
+const img = document.getElementById('robot_view')
+const imgCon = document.getElementById('videoContainer')
 img.addEventListener('load', event => {
-    img.style.height = "auto"
+    const imgRatio = img.offsetWidth / img.offsetHeight
+    const imgConRatio = imgCon.offsetWidth / imgCon.offsetHeight
+    console.log('imgRatio:', imgRatio)
+    console.log('blockRatio:', imgConRatio)
+    if (imgRatio > imgConRatio) {
+        img.style.width = '100%'
+        img.style.height = 'auto'
+        imgCon.style.height = img.offsetHeight + 'px'
+    } else {
+        img.style.width = "auto"
+        img.style.height = "100%"
+        imgCon.style.width = img.offsetWidth + 'px'
+        const otherWidth = (document.getElementById('Home').offsetWidth - imgCon.offsetWidth) / 2
+        document.getElementById('leftVideoContainer').style.width = otherWidth + 'px'
+        document.getElementById('rightVideoContainer').style.width = otherWidth - 50 + 'px'
+    }
+    // img.style.aspectRatio = "auto"
+})
+img.addEventListener('load', () => {
+    document.getElementById('startCameraIcon').textContent = 'stop_circle'
 })
 
 document.getElementById("rightPanel").style.display = 'none'
