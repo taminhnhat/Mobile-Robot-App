@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../.env' })
+require('dotenv').config({ path: './.env' })
 const serverPort = Number(process.env.SERVER_PORT) || 3001
 var app = require('express')();
 var http = require('http').Server(app);
@@ -9,7 +9,7 @@ var Kalman = require('kalman').KF;
 
 const { SerialPort } = require('serialport');
 
-const port = process.env.GPS_PORT
+const port = process.env.SERIAL_PORT
 const serialPort = new SerialPort({
     path: port,
     baudRate: 9600

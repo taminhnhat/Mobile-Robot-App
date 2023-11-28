@@ -6,7 +6,7 @@ require('dotenv').config({ path: '.env' })
 
 const { SerialPort } = require('serialport');
 
-const port = process.env.GPS_PORT
+const port = process.env.SERIAL_PORT
 const serialPort = new SerialPort({
     path: port,
     baudRate: 9600
