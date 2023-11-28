@@ -85,7 +85,7 @@ private:
     double v_ave;              // average motor velocity in m/s
     double v_sum = 0;          // velocity sum
     uint32_t v_cou = 0;        // velocity sample counter
-    double v_kp = 3.0;         //
+    double v_kp = 3.8;         //
     double v_ki = 0;           //
     double v_kd = 180.0;       //
     double vol_Pro = 0;        // velocity proportional

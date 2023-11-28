@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-videoPath = './media/road_car_view.mp4'
+videoPath = '../media/road_car_view.mp4'
 video = cv2.VideoCapture(videoPath)
 
 while True:
