@@ -343,34 +343,7 @@ void msgProcess(String lightCmd, Stream &stream)
   }
   const char *topic = doc["topic"];
   const String topic_name = String(topic);
-  if (topic_name.compareTo("control") == 0)
-  {
-    const double linear_x = doc["linear"][0];   // x
-    const double linear_y = doc["linear"][1];   // y
-    const double linear_z = doc["linear"][2];   // z
-    const double angular_r = doc["angular"][0]; // roll
-    const double angular_p = doc["angular"][1]; // pitch
-    const double angular_y = doc["angular"][2]; // yaw
-    const uint32_t timeout = doc["timeout"];    // timeout
-
-    if (abs(angular_y) > 4.0 || abs(linear_x) > 0.4 || abs(linear_y) > 0.4)
-    {
-      doc["status"] = "invalid";
-      char buffer[100];
-      serializeJson(doc, buffer);
-      String msg = String(buffer);
-      msg = crc_generate(msg) + msg;
-      stream.println(msg);
-      return;
-    }
-
-    if (timeout == 0)
-      velocity_timeout = CONFIG.DEFAULT_VEL_TIMEOUT;
-    else
-      velocity_timeout = timeout;
-    velocityProcess(linear_x, linear_y, angular_y);
-  }
-  else if (topic_name.compareTo("ros2_control") == 0)
+  if (topic_name.compareTo("ros2_control") == 0)
   {
     const double front_right_wheel_speed = doc["velocity"][0]; // rad/s
     const double rear_right_wheel_speed = doc["velocity"][1];  // rad/s
@@ -467,6 +440,33 @@ void msgProcess(String lightCmd, Stream &stream)
     msg = crc_generate(msg) + msg + "\r\n";
     stream.print(msg);
   }
+  else if (topic_name.compareTo("control") == 0)
+  {
+    const double linear_x = doc["linear"][0];   // x
+    const double linear_y = doc["linear"][1];   // y
+    const double linear_z = doc["linear"][2];   // z
+    const double angular_r = doc["angular"][0]; // roll
+    const double angular_p = doc["angular"][1]; // pitch
+    const double angular_y = doc["angular"][2]; // yaw
+    const uint32_t timeout = doc["timeout"];    // timeout
+
+    if (abs(angular_y) > 4.0 || abs(linear_x) > 0.4 || abs(linear_y) > 0.4)
+    {
+      doc["status"] = "invalid";
+      char buffer[100];
+      serializeJson(doc, buffer);
+      String msg = String(buffer);
+      msg = crc_generate(msg) + msg;
+      stream.println(msg);
+      return;
+    }
+
+    if (timeout == 0)
+      velocity_timeout = CONFIG.DEFAULT_VEL_TIMEOUT;
+    else
+      velocity_timeout = timeout;
+    velocityProcess(linear_x, linear_y, angular_y);
+  }
   else if (topic_name.compareTo("config") == 0)
   {
     // motor enable
@@ -550,6 +550,14 @@ void msgProcess(String lightCmd, Stream &stream)
     motor2.reset();
     motor3.reset();
     motor4.reset();
+    stream.println("reset successfully");
+  }
+  else if (topic_name.compareTo("info") == 0)
+  {
+    motor1.info(stream);
+    motor2.info(stream);
+    motor3.info(stream);
+    motor4.info(stream);
   }
 }
 
