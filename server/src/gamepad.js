@@ -22,7 +22,7 @@ const joyDeadzone = 0.1
 
 const velocityGenerate = () => {
     var v = (Math.abs(linear_vel_y) >= 0.1) ? linear_vel_y : 0;
-    var w = (Math.abs(angular_vel) >= 2.0) ? angular_vel : 0;
+    var w = (Math.abs(angular_vel) >= 1.0) ? angular_vel : 0;
     socket.emit('ros:topic', {
         topic: 'ws_vel',
         data: {
