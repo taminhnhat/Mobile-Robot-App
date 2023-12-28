@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-img = cv2.imread("./media/road.jpg")
+img = cv2.imread("../media/road.jpg")
 cv2.imshow("source", img)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 cv2.imshow("gray", gray)
