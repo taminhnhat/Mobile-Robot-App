@@ -1,5 +1,6 @@
 const app = require('./app')
 const http = require("http")
+const path = require('path')
 const server = http.createServer(app)
 const port = Number(process.env.HTTP_PORT) || 3003
 const io = require('socket.io')(server)
@@ -41,7 +42,7 @@ app.get('/video', (req, res) => {
     res.sendFile(__dirname + '/templates/video.html');
 })
 app.get('/src', (req, res) => {
-    res.sendFile(__dirname + '/src/' + req.query.path);
+    res.sendFile(path.resolve(__dirname, '..') + '/public/' + req.query.path);
 })
 
 server.listen(port, () => {
