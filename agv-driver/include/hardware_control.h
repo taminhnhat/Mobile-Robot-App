@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "configuration.h"
 #include <iostream>
+#include <Wire.h>
 
 // define control mode
 #define IF_POSITION_CONTROL_MODE 1
@@ -352,6 +353,79 @@ public:
     motor3("M-3", MOTOR_3_DIR, MOTOR_3_PWM, CURRENT_SENSOR_3_4),
     motor4("M-4", MOTOR_4_DIR, MOTOR_4_PWM, CURRENT_SENSOR_3_4);
 
+void EncoderHandle_1_A()
+{
+    uint32_t state_a = digitalRead(MOTOR_1_A);
+    uint32_t state_b = digitalRead(MOTOR_1_B);
+    if (state_a == state_b)
+        motor1.step_fw(1);
+    else
+        motor1.step_fw(-1);
+}
+void EncoderHandle_1_B()
+{
+    uint32_t state_a = digitalRead(MOTOR_1_A);
+    uint32_t state_b = digitalRead(MOTOR_1_B);
+    if (state_a == state_b)
+        motor1.step_bw(-1);
+    else
+        motor1.step_bw(1);
+}
+void EncoderHandle_2_A()
+{
+    uint32_t state_a = digitalRead(MOTOR_2_A);
+    uint32_t state_b = digitalRead(MOTOR_2_B);
+    if (state_a == state_b)
+        motor2.step_fw(1);
+    else
+        motor2.step_fw(-1);
+}
+void EncoderHandle_2_B()
+{
+    uint32_t state_a = digitalRead(MOTOR_2_A);
+    uint32_t state_b = digitalRead(MOTOR_2_B);
+    if (state_a == state_b)
+        motor2.step_bw(-1);
+    else
+        motor2.step_bw(1);
+}
+void EncoderHandle_3_A()
+{
+    uint32_t state_a = digitalRead(MOTOR_3_A);
+    uint32_t state_b = digitalRead(MOTOR_3_B);
+    if (state_a == state_b)
+        motor3.step_fw(1);
+    else
+        motor3.step_fw(-1);
+}
+void EncoderHandle_3_B()
+{
+    uint32_t state_a = digitalRead(MOTOR_3_A);
+    uint32_t state_b = digitalRead(MOTOR_3_B);
+    if (state_a == state_b)
+        motor3.step_bw(-1);
+    else
+        motor3.step_bw(1);
+}
+void EncoderHandle_4_A()
+{
+    uint32_t state_a = digitalRead(MOTOR_4_A);
+    uint32_t state_b = digitalRead(MOTOR_4_B);
+    if (state_a == state_b)
+        motor4.step_fw(1);
+    else
+        motor4.step_fw(-1);
+}
+void EncoderHandle_4_B()
+{
+    uint32_t state_a = digitalRead(MOTOR_4_A);
+    uint32_t state_b = digitalRead(MOTOR_4_B);
+    if (state_a == state_b)
+        motor4.step_bw(-1);
+    else
+        motor4.step_bw(1);
+}
+
 class Battery
 
 {
@@ -461,7 +535,6 @@ public:
 
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
-#include "Wire.h"
 
 struct vector4Double
 {
