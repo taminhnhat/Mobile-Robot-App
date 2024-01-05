@@ -587,13 +587,12 @@ void velocityProcess_base(double linear_x, double linear_y, double angular)
 void lcdRender()
 {
   display.clear();
-  String Vol = String() + battery.getAverageVoltage() + "V";
-  display.drawString(0, 0, Vol.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
   String Amp = String() + 4.5 + "A";
   display.drawString(7, 0, Amp.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
   String Wat = String() + 19.1 + "W";
   display.drawString(14, 0, Wat.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
-  String Ip = String() + "192.168.1.44";
+  String Vol = String() + battery.getAverageVoltage() + "V";
+  display.drawString(0, 2, Vol.c_str(), OLED::DOUBLE_SIZE, OLED::WHITE);
   uint8_t batteryScale = 42.0 * (battery.getAverageVoltage() - 12.8) / 4;
   display.draw_rectangle(80, 15, 125, 31, OLED::HOLLOW, OLED::WHITE);
   display.draw_rectangle(125, 18, 127, 27, OLED::SOLID, OLED::WHITE);
@@ -601,6 +600,7 @@ void lcdRender()
   // display.draw_rectangle(119, 15, 127, 31, OLED::HOLLOW, OLED::WHITE);
   // display.draw_rectangle(107, 15, 115, 31, OLED::SOLID, OLED::WHITE);
   // display.draw_rectangle(95, 15, 103, 31, OLED::SOLID, OLED::WHITE);
-  display.drawString(0, 3, Ip.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
+  // String Ip = String() + "192.168.1.44";
+  // display.drawString(0, 3, Ip.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
   display.display();
 }
