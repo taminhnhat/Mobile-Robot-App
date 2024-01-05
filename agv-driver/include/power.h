@@ -11,30 +11,37 @@ private:
 public:
     PowerMeter(/* args */){};
     ~PowerMeter(){};
-    int init()
+    int init(Stream &stream)
     {
+        uint8_t c = 1;
         while (ina219.begin() != true)
         {
-            Serial.println("INA219 begin faild");
-            delay(2000);
+            if (c >= 3)
+            {
+                stream.println("INA219 begin fail");
+                return 0;
+            }
+            else
+                c++;
+            delay(500);
         }
-        ina219.linearCalibrate(/*The measured current before calibration*/ ina219Reading_mA, /*The current measured by other current testers*/ extMeterReading_mA);
-        Serial.println();
+        ina219.linearCalibrate(ina219Reading_mA, extMeterReading_mA);
+        stream.println("INA219 begin success");
         return 1;
     }
     void info(Stream &stream)
     {
         stream.print("BusVoltage:   ");
-        stream.print(ina219.getBusVoltage_V(), 2);
+        stream.print(ina219.getBusVoltage_V());
         stream.println("V");
         stream.print("ShuntVoltage: ");
-        stream.print(ina219.getShuntVoltage_mV(), 3);
+        stream.print(ina219.getShuntVoltage_mV());
         stream.println("mV");
         stream.print("Current:      ");
-        stream.print(ina219.getCurrent_mA(), 1);
+        stream.print(ina219.getCurrent_mA());
         stream.println("mA");
         stream.print("Power:        ");
-        stream.print(ina219.getPower_mW(), 1);
+        stream.print(ina219.getPower_mW());
         stream.println("mW");
         stream.println("");
     }

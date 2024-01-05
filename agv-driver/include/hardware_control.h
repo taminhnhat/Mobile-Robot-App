@@ -432,7 +432,7 @@ class Battery
 private:
     double vol_ins;          // instant voltage
     double vol_sum = 0;      // sum voltage
-    double vol_ave;          // average voltage
+    double vol_ave = 0;      // average voltage
     uint32_t vol_cou;        // voltage sampling count
     uint32_t cal_cyc = 1000; // calculating average voltage cycle
     uint64_t last_t = 0;
@@ -597,7 +597,7 @@ public:
         this->rawMode = raw;
         Wire.begin();
         mpu.initialize();
-        // Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+        // Bridge.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
         if (rawMode)
         {
             return 0;

@@ -3,7 +3,8 @@
 #include "checksum.h"
 #include "hardware_control.h"
 #include "currentSensor.hpp"
-#include "power.h"
+// #include "power.h"
+#include "lcd.hpp"
 #include <math.h>
 
 // -------------------------------------------------JSON--------------------------------------------------------
@@ -20,6 +21,7 @@ void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
 void velocityProcess_base(double, double, double);
+void lcdRender();
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
 CurrentSensor currentSensor_1_2(CURRENT_SENSOR_1_2),
@@ -70,15 +72,6 @@ void OnTimer1Interrupt()
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
 void setup()
 {
-  analogWriteResolution(CONFIG.PWM_RESOLUTION_SET);
-  // Start serial 2 as external control communication
-  Bridge.begin(115200);
-  // Start serial 1 as wireless communication (rf/bluetooth)
-  Radio.begin(115200);
-  // Serial.print("Start imu init....   ");
-  if (imu.init(false) == 0)
-    CONFIG.IMU_AVAILABLE = true;
-
   pinMode(BATTERY_SENSOR, INPUT);
   pinMode(CURRENT_SENSOR_1_2, INPUT);
   pinMode(CURRENT_SENSOR_3_4, INPUT);
@@ -113,6 +106,16 @@ void setup()
   timer.attachInterrupt(OnTimer1Interrupt);
   timer.refresh();
   timer.resume();
+
+  analogWriteResolution(CONFIG.PWM_RESOLUTION_SET);
+  // Start serial 2 as external control communication
+  Bridge.begin(115200);
+  // Start serial 1 as wireless communication (rf/bluetooth)
+  Radio.begin(115200);
+  Bridge.println("Start imu init....   ");
+  if (imu.init(false) == 0)
+    CONFIG.IMU_AVAILABLE = true;
+
   Bridge.println("===============ROBOT START================");
   Bridge.println("System information");
   Bridge.print("timer freq: ");
@@ -139,6 +142,14 @@ void setup()
   delay(100);
   currentSensor_1_2.calibrate();
   currentSensor_3_4.calibrate();
+
+  // dfMeter.init(Bridge);
+
+  display.begin();
+  display.clear();
+  display.display();
+
+  lcdRender();
 }
 
 void loop()
@@ -203,6 +214,10 @@ void loop()
       Radio.print(sen.temperature);
       Radio.print("\r\n");
     }
+  }
+  if (millis() % 1000 == 0)
+  {
+    lcdRender();
   }
   while (Bridge.available())
   {
@@ -567,4 +582,25 @@ void velocityProcess_base(double linear_x, double linear_y, double angular)
   Bridge.print("\t");
   Bridge.print(motor_4_velocity * CONFIG.MPS_TO_RPM_FACTOR);
   Bridge.println("");
+}
+
+void lcdRender()
+{
+  display.clear();
+  String Vol = String() + battery.getAverageVoltage() + "V";
+  display.drawString(0, 0, Vol.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
+  String Amp = String() + 4.5 + "A";
+  display.drawString(7, 0, Amp.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
+  String Wat = String() + 19.1 + "W";
+  display.drawString(14, 0, Wat.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
+  String Ip = String() + "192.168.1.44";
+  uint8_t batteryScale = 42.0 * battery.getAverageVoltage() / 16.8;
+  display.draw_rectangle(80, 15, 125, 31, OLED::HOLLOW, OLED::WHITE);
+  display.draw_rectangle(125, 18, 127, 27, OLED::SOLID, OLED::WHITE);
+  display.draw_rectangle(82, 17, 81 + batteryScale, 29, OLED::SOLID, OLED::WHITE);
+  // display.draw_rectangle(119, 15, 127, 31, OLED::HOLLOW, OLED::WHITE);
+  // display.draw_rectangle(107, 15, 115, 31, OLED::SOLID, OLED::WHITE);
+  // display.draw_rectangle(95, 15, 103, 31, OLED::SOLID, OLED::WHITE);
+  display.drawString(0, 3, Ip.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
+  display.display();
 }
