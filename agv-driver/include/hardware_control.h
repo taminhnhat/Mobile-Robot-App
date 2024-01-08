@@ -563,6 +563,7 @@ private:
     vector4Double orientation;
     vector3Double angular_velocity;
     vector3Double linear_acceleration;
+    sensors s_data;
     double temperature;
     MPU6050 mpu;
     float ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
@@ -630,101 +631,50 @@ public:
 
     int tick()
     {
-        if (rawMode)
+        uint32_t t_1 = micros();
+
+        // uint8_t buffer[14];
+        // I2Cdev::readBytes(MPU6050_IMU::MPU6050_DEFAULT_ADDRESS, (MPU6050_IMU::MPU6050_RA_ACCEL_XOUT_H), 14, buffer);
+        // ax = (((int16_t)buffer[0]) << 8) | buffer[1];
+        // ay = (((int16_t)buffer[2]) << 8) | buffer[3];
+        // az = (((int16_t)buffer[4]) << 8) | buffer[5];
+        // temp = buffer[6] << 8 | buffer[7];
+        // gx = (((int16_t)buffer[8]) << 8) | buffer[9];
+        // gy = (((int16_t)buffer[10]) << 8) | buffer[11];
+        // gz = (((int16_t)buffer[12]) << 8) | buffer[13];
+        // linear_acceleration.x = round(resScale * ax / accAdcScale) / resScale;
+        // linear_acceleration.y = round(resScale * ay / accAdcScale) / resScale;
+        // linear_acceleration.z = round(resScale * az / accAdcScale) / resScale;
+        // angular_velocity.x = round(resScale * gx / gyrAdcScale) / resScale;
+        // angular_velocity.y = round(resScale * gy / gyrAdcScale) / resScale;
+        // angular_velocity.z = round(resScale * gz / gyrAdcScale) / resScale;
+        // temperature = temp / 340.0 + 36.53;
+
+        if (!dmpReady)
+            return -1;
+        if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer))
         {
-            uint8_t buffer[14];
-            I2Cdev::readBytes(MPU6050_IMU::MPU6050_DEFAULT_ADDRESS, (MPU6050_IMU::MPU6050_RA_ACCEL_XOUT_H), 14, buffer);
-            ax = (((int16_t)buffer[0]) << 8) | buffer[1];
-            ay = (((int16_t)buffer[2]) << 8) | buffer[3];
-            az = (((int16_t)buffer[4]) << 8) | buffer[5];
-            temp = buffer[6] << 8 | buffer[7];
-            gx = (((int16_t)buffer[8]) << 8) | buffer[9];
-            gy = (((int16_t)buffer[10]) << 8) | buffer[11];
-            gz = (((int16_t)buffer[12]) << 8) | buffer[13];
-            linear_acceleration.x = round(resScale * ax / accAdcScale) / resScale;
-            linear_acceleration.y = round(resScale * ay / accAdcScale) / resScale;
-            linear_acceleration.z = round(resScale * az / accAdcScale) / resScale;
-            angular_velocity.x = round(resScale * gx / gyrAdcScale) / resScale;
-            angular_velocity.y = round(resScale * gy / gyrAdcScale) / resScale;
-            angular_velocity.z = round(resScale * gz / gyrAdcScale) / resScale;
-            temperature = temp / 340.0 + 36.53;
-            // mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-            // temp = mpu.getTemperature();
-            // Serial.print("gyr\t");
-            // Serial.print(gx);
-            // Serial.print("\t");
-            // Serial.print(gy);
-            // Serial.print("\t");
-            // Serial.print(gz);
-            // Serial.print("\tacc\t");
-            // Serial.print(ax);
-            // Serial.print("\t");
-            // Serial.print(ay);
-            // Serial.print("\t");
-            // Serial.println(az);
+            // mpu.dmpGetQuaternion(&q, fifoBuffer);
+            // mpu.dmpGetAccel(&aa, fifoBuffer);
+            // mpu.dmpGetGyro(&gg, fifoBuffer);
+
+            // s_data.orientation.x = q.x;
+            // s_data.orientation.y = q.y;
+            // s_data.orientation.z = q.z;
+            // s_data.orientation.w = q.w;
+
+            // s_data.angular_velocity.x = gg.x * M_PI / (180 * gyrAdcScale);
+            // s_data.angular_velocity.y = gg.y * M_PI / (180 * gyrAdcScale);
+            // s_data.angular_velocity.z = gg.z * M_PI / (180 * gyrAdcScale);
+
+            // s_data.linear_acceleration.x = aa.x * 9.81 / accAdcScale;
+            // s_data.linear_acceleration.y = aa.y * 9.81 / accAdcScale;
+            // s_data.linear_acceleration.z = aa.z * 9.81 / accAdcScale;
+
+            // temperature = mpu.getTemperature() / 340.0 + 36.53;
         }
-        else
-        {
-            if (!dmpReady)
-                return -1;
-            if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer))
-            {
-                mpu.dmpGetQuaternion(&q, fifoBuffer);
-                // mpu.dmpGetGravity(&gravity, &q);
-                // mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-
-                mpu.dmpGetAccel(&aa, fifoBuffer);
-                // mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-                // mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
-
-                mpu.dmpGetGyro(&gg, fifoBuffer);
-
-                orientation.x = q.x;
-                orientation.y = q.y;
-                orientation.z = q.z;
-                orientation.w = q.w;
-
-                angular_velocity.x = gg.x * M_PI / (180 * gyrAdcScale);
-                angular_velocity.y = gg.y * M_PI / (180 * gyrAdcScale);
-                angular_velocity.z = gg.z * M_PI / (180 * gyrAdcScale);
-
-                linear_acceleration.x = aa.x * 9.81 / accAdcScale;
-                linear_acceleration.y = aa.y * 9.81 / accAdcScale;
-                linear_acceleration.z = aa.z * 9.81 / accAdcScale;
-
-                temperature = mpu.getTemperature() / 340.0 + 36.53;
-
-                // Serial.print("ORI\t");
-                // Serial.print(ori.x);
-                // Serial.print("\t");
-                // Serial.print(ori.y);
-                // Serial.print("\t");
-                // Serial.print(ori.z);
-
-                // Serial.print("\tQUA\t");
-                // Serial.print(q.x);
-                // Serial.print("\t");
-                // Serial.print(q.y);
-                // Serial.print("\t");
-                // Serial.print(q.z);
-                // Serial.print("\t");
-                // Serial.print(q.w);
-
-                // Serial.print("\tGYR\t");
-                // Serial.print(gyr.x);
-                // Serial.print("\t");
-                // Serial.print(gyr.y);
-                // Serial.print("\t");
-                // Serial.print(gyr.z);
-
-                // Serial.print("\tACC\t");
-                // Serial.print(acc.x);
-                // Serial.print("\t");
-                // Serial.print(acc.y);
-                // Serial.print("\t");
-                // Serial.println(acc.z);
-            }
-        }
+        uint32_t t_t = micros() - t_1;
+        Bridge.println(t_t);
         return 0;
     }
 
@@ -740,19 +690,19 @@ public:
 
     sensors getFullSensors()
     {
-        sensors s;
-        s.orientation.x = orientation.x;
-        s.orientation.y = orientation.y;
-        s.orientation.z = orientation.z;
-        s.orientation.w = orientation.w;
-        s.angular_velocity.x = angular_velocity.x;
-        s.angular_velocity.y = angular_velocity.y;
-        s.angular_velocity.z = angular_velocity.z;
-        s.linear_acceleration.x = linear_acceleration.x;
-        s.linear_acceleration.y = linear_acceleration.y;
-        s.linear_acceleration.z = linear_acceleration.z;
-        s.temperature = temperature;
-        return s;
+        // sensors s;
+        // s.orientation.x = orientation.x;
+        // s.orientation.y = orientation.y;
+        // s.orientation.z = orientation.z;
+        // s.orientation.w = orientation.w;
+        // s.angular_velocity.x = angular_velocity.x;
+        // s.angular_velocity.y = angular_velocity.y;
+        // s.angular_velocity.z = angular_velocity.z;
+        // s.linear_acceleration.x = linear_acceleration.x;
+        // s.linear_acceleration.y = linear_acceleration.y;
+        // s.linear_acceleration.z = linear_acceleration.z;
+        // s.temperature = temperature;
+        return this->s_data;
     }
 
     double getYaw() { return ypr[0]; }
