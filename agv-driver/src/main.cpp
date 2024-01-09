@@ -34,6 +34,24 @@ void OnTimer1Interrupt()
 {
   timer_count++;
   uint32_t present_t = millis();
+  while (Bridge.available())
+  {
+    // char tempChar = (char)Bridge.read();
+    // if (tempChar != '\n')
+    // {
+    //   messageFromBridge += tempChar;
+    // }
+    // else
+    // {
+    //   // Radio.println(messageFromBridge);
+    //   msgProcess(messageFromBridge, Bridge);
+    //   messageFromBridge = "";
+    // }
+    messageFromBridge = Bridge.readStringUntil('\n');
+    // msgProcess(messageFromBridge, Bridge);
+    Bridge.print(messageFromBridge);
+    messageFromBridge = "";
+  }
   if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
   {
     motor1.stop();
@@ -62,11 +80,11 @@ void OnTimer1Interrupt()
   {
     imu.tick();
   }
-  if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
-  {
-    currentSensor_1_2.tick();
-    currentSensor_3_4.tick();
-  }
+  // if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
+  // {
+  //   currentSensor_1_2.tick();
+  //   currentSensor_3_4.tick();
+  // }
 }
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
@@ -112,9 +130,11 @@ void setup()
   Bridge.begin(115200);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
-  Bridge.println("Start imu init....   ");
   if (imu.init(false) == 0)
+  {
     CONFIG.IMU_AVAILABLE = true;
+    Bridge.println("imu inited");
+  }
 
   Bridge.println("===============ROBOT START================");
   Bridge.println("System information");
@@ -215,24 +235,24 @@ void loop()
       Radio.print("\r\n");
     }
   }
-  if (millis() % 1000 == 0)
-  {
-    lcdRender();
-  }
-  while (Bridge.available())
-  {
-    char tempChar = (char)Bridge.read();
-    if (tempChar != '\n')
-    {
-      messageFromBridge += tempChar;
-    }
-    else
-    {
-      // Radio.println(messageFromBridge);
-      msgProcess(messageFromBridge, Bridge);
-      messageFromBridge = "";
-    }
-  }
+  // if (millis() % 1000 == 0)
+  // {
+  //   lcdRender();
+  // }
+  // while (Bridge.available())
+  // {
+  //   char tempChar = (char)Bridge.read();
+  //   if (tempChar != '\n')
+  //   {
+  //     messageFromBridge += tempChar;
+  //   }
+  //   else
+  //   {
+  //     // Radio.println(messageFromBridge);
+  //     msgProcess(messageFromBridge, Bridge);
+  //     messageFromBridge = "";
+  //   }
+  // }
 }
 
 // -------------------------------------------------DECLARE FUNCTIONS--------------------------------------------------------
