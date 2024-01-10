@@ -10,6 +10,9 @@
 // -------------------------------------------------JSON--------------------------------------------------------
 StaticJsonDocument<400> doc;
 
+// -------------------------------------------------MPU6050--------------------------------------------------------
+MY_MPU6050 mpu;
+
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 String messageFromSerial = "";
 String messageFromBridge = "";
@@ -36,17 +39,6 @@ void OnTimer1Interrupt()
   uint32_t present_t = millis();
   while (Bridge.available())
   {
-    // char tempChar = (char)Bridge.read();
-    // if (tempChar != '\n')
-    // {
-    //   messageFromBridge += tempChar;
-    // }
-    // else
-    // {
-    //   // Radio.println(messageFromBridge);
-    //   msgProcess(messageFromBridge, Bridge);
-    //   messageFromBridge = "";
-    // }
     messageFromBridge = Bridge.readStringUntil('\n');
     // msgProcess(messageFromBridge, Bridge);
     Bridge.print(messageFromBridge);
@@ -76,9 +68,9 @@ void OnTimer1Interrupt()
   {
     battery.tick();
   }
-  if (timer_count % CONFIG.IMU_RAW_CAL_CYCLE == 0)
+  if (timer_count % CONFIG.MPU_CAL_CYCLE == 0)
   {
-    imu.tick();
+    mpu.tick();
   }
   // if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
   // {
@@ -130,7 +122,7 @@ void setup()
   Bridge.begin(115200);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
-  if (imu.init(false) == 0)
+  if (mpu.init() == 0)
   {
     CONFIG.IMU_AVAILABLE = true;
     Bridge.println("imu inited");
@@ -210,7 +202,7 @@ void loop()
     }
     else if (CONFIG.EN_IMU_LOG)
     {
-      sensors sen = imu.getFullSensors();
+      sensors sen = mpu.getFullSensors();
       Radio.print(sen.orientation.x);
       Radio.print(" ");
       Radio.print(sen.orientation.y);
@@ -364,7 +356,7 @@ void msgProcess(String lightCmd, Stream &stream)
     // add imu value
     if (CONFIG.IMU_AVAILABLE)
     {
-      sensors sen = imu.getFullSensors();
+      sensors sen = mpu.getFullSensors();
       // Serial.print("imu out: ");
       // Serial.print(sen.gyr.x);
       // Serial.print('\t');
@@ -394,7 +386,7 @@ void msgProcess(String lightCmd, Stream &stream)
       accelerometer.add(trimDouble(sen.linear_acceleration.x, 0));
       accelerometer.add(trimDouble(sen.linear_acceleration.y, 0));
       accelerometer.add(trimDouble(sen.linear_acceleration.z, 0));
-      doc["tem"] = imu.getRawTemperature();
+      doc["tem"] = mpu.getRawTemperature();
     }
 
     char buffer[400];

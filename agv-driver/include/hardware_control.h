@@ -40,9 +40,9 @@
 #define IMU_SDA PB7
 #define IMU_SCL PB6
 #define INTERRUPT_PIN PC14
-#define Radio Serial1
+#define Bridge Serial1
 
-HardwareSerial Bridge(PA3, PA2);
+HardwareSerial Radio(PA3, PA2);
 
 void enableMotor()
 {
@@ -563,7 +563,7 @@ void dmpDataReady()
 {
     mpuInterrupt = true;
 }
-class IMU
+class MY_MPU6050
 {
 private:
     vector4Double orientation;
@@ -597,7 +597,7 @@ private:
 public:
     int16_t ax, ay, az;
     int16_t gx, gy, gz;
-    IMU() {}
+    MY_MPU6050() {}
 
     int init()
     {
@@ -765,4 +765,4 @@ public:
     double getAngularVelocityX() { return 0; }
     double getAngularVelocityY() { return 0; }
     double getAngularVelocityZ() { return 0; }
-} imu;
+};
