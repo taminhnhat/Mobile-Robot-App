@@ -39,6 +39,7 @@
 #define IMU_INT PB9
 #define IMU_SDA PB7
 #define IMU_SCL PB6
+#define INTERRUPT_PIN PC14
 #define Radio Serial1
 
 HardwareSerial Bridge(PA3, PA2);
@@ -557,6 +558,11 @@ struct sensors
     double temperature;
 };
 
+volatile bool mpuInterrupt = false;
+void dmpDataReady()
+{
+    mpuInterrupt = true;
+}
 class IMU
 {
 private:
@@ -593,88 +599,127 @@ public:
     int16_t gx, gy, gz;
     IMU() {}
 
-    int init(bool raw = true)
+    int init()
     {
-        this->rawMode = raw;
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
         Wire.begin();
+        Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
+#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+        Fastwire::setup(400, true);
+#endif
+        Bridge.println(F("Initializing I2C devices..."));
         mpu.initialize();
-        // Bridge.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-        if (rawMode)
+
+        Bridge.println(F("Testing device connections..."));
+        Bridge.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+
+        Bridge.println(F("Initializing DMP..."));
+        devStatus = mpu.dmpInitialize();
+
+        // supply your own gyro offsets here, scaled for min sensitivity
+        mpu.setXGyroOffset(220);
+        mpu.setYGyroOffset(76);
+        mpu.setZGyroOffset(-85);
+        mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+
+        // make sure it worked (returns 0 if so)
+        if (devStatus == 0)
         {
-            return 0;
+            mpu.CalibrateAccel(6);
+            mpu.CalibrateGyro(6);
+            mpu.PrintActiveOffsets();
+            // turn on the DMP, now that it's ready
+            Serial.println(F("Enabling DMP..."));
+            mpu.setDMPEnabled(true);
+
+            // enable Arduino interrupt detection
+            Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
+            Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
+            Serial.println(F(")..."));
+            attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
+            mpuIntStatus = mpu.getIntStatus();
+
+            // set our DMP Ready flag so the main loop() function knows it's okay to use it
+            Serial.println(F("DMP ready! Waiting for first interrupt..."));
+            dmpReady = true;
+
+            // get expected DMP packet size for later comparison
+            packetSize = mpu.dmpGetFIFOPacketSize();
         }
         else
         {
-            // enable Digital Motion Processor
-            devStatus = mpu.dmpInitialize();
-
-            // supply your own gyro offsets here, scaled for min sensitivity
-            mpu.setXGyroOffset(220);
-            mpu.setYGyroOffset(76);
-            mpu.setZGyroOffset(-85);
-            mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
-
-            // make sure it worked (returns 0 if so)
-            if (devStatus == 0)
-            {
-                mpu.CalibrateAccel(6);
-                mpu.CalibrateGyro(6);
-                mpu.PrintActiveOffsets();
-                mpu.setDMPEnabled(true);
-                mpuIntStatus = mpu.getIntStatus();
-                dmpReady = true;
-                packetSize = mpu.dmpGetFIFOPacketSize();
-            }
-            return devStatus;
+            // ERROR!
+            // 1 = initial memory load failed
+            // 2 = DMP configuration updates failed
+            // (if it's going to break, usually the code will be 1)
+            Serial.print(F("DMP Initialization failed (code "));
+            Serial.print(devStatus);
+            Serial.println(F(")"));
         }
+        return devStatus;
     }
 
     int tick()
     {
-        uint32_t t_1 = micros();
-
-        // uint8_t buffer[14];
-        // I2Cdev::readBytes(MPU6050_IMU::MPU6050_DEFAULT_ADDRESS, (MPU6050_IMU::MPU6050_RA_ACCEL_XOUT_H), 14, buffer);
-        // ax = (((int16_t)buffer[0]) << 8) | buffer[1];
-        // ay = (((int16_t)buffer[2]) << 8) | buffer[3];
-        // az = (((int16_t)buffer[4]) << 8) | buffer[5];
-        // temp = buffer[6] << 8 | buffer[7];
-        // gx = (((int16_t)buffer[8]) << 8) | buffer[9];
-        // gy = (((int16_t)buffer[10]) << 8) | buffer[11];
-        // gz = (((int16_t)buffer[12]) << 8) | buffer[13];
-        // linear_acceleration.x = round(resScale * ax / accAdcScale) / resScale;
-        // linear_acceleration.y = round(resScale * ay / accAdcScale) / resScale;
-        // linear_acceleration.z = round(resScale * az / accAdcScale) / resScale;
-        // angular_velocity.x = round(resScale * gx / gyrAdcScale) / resScale;
-        // angular_velocity.y = round(resScale * gy / gyrAdcScale) / resScale;
-        // angular_velocity.z = round(resScale * gz / gyrAdcScale) / resScale;
-        // temperature = temp / 340.0 + 36.53;
-
         if (!dmpReady)
             return -1;
+        uint64_t t = micros();
         if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer))
         {
-            // mpu.dmpGetQuaternion(&q, fifoBuffer);
-            // mpu.dmpGetAccel(&aa, fifoBuffer);
-            // mpu.dmpGetGyro(&gg, fifoBuffer);
+            uint64_t dt = micros() - t;
+            Bridge.print(dt);
+            Bridge.print(" ");
+            mpu.dmpGetQuaternion(&q, fifoBuffer);
+            mpu.dmpGetAccel(&aa, fifoBuffer);
+            mpu.dmpGetGyro(&gg, fifoBuffer);
 
-            // s_data.orientation.x = q.x;
-            // s_data.orientation.y = q.y;
-            // s_data.orientation.z = q.z;
-            // s_data.orientation.w = q.w;
+            s_data.orientation.x = q.x;
+            s_data.orientation.y = q.y;
+            s_data.orientation.z = q.z;
+            s_data.orientation.w = q.w;
 
-            // s_data.angular_velocity.x = gg.x * M_PI / (180 * gyrAdcScale);
-            // s_data.angular_velocity.y = gg.y * M_PI / (180 * gyrAdcScale);
-            // s_data.angular_velocity.z = gg.z * M_PI / (180 * gyrAdcScale);
+            s_data.angular_velocity.x = gg.x * M_PI / (180 * gyrAdcScale);
+            s_data.angular_velocity.y = gg.y * M_PI / (180 * gyrAdcScale);
+            s_data.angular_velocity.z = gg.z * M_PI / (180 * gyrAdcScale);
 
-            // s_data.linear_acceleration.x = aa.x * 9.81 / accAdcScale;
-            // s_data.linear_acceleration.y = aa.y * 9.81 / accAdcScale;
-            // s_data.linear_acceleration.z = aa.z * 9.81 / accAdcScale;
+            s_data.linear_acceleration.x = aa.x * 9.81 / accAdcScale;
+            s_data.linear_acceleration.y = aa.y * 9.81 / accAdcScale;
+            s_data.linear_acceleration.z = aa.z * 9.81 / accAdcScale;
 
-            // temperature = mpu.getTemperature() / 340.0 + 36.53;
+            s_data.temperature = mpu.getTemperature() / 340.0 + 36.53;
+
+            Bridge.print("gyro\t");
+            Bridge.print(s_data.angular_velocity.x);
+            Bridge.print("\t");
+            Bridge.print(s_data.angular_velocity.y);
+            Bridge.print("\t");
+            Bridge.print(s_data.angular_velocity.z);
+            Bridge.print("\t");
+
+            Bridge.print("accel\t");
+            Bridge.print(s_data.linear_acceleration.x);
+            Bridge.print("\t");
+            Bridge.print(s_data.linear_acceleration.y);
+            Bridge.print("\t");
+            Bridge.print(s_data.linear_acceleration.z);
+            Bridge.print("\t");
+
+            Bridge.print("quat\t");
+            Bridge.print(s_data.orientation.w);
+            Bridge.print("\t");
+            Bridge.print(s_data.orientation.x);
+            Bridge.print("\t");
+            Bridge.print(s_data.orientation.y);
+            Bridge.print("\t");
+            Bridge.print(s_data.orientation.z);
+            Bridge.print("\t");
+
+            Bridge.print("temp\t");
+            Bridge.print(s_data.temperature);
+            Bridge.println();
         }
-        uint32_t t_t = micros() - t_1;
-        Bridge.println(t_t);
+        else
+            Bridge.println(" done");
         return 0;
     }
 
