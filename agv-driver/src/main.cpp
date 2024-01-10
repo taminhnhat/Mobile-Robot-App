@@ -125,7 +125,7 @@ void setup()
 
   analogWriteResolution(CONFIG.PWM_RESOLUTION_SET);
   // Start serial 2 as external control communication
-  Bridge.begin(256000);
+  Bridge.begin(115200);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
   if (mpu.init() == 0)
