@@ -14,7 +14,7 @@ StaticJsonDocument<400> doc;
 MY_MPU6050 mpu;
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
-String messageFromSerial = "";
+String messageFromRaio = "";
 String messageFromBridge = "";
 uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
@@ -37,12 +37,18 @@ void OnTimer1Interrupt()
 {
   timer_count++;
   uint32_t present_t = millis();
-  while (Bridge.available())
+  while (Radio.available())
   {
-    messageFromBridge = Bridge.readStringUntil('\n');
-    // msgProcess(messageFromBridge, Bridge);
-    Bridge.print(messageFromBridge);
-    messageFromBridge = "";
+    char tempChar = (char)Radio.read();
+    if (tempChar != '\n')
+    {
+      messageFromRaio += tempChar;
+    }
+    else
+    {
+      msgProcess(messageFromRaio, Radio);
+      messageFromRaio = "";
+    }
   }
   if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
   {
@@ -72,11 +78,11 @@ void OnTimer1Interrupt()
   {
     mpu.tick();
   }
-  // if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
-  // {
-  //   currentSensor_1_2.tick();
-  //   currentSensor_3_4.tick();
-  // }
+  if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
+  {
+    currentSensor_1_2.tick();
+    currentSensor_3_4.tick();
+  }
 }
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
@@ -119,7 +125,7 @@ void setup()
 
   analogWriteResolution(CONFIG.PWM_RESOLUTION_SET);
   // Start serial 2 as external control communication
-  Bridge.begin(115200);
+  Bridge.begin(256000);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
   if (mpu.init() == 0)
@@ -155,13 +161,9 @@ void setup()
   currentSensor_1_2.calibrate();
   currentSensor_3_4.calibrate();
 
-  // dfMeter.init(Bridge);
-
-  display.begin();
-  display.clear();
-  display.display();
-
   lcdRender();
+
+  Bridge.println("================================setup complete========================================");
 }
 
 void loop()
@@ -227,40 +229,22 @@ void loop()
       Radio.print("\r\n");
     }
   }
-  // if (millis() % 1000 == 0)
-  // {
-  //   lcdRender();
-  // }
-  // while (Bridge.available())
-  // {
-  //   char tempChar = (char)Bridge.read();
-  //   if (tempChar != '\n')
-  //   {
-  //     messageFromBridge += tempChar;
-  //   }
-  //   else
-  //   {
-  //     // Radio.println(messageFromBridge);
-  //     msgProcess(messageFromBridge, Bridge);
-  //     messageFromBridge = "";
-  //   }
-  // }
 }
 
 // -------------------------------------------------DECLARE FUNCTIONS--------------------------------------------------------
-void serialEvent1()
+void bridgeEvent()
 {
-  while (Radio.available())
+  while (Bridge.available())
   {
-    char tempChar = (char)Radio.read();
+    char tempChar = (char)Bridge.read();
     if (tempChar != '\n')
     {
-      messageFromSerial += tempChar;
+      messageFromBridge += tempChar;
     }
     else
     {
-      msgProcess(messageFromSerial, Radio);
-      messageFromSerial = "";
+      msgProcess(messageFromBridge, Bridge);
+      messageFromBridge = "";
     }
   }
 }
@@ -330,12 +314,12 @@ void msgProcess(String lightCmd, Stream &stream)
       motor4.setVelocity(motor_4_velocity);
     }
     // ros2 control response
-    doc["status"] = "ok";
-    char buffer[120];
-    serializeJson(doc, buffer);
-    String msg = String(buffer);
-    msg = crc_generate(msg) + msg + "\r\n";
-    stream.print(msg);
+    // doc["status"] = "ok";
+    // char buffer[120];
+    // serializeJson(doc, buffer);
+    // String msg = String(buffer);
+    // msg = crc_generate(msg) + msg + "\r\n";
+    stream.print("863713777{\"topic\":\"ros2_control\",\"status\":\"ok\"}\r\n");
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
@@ -371,6 +355,8 @@ void msgProcess(String lightCmd, Stream &stream)
       // Serial.print(sen.acc.z);
       // Serial.print('\t');
       // Serial.println(sen.tem);
+      doc["tem"] = sen.temperature;
+
       JsonArray orientation = doc.createNestedArray("ori");
       orientation.add(trimDouble(sen.orientation.x, 0));
       orientation.add(trimDouble(sen.orientation.y, 0));
@@ -386,7 +372,6 @@ void msgProcess(String lightCmd, Stream &stream)
       accelerometer.add(trimDouble(sen.linear_acceleration.x, 0));
       accelerometer.add(trimDouble(sen.linear_acceleration.y, 0));
       accelerometer.add(trimDouble(sen.linear_acceleration.z, 0));
-      doc["tem"] = mpu.getRawTemperature();
     }
 
     char buffer[400];

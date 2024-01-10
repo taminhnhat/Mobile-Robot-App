@@ -41,6 +41,7 @@
 #define IMU_SCL PB6
 #define INTERRUPT_PIN PC14
 #define Bridge Serial1
+#define bridgeEvent serialEvent1
 
 HardwareSerial Radio(PA3, PA2);
 
@@ -571,7 +572,7 @@ private:
     vector3Double linear_acceleration;
     sensors s_data;
     double temperature;
-    MPU6050 mpu;
+    MPU6050 mpu6050;
     float ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
     // orientation/motion vars
     Quaternion q;        // [w, x, y, z]         quaternion container
@@ -608,43 +609,43 @@ public:
         Fastwire::setup(400, true);
 #endif
         Bridge.println(F("Initializing I2C devices..."));
-        mpu.initialize();
+        mpu6050.initialize();
 
         Bridge.println(F("Testing device connections..."));
-        Bridge.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+        Bridge.println(mpu6050.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
 
         Bridge.println(F("Initializing DMP..."));
-        devStatus = mpu.dmpInitialize();
+        devStatus = mpu6050.dmpInitialize();
 
         // supply your own gyro offsets here, scaled for min sensitivity
-        mpu.setXGyroOffset(220);
-        mpu.setYGyroOffset(76);
-        mpu.setZGyroOffset(-85);
-        mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+        mpu6050.setXGyroOffset(220);
+        mpu6050.setYGyroOffset(76);
+        mpu6050.setZGyroOffset(-85);
+        mpu6050.setZAccelOffset(1788); // 1688 factory default for my test chip
 
         // make sure it worked (returns 0 if so)
         if (devStatus == 0)
         {
-            mpu.CalibrateAccel(6);
-            mpu.CalibrateGyro(6);
-            mpu.PrintActiveOffsets();
+            mpu6050.CalibrateAccel(6);
+            mpu6050.CalibrateGyro(6);
+            mpu6050.PrintActiveOffsets();
             // turn on the DMP, now that it's ready
             Serial.println(F("Enabling DMP..."));
-            mpu.setDMPEnabled(true);
+            mpu6050.setDMPEnabled(true);
 
             // enable Arduino interrupt detection
             Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
             Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
             Serial.println(F(")..."));
             attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
-            mpuIntStatus = mpu.getIntStatus();
+            mpuIntStatus = mpu6050.getIntStatus();
 
             // set our DMP Ready flag so the main loop() function knows it's okay to use it
             Serial.println(F("DMP ready! Waiting for first interrupt..."));
             dmpReady = true;
 
             // get expected DMP packet size for later comparison
-            packetSize = mpu.dmpGetFIFOPacketSize();
+            packetSize = mpu6050.dmpGetFIFOPacketSize();
         }
         else
         {
@@ -663,15 +664,15 @@ public:
     {
         if (!dmpReady)
             return -1;
-        uint64_t t = micros();
-        if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer))
+        // uint64_t t = micros();
+        if (mpu6050.dmpGetCurrentFIFOPacket(fifoBuffer))
         {
-            uint64_t dt = micros() - t;
-            Bridge.print(dt);
-            Bridge.print(" ");
-            mpu.dmpGetQuaternion(&q, fifoBuffer);
-            mpu.dmpGetAccel(&aa, fifoBuffer);
-            mpu.dmpGetGyro(&gg, fifoBuffer);
+            // uint64_t dt = micros() - t;
+            // Bridge.print(dt);
+            // Bridge.print(" ");
+            mpu6050.dmpGetQuaternion(&q, fifoBuffer);
+            mpu6050.dmpGetAccel(&aa, fifoBuffer);
+            mpu6050.dmpGetGyro(&gg, fifoBuffer);
 
             s_data.orientation.x = q.x;
             s_data.orientation.y = q.y;
@@ -686,41 +687,41 @@ public:
             s_data.linear_acceleration.y = aa.y * 9.81 / accAdcScale;
             s_data.linear_acceleration.z = aa.z * 9.81 / accAdcScale;
 
-            s_data.temperature = mpu.getTemperature() / 340.0 + 36.53;
+            s_data.temperature = mpu6050.getTemperature() / 340.0 + 36.53;
 
-            Bridge.print("gyro\t");
-            Bridge.print(s_data.angular_velocity.x);
-            Bridge.print("\t");
-            Bridge.print(s_data.angular_velocity.y);
-            Bridge.print("\t");
-            Bridge.print(s_data.angular_velocity.z);
-            Bridge.print("\t");
+            // Bridge.print("gyro\t");
+            // Bridge.print(s_data.angular_velocity.x);
+            // Bridge.print("\t");
+            // Bridge.print(s_data.angular_velocity.y);
+            // Bridge.print("\t");
+            // Bridge.print(s_data.angular_velocity.z);
+            // Bridge.print("\t");
 
-            Bridge.print("accel\t");
-            Bridge.print(s_data.linear_acceleration.x);
-            Bridge.print("\t");
-            Bridge.print(s_data.linear_acceleration.y);
-            Bridge.print("\t");
-            Bridge.print(s_data.linear_acceleration.z);
-            Bridge.print("\t");
+            // Bridge.print("accel\t");
+            // Bridge.print(s_data.linear_acceleration.x);
+            // Bridge.print("\t");
+            // Bridge.print(s_data.linear_acceleration.y);
+            // Bridge.print("\t");
+            // Bridge.print(s_data.linear_acceleration.z);
+            // Bridge.print("\t");
 
-            Bridge.print("quat\t");
-            Bridge.print(s_data.orientation.w);
-            Bridge.print("\t");
-            Bridge.print(s_data.orientation.x);
-            Bridge.print("\t");
-            Bridge.print(s_data.orientation.y);
-            Bridge.print("\t");
-            Bridge.print(s_data.orientation.z);
-            Bridge.print("\t");
+            // Bridge.print("quat\t");
+            // Bridge.print(s_data.orientation.w);
+            // Bridge.print("\t");
+            // Bridge.print(s_data.orientation.x);
+            // Bridge.print("\t");
+            // Bridge.print(s_data.orientation.y);
+            // Bridge.print("\t");
+            // Bridge.print(s_data.orientation.z);
+            // Bridge.print("\t");
 
-            Bridge.print("temp\t");
-            Bridge.print(s_data.temperature);
-            Bridge.println();
+            // Bridge.print("temp\t");
+            // Bridge.print(s_data.temperature);
+            // Bridge.println();
+            return 1;
         }
         else
-            Bridge.println(" done");
-        return 0;
+            return -1;
     }
 
     uint16_t getRawGyrX() { return gx; }
