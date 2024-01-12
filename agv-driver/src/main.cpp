@@ -6,12 +6,15 @@
 // #include "power.h"
 #include "lcd.hpp"
 #include <math.h>
+#include <Adafruit_BNO08x.h>
 
 // -------------------------------------------------JSON--------------------------------------------------------
-StaticJsonDocument<400> doc;
+StaticJsonDocument<500> doc;
 
-// -------------------------------------------------MPU6050--------------------------------------------------------
-MY_MPU6050 mpu;
+// -------------------------------------------------MPU BNO085--------------------------------------------------------
+#define BNO08X_RESET -1
+Adafruit_BNO08x bno08x(BNO08X_RESET);
+sh2_SensorValue_t sensorValue;
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 String messageFromRaio = "";
@@ -20,6 +23,7 @@ uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 
+void setReports();
 void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
@@ -74,10 +78,6 @@ void OnTimer1Interrupt()
   {
     battery.tick();
   }
-  if (timer_count % CONFIG.MPU_CAL_CYCLE == 0)
-  {
-    mpu.tick();
-  }
   if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
   {
     currentSensor_1_2.tick();
@@ -128,11 +128,39 @@ void setup()
   Bridge.begin(115200);
   // Start serial 1 as wireless communication (rf/bluetooth)
   Radio.begin(115200);
-  if (mpu.init() == 0)
+
+  Bridge.println("Adafruit BNO08x test!");
+
+  bool bnoConnected = false;
+  uint8_t connectCount = 0;
+
+  while (!bnoConnected && connectCount <= 5)
+  {
+    bnoConnected = bno08x.begin_I2C();
+    connectCount++;
+    delay(500);
+  }
+  if (bnoConnected)
   {
     CONFIG.IMU_AVAILABLE = true;
-    Bridge.println("imu inited");
+    Bridge.println("BNO08x Found!");
+    setReports();
   }
+  else
+  {
+    CONFIG.IMU_AVAILABLE = false;
+    Bridge.println("Failed to find BNO08x chip");
+  }
+
+  // if (!bno08x.begin_I2C())
+  // {
+  //   Bridge.println("Failed to find BNO08x chip");
+  // }
+  // else
+  // {
+  //   CONFIG.IMU_AVAILABLE = true;
+  //   Bridge.println("BNO08x Found!");
+  // }
 
   Bridge.println("===============ROBOT START================");
   Bridge.println("System information");
@@ -168,6 +196,46 @@ void setup()
 
 void loop()
 {
+  if (bno08x.wasReset())
+  {
+    Serial1.print("sensor was reset ");
+    setReports();
+  }
+
+  if (bno08x.getSensorEvent(&sensorValue))
+  {
+    // in this demo only one report type will be received depending on FAST_MODE define (above)
+    switch (sensorValue.sensorId)
+    {
+    case SH2_ARVR_STABILIZED_RV:
+      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedRV.i;
+      ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedRV.j;
+      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.k;
+      ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
+      break;
+    case SH2_GYROSCOPE_CALIBRATED:
+      ros2_sensor.angular_velocity.x = sensorValue.un.gyroscope.x;
+      ros2_sensor.angular_velocity.y = sensorValue.un.gyroscope.y;
+      ros2_sensor.angular_velocity.z = sensorValue.un.gyroscope.z;
+      break;
+    case SH2_LINEAR_ACCELERATION:
+      ros2_sensor.linear_acceleration.x = sensorValue.un.linearAcceleration.x;
+      ros2_sensor.linear_acceleration.y = sensorValue.un.linearAcceleration.y;
+      ros2_sensor.linear_acceleration.z = sensorValue.un.linearAcceleration.z;
+      break;
+    case SH2_MAGNETIC_FIELD_CALIBRATED:
+      ros2_sensor.magnetic_field.x = sensorValue.un.magneticField.x;
+      ros2_sensor.magnetic_field.y = sensorValue.un.magneticField.y;
+      ros2_sensor.magnetic_field.z = sensorValue.un.magneticField.z;
+      break;
+    case SH2_TEMPERATURE:
+      ros2_sensor.temperature = sensorValue.un.temperature.value;
+      break;
+    default:
+      break;
+    }
+  }
+
   if (millis() % CONFIG.LOG_CYCLE == 0)
   {
     if (CONFIG.EN_VELOCITY_LOG)
@@ -204,29 +272,36 @@ void loop()
     }
     else if (CONFIG.EN_IMU_LOG)
     {
-      sensors sen = mpu.getFullSensors();
-      Radio.print(sen.orientation.x);
-      Radio.print(" ");
-      Radio.print(sen.orientation.y);
-      Radio.print(" ");
-      Radio.print(sen.orientation.z);
-      Radio.print(" ");
-      Radio.print(sen.orientation.w);
-      Radio.print(" ");
-      Radio.print(sen.angular_velocity.x);
-      Radio.print(" ");
-      Radio.print(sen.angular_velocity.y);
-      Radio.print(" ");
-      Radio.print(sen.angular_velocity.z);
-      Radio.print(" ");
-      Radio.print(sen.linear_acceleration.x);
-      Radio.print(" ");
-      Radio.print(sen.linear_acceleration.y);
-      Radio.print(" ");
-      Radio.print(sen.linear_acceleration.z);
-      Radio.print(" ");
-      Radio.print(sen.temperature);
-      Radio.print("\r\n");
+      Serial1.print("qx=");
+      Serial1.print(ros2_sensor.orientation.x);
+      Serial1.print(",qy=");
+      Serial1.print(ros2_sensor.orientation.y);
+      Serial1.print(",qz=");
+      Serial1.print(ros2_sensor.orientation.z);
+      Serial1.print(",qw");
+      Serial1.print(ros2_sensor.orientation.w);
+
+      Serial1.print(",gx=");
+      Serial1.print(ros2_sensor.angular_velocity.x);
+      Serial1.print(",gy=");
+      Serial1.print(ros2_sensor.angular_velocity.y);
+      Serial1.print(",gz=");
+      Serial1.print(ros2_sensor.angular_velocity.z);
+
+      Serial1.print(",ax=");
+      Serial1.print(ros2_sensor.linear_acceleration.x);
+      Serial1.print(",ay=");
+      Serial1.print(ros2_sensor.linear_acceleration.y);
+      Serial1.print(",az=");
+      Serial1.print(ros2_sensor.linear_acceleration.z);
+
+      Serial1.print(",mx=");
+      Serial1.print(ros2_sensor.magnetic_field.x);
+      Serial1.print(",my=");
+      Serial1.print(ros2_sensor.magnetic_field.y);
+      Serial1.print(",mz=");
+      Serial1.print(ros2_sensor.magnetic_field.z);
+      Serial1.println("");
     }
   }
 }
@@ -234,18 +309,46 @@ void loop()
 // -------------------------------------------------DECLARE FUNCTIONS--------------------------------------------------------
 void bridgeEvent()
 {
-  while (Bridge.available())
+  messageFromBridge = Bridge.readStringUntil('\n');
+  msgProcess(messageFromBridge, Bridge);
+  messageFromBridge = "";
+  // while (Bridge.available())
+  // {
+  //   char tempChar = (char)Bridge.read();
+  //   if (tempChar != '\n')
+  //   {
+  //     messageFromBridge += tempChar;
+  //   }
+  //   else
+  //   {
+  //     msgProcess(messageFromBridge, Bridge);
+  //     messageFromBridge = "";
+  //   }
+  // }
+}
+
+void setReports()
+{
+  Bridge.println("Setting bno085 reports");
+  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_RV, CONFIG.MPU_CAL_CYCLE))
   {
-    char tempChar = (char)Bridge.read();
-    if (tempChar != '\n')
-    {
-      messageFromBridge += tempChar;
-    }
-    else
-    {
-      msgProcess(messageFromBridge, Bridge);
-      messageFromBridge = "";
-    }
+    Bridge.println("Could not enable stabilized remote vector");
+  }
+  if (!bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, CONFIG.MPU_CAL_CYCLE))
+  {
+    Bridge.println("Could not enable gyroscope calibrated");
+  }
+  if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION, CONFIG.MPU_CAL_CYCLE))
+  {
+    Bridge.println("Could not enable linear acceleration");
+  }
+  if (!bno08x.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, CONFIG.MPU_CAL_CYCLE))
+  {
+    Bridge.println("Could not enable magnetic field calibrated");
+  }
+  if (!bno08x.enableReport(SH2_TEMPERATURE, 1000000))
+  {
+    Bridge.println("Could not enable temperature");
   }
 }
 
@@ -323,6 +426,34 @@ void msgProcess(String lightCmd, Stream &stream)
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
+    // add battery value
+    doc["bat"] = battery.getAverageVoltage();
+    // add imu value
+    if (CONFIG.IMU_AVAILABLE)
+    {
+      doc["tem"] = ros2_sensor.temperature;
+
+      JsonArray orientation = doc.createNestedArray("ori");
+      orientation.add(trimDouble(ros2_sensor.orientation.x, 0));
+      orientation.add(trimDouble(ros2_sensor.orientation.y, 0));
+      orientation.add(trimDouble(ros2_sensor.orientation.z, 0));
+      orientation.add(trimDouble(ros2_sensor.orientation.w, 0));
+
+      JsonArray gyroscope = doc.createNestedArray("gyr");
+      gyroscope.add(trimDouble(ros2_sensor.angular_velocity.x, 0));
+      gyroscope.add(trimDouble(ros2_sensor.angular_velocity.y, 0));
+      gyroscope.add(trimDouble(ros2_sensor.angular_velocity.z, 0));
+
+      JsonArray accelerometer = doc.createNestedArray("acc");
+      accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.x, 0));
+      accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.y, 0));
+      accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.z, 0));
+
+      JsonArray magnetic = doc.createNestedArray("mag");
+      magnetic.add(trimDouble(ros2_sensor.magnetic_field.x, 0));
+      magnetic.add(trimDouble(ros2_sensor.magnetic_field.y, 0));
+      magnetic.add(trimDouble(ros2_sensor.magnetic_field.z, 0));
+    }
     // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());
@@ -335,46 +466,8 @@ void msgProcess(String lightCmd, Stream &stream)
     position.add(motor2.getPosition());
     position.add(motor3.getPosition());
     position.add(motor4.getPosition());
-    // add battery value
-    doc["bat"] = battery.getAverageVoltage();
-    // add imu value
-    if (CONFIG.IMU_AVAILABLE)
-    {
-      sensors sen = mpu.getFullSensors();
-      // Serial.print("imu out: ");
-      // Serial.print(sen.gyr.x);
-      // Serial.print('\t');
-      // Serial.print(sen.gyr.y);
-      // Serial.print('\t');
-      // Serial.print(sen.gyr.z);
-      // Serial.print('\t');
-      // Serial.print(sen.acc.x);
-      // Serial.print('\t');
-      // Serial.print(sen.acc.y);
-      // Serial.print('\t');
-      // Serial.print(sen.acc.z);
-      // Serial.print('\t');
-      // Serial.println(sen.tem);
-      doc["tem"] = sen.temperature;
 
-      JsonArray orientation = doc.createNestedArray("ori");
-      orientation.add(trimDouble(sen.orientation.x, 0));
-      orientation.add(trimDouble(sen.orientation.y, 0));
-      orientation.add(trimDouble(sen.orientation.z, 0));
-      orientation.add(trimDouble(sen.orientation.w, 0));
-
-      JsonArray gyroscope = doc.createNestedArray("gyr");
-      gyroscope.add(trimDouble(sen.angular_velocity.x, 0));
-      gyroscope.add(trimDouble(sen.angular_velocity.y, 0));
-      gyroscope.add(trimDouble(sen.angular_velocity.z, 0));
-
-      JsonArray accelerometer = doc.createNestedArray("acc");
-      accelerometer.add(trimDouble(sen.linear_acceleration.x, 0));
-      accelerometer.add(trimDouble(sen.linear_acceleration.y, 0));
-      accelerometer.add(trimDouble(sen.linear_acceleration.z, 0));
-    }
-
-    char buffer[400];
+    char buffer[500];
     serializeJson(doc, buffer);
     String msg = String(buffer);
     msg = crc_generate(msg) + msg + "\r\n";
@@ -446,6 +539,19 @@ void msgProcess(String lightCmd, Stream &stream)
     {
       CONFIG.EN_CURRENT_LOG = false;
       stream.println("Success Disable Current Log!");
+    }
+
+    // imu log
+    const String enableImuLog = doc["imu"];
+    if (enableImuLog.compareTo("true") == 0)
+    {
+      CONFIG.EN_IMU_LOG = true;
+      stream.println("Success Enable IMU Log!");
+    }
+    if (enableImuLog.compareTo("false") == 0)
+    {
+      CONFIG.EN_IMU_LOG = false;
+      stream.println("Success Disable IMU Log!");
     }
 
     // crc
@@ -594,10 +700,5 @@ void lcdRender()
   display.draw_rectangle(80, 15, 125, 31, OLED::HOLLOW, OLED::WHITE);
   display.draw_rectangle(125, 18, 127, 27, OLED::SOLID, OLED::WHITE);
   display.draw_rectangle(82, 17, 81 + batteryScale, 29, OLED::SOLID, OLED::WHITE);
-  // display.draw_rectangle(119, 15, 127, 31, OLED::HOLLOW, OLED::WHITE);
-  // display.draw_rectangle(107, 15, 115, 31, OLED::SOLID, OLED::WHITE);
-  // display.draw_rectangle(95, 15, 103, 31, OLED::SOLID, OLED::WHITE);
-  // String Ip = String() + "192.168.1.44";
-  // display.drawString(0, 3, Ip.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
   display.display();
 }

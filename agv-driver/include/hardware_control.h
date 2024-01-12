@@ -556,8 +556,9 @@ struct sensors
     vector4Double orientation;
     vector3Double angular_velocity;
     vector3Double linear_acceleration;
+    vector3Double magnetic_field;
     double temperature;
-};
+} ros2_sensor;
 
 volatile bool mpuInterrupt = false;
 void dmpDataReady()
