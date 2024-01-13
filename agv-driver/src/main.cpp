@@ -213,6 +213,12 @@ void loop()
       ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.k;
       ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
       break;
+    case SH2_ARVR_STABILIZED_GRV:
+      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.i;
+      ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedGRV.j;
+      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.k;
+      ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedGRV.real;
+      break;
     case SH2_GYROSCOPE_CALIBRATED:
       ros2_sensor.angular_velocity.x = sensorValue.un.gyroscope.x;
       ros2_sensor.angular_velocity.y = sensorValue.un.gyroscope.y;
@@ -281,6 +287,15 @@ void loop()
       Serial1.print(",qw");
       Serial1.print(ros2_sensor.orientation.w);
 
+      euler_t euler_out;
+      quaternionToEuler(ros2_sensor.orientation.w, ros2_sensor.orientation.x, ros2_sensor.orientation.y, ros2_sensor.orientation.z, &euler_out, true);
+      Serial1.print(",roll=");
+      Serial1.print(euler_out.roll);
+      Serial1.print(",pitch=");
+      Serial1.print(euler_out.pitch);
+      Serial1.print(",yaw=");
+      Serial1.print(euler_out.yaw);
+
       Serial1.print(",gx=");
       Serial1.print(ros2_sensor.angular_velocity.x);
       Serial1.print(",gy=");
@@ -330,7 +345,7 @@ void bridgeEvent()
 void setReports()
 {
   Bridge.println("Setting bno085 reports");
-  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_RV, CONFIG.MPU_CAL_CYCLE))
+  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV, CONFIG.MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable stabilized remote vector");
   }
