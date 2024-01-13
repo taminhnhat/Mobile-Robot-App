@@ -207,16 +207,16 @@ void loop()
     // in this demo only one report type will be received depending on FAST_MODE define (above)
     switch (sensorValue.sensorId)
     {
-    case SH2_ARVR_STABILIZED_RV:
-      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedRV.i;
-      ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedRV.j;
-      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.k;
-      ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
-      break;
+    // case SH2_ARVR_STABILIZED_RV:
+    //   ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.i;
+    //   ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedRV.j;
+    //   ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedRV.k;
+    //   ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
+    //   break;
     case SH2_ARVR_STABILIZED_GRV:
-      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.i;
+      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.i;
       ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedGRV.j;
-      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.k;
+      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.k;
       ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedGRV.real;
       break;
     case SH2_GYROSCOPE_CALIBRATED:
