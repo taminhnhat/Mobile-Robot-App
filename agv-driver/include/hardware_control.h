@@ -155,7 +155,7 @@ private:
             output_voltage = 12;
         if (output_voltage < -12)
             output_voltage = 12;
-        uint32_t duty = abs(output_voltage) * CONFIG.PWM_MAX_VAL / 12;
+        uint32_t duty = abs(output_voltage) * PWM_MAX_VAL / 12;
         this->voltage = output_voltage;
         if (output_voltage > 0)
         {
@@ -165,7 +165,7 @@ private:
         else
         {
             digitalWrite(this->DIR_PIN_ADDR, HIGH);
-            analogWrite(this->PWM_PIN_ADDR, CONFIG.PWM_MAX_VAL - duty);
+            analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - duty);
         }
     }
 
@@ -228,7 +228,7 @@ public:
         const uint32_t present_t = millis();
         uint32_t d_t = present_t - this->last_t; // in miliseconds
         this->d_p = present_p - this->p_pre;
-        this->v_ins = (this->d_p * 60000.0 * CONFIG.RPM_TO_MPS_FACTOR) / (d_t * CONFIG.MOTOR_PPR);
+        this->v_ins = (this->d_p * 60000.0 * RPM_TO_MPS_FACTOR) / (d_t * MOTOR_PPR);
         this->p_pre = present_p;
         this->last_t = present_t;
 
@@ -244,7 +244,7 @@ public:
         this->v_pre = this->v_ins;
 
         // check pid cycle
-        if (present_t - this->last_pid_t >= CONFIG.PID_SAMPLE_CYCLE)
+        if (present_t - this->last_pid_t >= PID_SAMPLE_CYCLE)
         {
             this->last_pid_t = present_p;
             // pid computing
@@ -289,7 +289,7 @@ public:
     }
     double getPosition()
     {
-        return trimDouble(this->p_ins * CONFIG.PULSE_TO_RAD_FACTOR, 2);
+        return trimDouble(this->p_ins * PULSE_TO_RAD_FACTOR, 2);
     }
     /**
      * get instant wheel velocity in m/s
@@ -304,7 +304,7 @@ public:
     }
     double getSetSpeed()
     {
-        return this->v_set * 2 / CONFIG.WHEEL_DIAMETER;
+        return this->v_set * 2 / WHEEL_DIAMETER;
     }
     double getAverageVelocity()
     {
@@ -312,11 +312,11 @@ public:
     }
     double getSpeed()
     {
-        return trimDouble(this->v_ins * 2 / CONFIG.WHEEL_DIAMETER, 2);
+        return trimDouble(this->v_ins * 2 / WHEEL_DIAMETER, 2);
     }
     double getAverageSpeed()
     {
-        return trimDouble(this->v_ave * 2 / CONFIG.WHEEL_DIAMETER, 2);
+        return trimDouble(this->v_ave * 2 / WHEEL_DIAMETER, 2);
     }
     int32_t getdp()
     {
@@ -332,12 +332,12 @@ public:
      */
     void setVelocity(double v)
     {
-        if (v > CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS)
-            v = CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS;
-        if (v < -CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS)
-            v = -CONFIG.MOTOR_ALLOW_MAX_SPEED_IN_MPS;
+        if (v > MOTOR_ALLOW_MAX_SPEED_IN_MPS)
+            v = MOTOR_ALLOW_MAX_SPEED_IN_MPS;
+        if (v < -MOTOR_ALLOW_MAX_SPEED_IN_MPS)
+            v = -MOTOR_ALLOW_MAX_SPEED_IN_MPS;
         this->v_set = v;
-        this->voltage = this->v_set * 12 / CONFIG.MOTOR_MAX_SPEED_IN_MPS;
+        this->voltage = this->v_set * 12 / MOTOR_MAX_SPEED_IN_MPS;
         this->controlMode = IF_VELOCITY_CONTROL_MODE;
         this->lastcall = millis();
     }

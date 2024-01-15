@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <math.h>
+#include <Adafruit_BNO08x.h>
 #include "checksum.h"
 #include "hardware_control.h"
 #include "currentSensor.hpp"
-// #include "power.h"
 #include "lcd.hpp"
-#include <math.h>
-#include <Adafruit_BNO08x.h>
+// #include "power.h"
 
 // -------------------------------------------------JSON--------------------------------------------------------
 StaticJsonDocument<500> doc;
@@ -62,23 +62,23 @@ void OnTimer1Interrupt()
     motor4.stop();
     OnVelocityControl = false;
   }
-  if (timer_count % CONFIG.MOTOR_CYCLE == 0)
+  if (timer_count % MOTOR_CYCLE == 0)
   {
-    // if (!CONFIG.EN_MECANUM_WHEEL)
+    // if (!EN_MECANUM_WHEEL)
     // {
     //   motor2.setVelocity(motor1.getVelocity());
     //   motor3.setVelocity(motor4.getVelocity());
     // }
-    motor1.tick(CONFIG.MOTOR_CYCLE);
-    motor2.tick(CONFIG.MOTOR_CYCLE);
-    motor3.tick(CONFIG.MOTOR_CYCLE);
-    motor4.tick(CONFIG.MOTOR_CYCLE);
+    motor1.tick(MOTOR_CYCLE);
+    motor2.tick(MOTOR_CYCLE);
+    motor3.tick(MOTOR_CYCLE);
+    motor4.tick(MOTOR_CYCLE);
   }
-  if (timer_count % CONFIG.BAT_VOL_CAL_CYCLE == 0)
+  if (timer_count % BAT_VOL_CAL_CYCLE == 0)
   {
     battery.tick();
   }
-  if (timer_count % CONFIG.CURRENT_CAL_CYCLE == 0)
+  if (timer_count % CURRENT_CAL_CYCLE == 0)
   {
     currentSensor_1_2.tick();
     currentSensor_3_4.tick();
@@ -120,16 +120,14 @@ void setup()
   timer.setPrescaleFactor(9999);
   timer.setOverflow(9);
   timer.attachInterrupt(OnTimer1Interrupt);
-  timer.refresh();
-  timer.resume();
 
-  analogWriteResolution(CONFIG.PWM_RESOLUTION_SET);
-  // Start serial 2 as external control communication
+  analogWriteResolution(PWM_RESOLUTION_SET);
+  // Start serial 1 as ros2 bridge
   Bridge.begin(115200);
-  // Start serial 1 as wireless communication (rf/bluetooth)
+  // Start serial 1 as debug port (rf/bluetooth)
   Radio.begin(115200);
 
-  Bridge.println("Adafruit BNO08x test!");
+  Bridge.println("===> Adafruit BNO08x test!");
 
   bool bnoConnected = false;
   uint8_t connectCount = 0;
@@ -142,13 +140,26 @@ void setup()
   }
   if (bnoConnected)
   {
-    CONFIG.IMU_AVAILABLE = true;
+    IMU_AVAILABLE = true;
     Bridge.println("BNO08x Found!");
     setReports();
+    for (int n = 0; n < bno08x.prodIds.numEntries; n++)
+    {
+      Bridge.print("Part ");
+      Bridge.print(bno08x.prodIds.entry[n].swPartNumber);
+      Bridge.print(": Version :");
+      Bridge.print(bno08x.prodIds.entry[n].swVersionMajor);
+      Bridge.print(".");
+      Bridge.print(bno08x.prodIds.entry[n].swVersionMinor);
+      Bridge.print(".");
+      Bridge.print(bno08x.prodIds.entry[n].swVersionPatch);
+      Bridge.print(" Build ");
+      Bridge.println(bno08x.prodIds.entry[n].swBuildNumber);
+    }
   }
   else
   {
-    CONFIG.IMU_AVAILABLE = false;
+    IMU_AVAILABLE = false;
     Bridge.println("Failed to find BNO08x chip");
   }
 
@@ -158,20 +169,24 @@ void setup()
   // }
   // else
   // {
-  //   CONFIG.IMU_AVAILABLE = true;
+  //   IMU_AVAILABLE = true;
   //   Bridge.println("BNO08x Found!");
   // }
 
-  Bridge.println("===============ROBOT START================");
+  // Bridge.println("===> Setting up power manager");
+  // dfMeter.init(Bridge);
+  // dfMeter.info(Bridge);
+
+  Bridge.println("===> Robot start");
   Bridge.println("System information");
   Bridge.print("timer freq: ");
   Bridge.println(timer.getTimerClkFreq());
   Bridge.print("pwm resolution: ");
-  Bridge.println(CONFIG.PWM_MAX_VAL);
+  Bridge.println(PWM_MAX_VAL);
   Bridge.print("max speed: ");
-  Bridge.print(CONFIG.MOTOR_MAX_SPEED_IN_MPS);
+  Bridge.print(MOTOR_MAX_SPEED_IN_MPS);
   Bridge.print(" m/s\tturn: ");
-  Bridge.print(CONFIG.MAX_ANGULAR_VELOCITY);
+  Bridge.print(MAX_ANGULAR_VELOCITY);
   Bridge.println(" rad/s");
 
   motor1.stop();
@@ -192,6 +207,9 @@ void setup()
   lcdRender();
 
   Bridge.println("================================setup complete========================================");
+
+  timer.refresh();
+  timer.resume();
 }
 
 void loop()
@@ -204,16 +222,20 @@ void loop()
 
   if (bno08x.getSensorEvent(&sensorValue))
   {
+    // Bridge.print("sensor id: ");
+    // Bridge.println(sensorValue.sensorId);
     // in this demo only one report type will be received depending on FAST_MODE define (above)
     switch (sensorValue.sensorId)
     {
     // case SH2_ARVR_STABILIZED_RV:
+    //   // Bridge.println("quaternion update");
     //   ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.i;
     //   ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedRV.j;
     //   ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedRV.k;
     //   ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
     //   break;
     case SH2_ARVR_STABILIZED_GRV:
+      // Bridge.println("quaternion update");
       ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.i;
       ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedGRV.j;
       ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.k;
@@ -235,6 +257,7 @@ void loop()
       ros2_sensor.magnetic_field.z = sensorValue.un.magneticField.z;
       break;
     case SH2_TEMPERATURE:
+      Bridge.println("temperature update");
       ros2_sensor.temperature = sensorValue.un.temperature.value;
       break;
     default:
@@ -242,9 +265,9 @@ void loop()
     }
   }
 
-  if (millis() % CONFIG.LOG_CYCLE == 0)
+  if (millis() % LOG_CYCLE == 0)
   {
-    if (CONFIG.EN_VELOCITY_LOG)
+    if (EN_VELOCITY_LOG)
     {
       Radio.print("MR");
       Radio.print(motor1.getSetSpeed());
@@ -260,7 +283,7 @@ void loop()
       Radio.print(motor4.getAverageSpeed());
       Radio.print("\r\n");
     }
-    else if (CONFIG.EN_CURRENT_LOG)
+    else if (EN_CURRENT_LOG)
     {
       Radio.print("INS_R=");
       Radio.print(currentSensor_1_2.getInstantCurrent());
@@ -276,7 +299,7 @@ void loop()
       Radio.print(currentSensor_3_4.getAverageFilterCurrent());
       Radio.print("\r\n");
     }
-    else if (CONFIG.EN_IMU_LOG)
+    else if (EN_IMU_LOG && IMU_AVAILABLE)
     {
       Serial1.print("qx=");
       Serial1.print(ros2_sensor.orientation.x);
@@ -284,7 +307,7 @@ void loop()
       Serial1.print(ros2_sensor.orientation.y);
       Serial1.print(",qz=");
       Serial1.print(ros2_sensor.orientation.z);
-      Serial1.print(",qw");
+      Serial1.print(",qw=");
       Serial1.print(ros2_sensor.orientation.w);
 
       euler_t euler_out;
@@ -345,23 +368,23 @@ void bridgeEvent()
 void setReports()
 {
   Bridge.println("Setting bno085 reports");
-  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV, CONFIG.MPU_CAL_CYCLE))
+  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV, MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable stabilized remote vector");
   }
-  if (!bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, CONFIG.MPU_CAL_CYCLE))
+  if (!bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable gyroscope calibrated");
   }
-  if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION, CONFIG.MPU_CAL_CYCLE))
+  if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION, MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable linear acceleration");
   }
-  if (!bno08x.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, CONFIG.MPU_CAL_CYCLE))
+  if (!bno08x.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable magnetic field calibrated");
   }
-  if (!bno08x.enableReport(SH2_TEMPERATURE, 1000000))
+  if (!bno08x.enableReport(SH2_TEMPERATURE, MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable temperature");
   }
@@ -381,7 +404,7 @@ void msgProcess(String lightCmd, Stream &stream)
   uint32_t cal_cs = crc_generate(lightCmd); // calculated checksum
 
   // checksum
-  if (CONFIG.CRC_Enable == true)
+  if (CRC_Enable == true)
   {
     if (rec_cs != cal_cs)
       return;
@@ -407,17 +430,17 @@ void msgProcess(String lightCmd, Stream &stream)
     const double rear_left_wheel_speed = doc["velocity"][2];   // rad/s
     const double front_left_wheel_speed = doc["velocity"][3];  // rad/s
     const uint32_t timeout = doc["timeout"];                   // ms
-    const double motor_1_velocity = front_right_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
-    const double motor_2_velocity = rear_right_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
-    const double motor_3_velocity = rear_left_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
-    const double motor_4_velocity = front_left_wheel_speed * CONFIG.WHEEL_DIAMETER / 2;
+    const double motor_1_velocity = front_right_wheel_speed * WHEEL_DIAMETER / 2;
+    const double motor_2_velocity = rear_right_wheel_speed * WHEEL_DIAMETER / 2;
+    const double motor_3_velocity = rear_left_wheel_speed * WHEEL_DIAMETER / 2;
+    const double motor_4_velocity = front_left_wheel_speed * WHEEL_DIAMETER / 2;
     if (timeout == 0)
-      velocity_timeout = CONFIG.DEFAULT_VEL_TIMEOUT;
+      velocity_timeout = DEFAULT_VEL_TIMEOUT;
     else
       velocity_timeout = timeout;
     velocity_lastcall = millis();
     OnVelocityControl = true;
-    if (CONFIG.EN_MECANUM_WHEEL == true)
+    if (EN_MECANUM_WHEEL == true)
     {
       motor1.setVelocity(motor_1_velocity);
       motor2.setVelocity(motor_2_velocity);
@@ -444,10 +467,8 @@ void msgProcess(String lightCmd, Stream &stream)
     // add battery value
     doc["bat"] = battery.getAverageVoltage();
     // add imu value
-    if (CONFIG.IMU_AVAILABLE)
+    if (IMU_AVAILABLE)
     {
-      doc["tem"] = ros2_sensor.temperature;
-
       JsonArray orientation = doc.createNestedArray("ori");
       orientation.add(trimDouble(ros2_sensor.orientation.x, 0));
       orientation.add(trimDouble(ros2_sensor.orientation.y, 0));
@@ -510,7 +531,7 @@ void msgProcess(String lightCmd, Stream &stream)
     }
 
     if (timeout == 0)
-      velocity_timeout = CONFIG.DEFAULT_VEL_TIMEOUT;
+      velocity_timeout = DEFAULT_VEL_TIMEOUT;
     else
       velocity_timeout = timeout;
     velocityProcess(linear_x, linear_y, angular_y);
@@ -534,12 +555,12 @@ void msgProcess(String lightCmd, Stream &stream)
     const String enableVelocityLog = doc["vel"];
     if (enableVelocityLog.compareTo("true") == 0)
     {
-      CONFIG.EN_VELOCITY_LOG = true;
+      EN_VELOCITY_LOG = true;
       stream.println("Success Enable Velocity Log!");
     }
     else if (enableVelocityLog.compareTo("false") == 0)
     {
-      CONFIG.EN_VELOCITY_LOG = false;
+      EN_VELOCITY_LOG = false;
       stream.println("Success Disable Velocity Log!");
     }
 
@@ -547,12 +568,12 @@ void msgProcess(String lightCmd, Stream &stream)
     const String enableCurrentLog = doc["cur"];
     if (enableCurrentLog.compareTo("true") == 0)
     {
-      CONFIG.EN_CURRENT_LOG = true;
+      EN_CURRENT_LOG = true;
       stream.println("Success Enable Current Log!");
     }
     if (enableCurrentLog.compareTo("false") == 0)
     {
-      CONFIG.EN_CURRENT_LOG = false;
+      EN_CURRENT_LOG = false;
       stream.println("Success Disable Current Log!");
     }
 
@@ -560,12 +581,12 @@ void msgProcess(String lightCmd, Stream &stream)
     const String enableImuLog = doc["imu"];
     if (enableImuLog.compareTo("true") == 0)
     {
-      CONFIG.EN_IMU_LOG = true;
+      EN_IMU_LOG = true;
       stream.println("Success Enable IMU Log!");
     }
     if (enableImuLog.compareTo("false") == 0)
     {
-      CONFIG.EN_IMU_LOG = false;
+      EN_IMU_LOG = false;
       stream.println("Success Disable IMU Log!");
     }
 
@@ -573,12 +594,12 @@ void msgProcess(String lightCmd, Stream &stream)
     const String enableCRC = doc["crc"];
     if (enableCRC.compareTo("true") == 0)
     {
-      CONFIG.CRC_Enable = true;
+      CRC_Enable = true;
       stream.println("Success Enable CRC!");
     }
     if (enableCRC.compareTo("false") == 0)
     {
-      CONFIG.CRC_Enable = false;
+      CRC_Enable = false;
       stream.println("Success Disable CRC!");
     }
 
@@ -630,8 +651,8 @@ void velocityProcess(double linear_x, double linear_y, double angular)
   double motor_2_velocity = 0;
   double motor_3_velocity = 0;
   double motor_4_velocity = 0;
-  const double angular_tmp = angular * CONFIG.ANGULAR_VELOCITY_FACTOR;
-  if (CONFIG.EN_MECANUM_WHEEL == true)
+  const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
+  if (EN_MECANUM_WHEEL == true)
   {
     motor_1_velocity = linear_x + linear_y + angular_tmp;
     motor_2_velocity = linear_x - linear_y + angular_tmp;
@@ -654,13 +675,13 @@ void velocityProcess(double linear_x, double linear_y, double angular)
   // Bridge.print("   ");
   // Bridge.print(motor_4_velocity);
   // Bridge.print("   rpm: ");
-  // Bridge.print(motor_1_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.print(motor_1_velocity * MPS_TO_RPM_FACTOR);
   // Bridge.print("   ");
-  // Bridge.print(motor_2_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.print(motor_2_velocity * MPS_TO_RPM_FACTOR);
   // Bridge.print("   ");
-  // Bridge.print(motor_3_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.print(motor_3_velocity * MPS_TO_RPM_FACTOR);
   // Bridge.print("   ");
-  // Bridge.print(motor_4_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  // Bridge.print(motor_4_velocity * MPS_TO_RPM_FACTOR);
   // Bridge.println("");
   motor1.setVelocity(motor_1_velocity);
   motor2.setVelocity(motor_2_velocity);
@@ -677,7 +698,7 @@ void velocityProcessTimeout(double linear_x, double linear_y, double angular, ui
 void velocityProcess_base(double linear_x, double linear_y, double angular)
 {
   velocity_lastcall = millis();
-  const double angular_tmp = angular * CONFIG.ANGULAR_VELOCITY_FACTOR;
+  const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
   double linear_tmp = linear_x;
   const double motor_1_velocity = linear_tmp + angular_tmp;
   const double motor_2_velocity = linear_tmp + angular_tmp;
@@ -692,13 +713,13 @@ void velocityProcess_base(double linear_x, double linear_y, double angular)
   Bridge.print("\t");
   Bridge.print(motor_4_velocity);
   Bridge.print("\tWHEEL SPEED: ");
-  Bridge.print(motor_1_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  Bridge.print(motor_1_velocity * MPS_TO_RPM_FACTOR);
   Bridge.print("\t");
-  Bridge.print(motor_2_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  Bridge.print(motor_2_velocity * MPS_TO_RPM_FACTOR);
   Bridge.print("\t");
-  Bridge.print(motor_3_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  Bridge.print(motor_3_velocity * MPS_TO_RPM_FACTOR);
   Bridge.print("\t");
-  Bridge.print(motor_4_velocity * CONFIG.MPS_TO_RPM_FACTOR);
+  Bridge.print(motor_4_velocity * MPS_TO_RPM_FACTOR);
   Bridge.println("");
 }
 
