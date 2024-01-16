@@ -28,6 +28,7 @@ void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
 void velocityProcess_base(double, double, double);
+void readMpu();
 void lcdRender();
 void logger();
 
@@ -42,6 +43,9 @@ void OnTimer1Interrupt()
 {
   timer_count++;
   uint32_t present_t = millis();
+  if (timer_count % 100 == 0)
+    readMpu();
+
   // while (Radio.available())
   // {
   //   char tempChar = (char)Radio.read();
@@ -128,7 +132,7 @@ void setup()
 
   analogWriteResolution(PWM_RESOLUTION_SET);
   // Start serial 1 as ros2 bridge
-  Bridge.begin(115200);
+  Bridge.begin(460800);
   // Start serial 1 as debug port (rf/bluetooth)
   Radio.begin(115200);
 
@@ -224,51 +228,7 @@ void loop()
   }
 
   uint64_t start_t = micros();
-  if (bno08x.getSensorEvent(&sensorValue))
-  {
-    // Bridge.print(start_t);
-    // Bridge.print(" ");
-    // Bridge.println(micros() - start_t);
-    // in this demo only one report type will be received depending on FAST_MODE define (above)
-    switch (sensorValue.sensorId)
-    {
-    // case SH2_ARVR_STABILIZED_RV:
-    //   // Bridge.println("quaternion update");
-    //   ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.i;
-    //   ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedRV.j;
-    //   ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedRV.k;
-    //   ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
-    //   break;
-    case SH2_ARVR_STABILIZED_GRV:
-      // Bridge.println("quaternion update");
-      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.i;
-      ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedGRV.j;
-      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.k;
-      ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedGRV.real;
-      break;
-    case SH2_GYROSCOPE_CALIBRATED:
-      ros2_sensor.angular_velocity.x = sensorValue.un.gyroscope.x;
-      ros2_sensor.angular_velocity.y = sensorValue.un.gyroscope.y;
-      ros2_sensor.angular_velocity.z = sensorValue.un.gyroscope.z;
-      break;
-    case SH2_LINEAR_ACCELERATION:
-      ros2_sensor.linear_acceleration.x = sensorValue.un.linearAcceleration.x;
-      ros2_sensor.linear_acceleration.y = sensorValue.un.linearAcceleration.y;
-      ros2_sensor.linear_acceleration.z = sensorValue.un.linearAcceleration.z;
-      break;
-    case SH2_MAGNETIC_FIELD_CALIBRATED:
-      ros2_sensor.magnetic_field.x = sensorValue.un.magneticField.x;
-      ros2_sensor.magnetic_field.y = sensorValue.un.magneticField.y;
-      ros2_sensor.magnetic_field.z = sensorValue.un.magneticField.z;
-      break;
-    case SH2_TEMPERATURE:
-      Bridge.println("temperature update");
-      ros2_sensor.temperature = sensorValue.un.temperature.value;
-      break;
-    default:
-      break;
-    }
-  }
+  // readMpu();
 
   // if (millis() % LOG_CYCLE == 0)
   // {
@@ -299,30 +259,27 @@ void bridgeEvent()
 void setReports()
 {
   Bridge.println("Setting bno085 reports");
-  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV, MPU_CAL_CYCLE))
-  {
-    Bridge.println("Could not enable stabilized remote vector");
-  }
+  // if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV, MPU_CAL_CYCLE))
+  // {
+  //   Bridge.println("Could not enable stabilized remote vector");
+  // }
   if (!bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable gyroscope calibrated");
   }
-  if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION, MPU_CAL_CYCLE))
-  {
-    Bridge.println("Could not enable linear acceleration");
-  }
+  // if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION, MPU_CAL_CYCLE))
+  // {
+  //   Bridge.println("Could not enable linear acceleration");
+  // }
   if (!bno08x.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, MPU_CAL_CYCLE))
   {
     Bridge.println("Could not enable magnetic field calibrated");
-  }
-  if (!bno08x.enableReport(SH2_TEMPERATURE, MPU_CAL_CYCLE))
-  {
-    Bridge.println("Could not enable temperature");
   }
 }
 
 void msgProcess(String lightCmd, Stream &stream)
 {
+  stream.print(lightCmd);
   uint64_t start_t = micros();
   uint32_t idx = lightCmd.indexOf('{'); //
 
@@ -398,6 +355,18 @@ void msgProcess(String lightCmd, Stream &stream)
   {
     // add battery value
     doc["bat"] = battery.getAverageVoltage();
+    // add velocity value
+    JsonArray velocity = doc.createNestedArray("vel");
+    velocity.add(motor1.getAverageSpeed());
+    velocity.add(motor2.getAverageSpeed());
+    velocity.add(motor3.getAverageSpeed());
+    velocity.add(motor4.getAverageSpeed());
+    // add position value
+    JsonArray position = doc.createNestedArray("pos");
+    position.add(motor1.getPosition());
+    position.add(motor2.getPosition());
+    position.add(motor3.getPosition());
+    position.add(motor4.getPosition());
     // add imu value
     if (IMU_AVAILABLE)
     {
@@ -417,24 +386,11 @@ void msgProcess(String lightCmd, Stream &stream)
       accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.y, 0));
       accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.z, 0));
 
-      // JsonArray magnetic = doc.createNestedArray("mag");
-      // magnetic.add(trimDouble(ros2_sensor.magnetic_field.x, 0));
-      // magnetic.add(trimDouble(ros2_sensor.magnetic_field.y, 0));
-      // magnetic.add(trimDouble(ros2_sensor.magnetic_field.z, 0));
+      JsonArray magnetic = doc.createNestedArray("mag");
+      magnetic.add(trimDouble(ros2_sensor.magnetic_field.x, 0));
+      magnetic.add(trimDouble(ros2_sensor.magnetic_field.y, 0));
+      magnetic.add(trimDouble(ros2_sensor.magnetic_field.z, 0));
     }
-    // add velocity value
-    JsonArray velocity = doc.createNestedArray("vel");
-    velocity.add(motor1.getAverageSpeed());
-    velocity.add(motor2.getAverageSpeed());
-    velocity.add(motor3.getAverageSpeed());
-    velocity.add(motor4.getAverageSpeed());
-    // add position value
-    JsonArray position = doc.createNestedArray("pos");
-    position.add(motor1.getPosition());
-    position.add(motor2.getPosition());
-    position.add(motor3.getPosition());
-    position.add(motor4.getPosition());
-
     // doc["dur"] = micros() - start_t;
 
     char buffer[500];
@@ -575,6 +531,7 @@ void msgProcess(String lightCmd, Stream &stream)
     motor3.info(stream);
     motor4.info(stream);
   }
+  stream.println(micros() - start_t);
 }
 
 void velocityProcess(double linear_x, double linear_y, double angular)
@@ -655,6 +612,64 @@ void velocityProcess_base(double linear_x, double linear_y, double angular)
   Bridge.print("\t");
   Bridge.print(motor_4_velocity * MPS_TO_RPM_FACTOR);
   Bridge.println("");
+}
+
+void readMpu()
+{
+  uint64_t start_t = micros();
+  if (bno08x.getSensorEvent(&sensorValue))
+  {
+    uint64_t now_t = micros();
+    Bridge.print(start_t);
+    Bridge.print(" ");
+    Bridge.println(now_t - start_t);
+    // in this demo only one report type will be received depending on FAST_MODE define (above)
+    switch (sensorValue.sensorId)
+    {
+    // case SH2_ARVR_STABILIZED_RV:
+    //   // Bridge.println("quaternion update");
+    //   ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.i;
+    //   ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedRV.j;
+    //   ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedRV.k;
+    //   ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
+    //   break;
+    case SH2_ARVR_STABILIZED_GRV:
+      // Bridge.println("quaternion update");
+      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.i;
+      ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedGRV.j;
+      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.k;
+      ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedGRV.real;
+      break;
+    case SH2_GYROSCOPE_CALIBRATED:
+      ros2_sensor.angular_velocity.x = sensorValue.un.gyroscope.x;
+      ros2_sensor.angular_velocity.y = sensorValue.un.gyroscope.y;
+      ros2_sensor.angular_velocity.z = sensorValue.un.gyroscope.z;
+      break;
+    case SH2_LINEAR_ACCELERATION:
+      ros2_sensor.linear_acceleration.x = sensorValue.un.linearAcceleration.x;
+      ros2_sensor.linear_acceleration.y = sensorValue.un.linearAcceleration.y;
+      ros2_sensor.linear_acceleration.z = sensorValue.un.linearAcceleration.z;
+      break;
+    case SH2_MAGNETIC_FIELD_CALIBRATED:
+      ros2_sensor.magnetic_field.x = sensorValue.un.magneticField.x;
+      ros2_sensor.magnetic_field.y = sensorValue.un.magneticField.y;
+      ros2_sensor.magnetic_field.z = sensorValue.un.magneticField.z;
+      break;
+    case SH2_TEMPERATURE:
+      ros2_sensor.temperature = sensorValue.un.temperature.value;
+      break;
+    default:
+      break;
+    }
+    // Bridge.println(micros() - start_t);
+  }
+  else
+  {
+    uint64_t now_t = micros();
+    Bridge.print(start_t);
+    Bridge.print(" NONE ");
+    Bridge.println(now_t - start_t);
+  }
 }
 
 void lcdRender()
