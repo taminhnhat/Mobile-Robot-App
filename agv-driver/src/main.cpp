@@ -209,8 +209,6 @@ void setup()
   currentSensor_1_2.calibrate();
   currentSensor_3_4.calibrate();
 
-  lcdRender();
-
   Bridge.println("================================setup complete========================================");
 
   timer.refresh();
@@ -225,10 +223,12 @@ void loop()
     setReports();
   }
 
+  uint64_t start_t = micros();
   if (bno08x.getSensorEvent(&sensorValue))
   {
-    // Bridge.print("sensor id: ");
-    // Bridge.println(sensorValue.sensorId);
+    // Bridge.print(start_t);
+    // Bridge.print(" ");
+    // Bridge.println(micros() - start_t);
     // in this demo only one report type will be received depending on FAST_MODE define (above)
     switch (sensorValue.sensorId)
     {
@@ -417,10 +417,10 @@ void msgProcess(String lightCmd, Stream &stream)
       accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.y, 0));
       accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.z, 0));
 
-      JsonArray magnetic = doc.createNestedArray("mag");
-      magnetic.add(trimDouble(ros2_sensor.magnetic_field.x, 0));
-      magnetic.add(trimDouble(ros2_sensor.magnetic_field.y, 0));
-      magnetic.add(trimDouble(ros2_sensor.magnetic_field.z, 0));
+      // JsonArray magnetic = doc.createNestedArray("mag");
+      // magnetic.add(trimDouble(ros2_sensor.magnetic_field.x, 0));
+      // magnetic.add(trimDouble(ros2_sensor.magnetic_field.y, 0));
+      // magnetic.add(trimDouble(ros2_sensor.magnetic_field.z, 0));
     }
     // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
@@ -435,7 +435,7 @@ void msgProcess(String lightCmd, Stream &stream)
     position.add(motor3.getPosition());
     position.add(motor4.getPosition());
 
-    doc["dur"] = micros() - start_t;
+    // doc["dur"] = micros() - start_t;
 
     char buffer[500];
     serializeJson(doc, buffer);
