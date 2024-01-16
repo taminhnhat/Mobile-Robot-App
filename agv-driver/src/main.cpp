@@ -29,6 +29,7 @@ void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
 void velocityProcess_base(double, double, double);
 void lcdRender();
+void logger();
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
 CurrentSensor currentSensor_1_2(CURRENT_SENSOR_1_2),
@@ -82,6 +83,10 @@ void OnTimer1Interrupt()
   {
     currentSensor_1_2.tick();
     currentSensor_3_4.tick();
+  }
+  if (timer_count % LOG_CYCLE == 0)
+  {
+    logger();
   }
 }
 
@@ -265,83 +270,9 @@ void loop()
     }
   }
 
-  if (millis() % LOG_CYCLE == 0)
-  {
-    if (EN_VELOCITY_LOG)
-    {
-      Radio.print("MR");
-      Radio.print(motor1.getSetSpeed());
-      Radio.print(",ML");
-      Radio.print(motor4.getSetSpeed());
-      Radio.print(",M1=");
-      Radio.print(motor1.getAverageSpeed());
-      Radio.print(",M2=");
-      Radio.print(motor2.getAverageSpeed());
-      Radio.print(",M3=");
-      Radio.print(motor3.getAverageSpeed());
-      Radio.print(",M4=");
-      Radio.print(motor4.getAverageSpeed());
-      Radio.print("\r\n");
-    }
-    else if (EN_CURRENT_LOG)
-    {
-      Radio.print("INS_R=");
-      Radio.print(currentSensor_1_2.getInstantCurrent());
-      Radio.print(",INS_L=");
-      Radio.print(currentSensor_3_4.getInstantCurrent());
-      Radio.print(",AVE_R=");
-      Radio.print(currentSensor_1_2.getAverageCurrent());
-      Radio.print(",AVE_L=");
-      Radio.print(currentSensor_3_4.getAverageCurrent());
-      Radio.print(",FIL_R=");
-      Radio.print(currentSensor_1_2.getAverageFilterCurrent());
-      Radio.print(",FIL_L=");
-      Radio.print(currentSensor_3_4.getAverageFilterCurrent());
-      Radio.print("\r\n");
-    }
-    else if (EN_IMU_LOG && IMU_AVAILABLE)
-    {
-      Serial1.print("qx=");
-      Serial1.print(ros2_sensor.orientation.x);
-      Serial1.print(",qy=");
-      Serial1.print(ros2_sensor.orientation.y);
-      Serial1.print(",qz=");
-      Serial1.print(ros2_sensor.orientation.z);
-      Serial1.print(",qw=");
-      Serial1.print(ros2_sensor.orientation.w);
-
-      euler_t euler_out;
-      quaternionToEuler(ros2_sensor.orientation.w, ros2_sensor.orientation.x, ros2_sensor.orientation.y, ros2_sensor.orientation.z, &euler_out, true);
-      Serial1.print(",roll=");
-      Serial1.print(euler_out.roll);
-      Serial1.print(",pitch=");
-      Serial1.print(euler_out.pitch);
-      Serial1.print(",yaw=");
-      Serial1.print(euler_out.yaw);
-
-      Serial1.print(",gx=");
-      Serial1.print(ros2_sensor.angular_velocity.x);
-      Serial1.print(",gy=");
-      Serial1.print(ros2_sensor.angular_velocity.y);
-      Serial1.print(",gz=");
-      Serial1.print(ros2_sensor.angular_velocity.z);
-
-      Serial1.print(",ax=");
-      Serial1.print(ros2_sensor.linear_acceleration.x);
-      Serial1.print(",ay=");
-      Serial1.print(ros2_sensor.linear_acceleration.y);
-      Serial1.print(",az=");
-      Serial1.print(ros2_sensor.linear_acceleration.z);
-
-      Serial1.print(",mx=");
-      Serial1.print(ros2_sensor.magnetic_field.x);
-      Serial1.print(",my=");
-      Serial1.print(ros2_sensor.magnetic_field.y);
-      Serial1.print(",mz=");
-      Serial1.print(ros2_sensor.magnetic_field.z);
-      Serial1.println("");
-    }
-  }
+  // if (millis() % LOG_CYCLE == 0)
+  // {
+  // }
 }
 
 // -------------------------------------------------DECLARE FUNCTIONS--------------------------------------------------------
@@ -737,4 +668,82 @@ void lcdRender()
   display.draw_rectangle(125, 18, 127, 27, OLED::SOLID, OLED::WHITE);
   display.draw_rectangle(82, 17, 81 + batteryScale, 29, OLED::SOLID, OLED::WHITE);
   display.display();
+}
+
+void logger()
+{
+  if (EN_VELOCITY_LOG)
+  {
+    Radio.print("MR");
+    Radio.print(motor1.getSetSpeed());
+    Radio.print(",ML");
+    Radio.print(motor4.getSetSpeed());
+    Radio.print(",M1=");
+    Radio.print(motor1.getAverageSpeed());
+    Radio.print(",M2=");
+    Radio.print(motor2.getAverageSpeed());
+    Radio.print(",M3=");
+    Radio.print(motor3.getAverageSpeed());
+    Radio.print(",M4=");
+    Radio.print(motor4.getAverageSpeed());
+    Radio.print("\r\n");
+  }
+  else if (EN_CURRENT_LOG)
+  {
+    Radio.print("INS_R=");
+    Radio.print(currentSensor_1_2.getInstantCurrent());
+    Radio.print(",INS_L=");
+    Radio.print(currentSensor_3_4.getInstantCurrent());
+    Radio.print(",AVE_R=");
+    Radio.print(currentSensor_1_2.getAverageCurrent());
+    Radio.print(",AVE_L=");
+    Radio.print(currentSensor_3_4.getAverageCurrent());
+    Radio.print(",FIL_R=");
+    Radio.print(currentSensor_1_2.getAverageFilterCurrent());
+    Radio.print(",FIL_L=");
+    Radio.print(currentSensor_3_4.getAverageFilterCurrent());
+    Radio.print("\r\n");
+  }
+  else if (EN_IMU_LOG && IMU_AVAILABLE)
+  {
+    Serial1.print("qx=");
+    Serial1.print(ros2_sensor.orientation.x);
+    Serial1.print(",qy=");
+    Serial1.print(ros2_sensor.orientation.y);
+    Serial1.print(",qz=");
+    Serial1.print(ros2_sensor.orientation.z);
+    Serial1.print(",qw=");
+    Serial1.print(ros2_sensor.orientation.w);
+
+    euler_t euler_out;
+    quaternionToEuler(ros2_sensor.orientation.w, ros2_sensor.orientation.x, ros2_sensor.orientation.y, ros2_sensor.orientation.z, &euler_out, true);
+    Serial1.print(",roll=");
+    Serial1.print(euler_out.roll);
+    Serial1.print(",pitch=");
+    Serial1.print(euler_out.pitch);
+    Serial1.print(",yaw=");
+    Serial1.print(euler_out.yaw);
+
+    Serial1.print(",gx=");
+    Serial1.print(ros2_sensor.angular_velocity.x);
+    Serial1.print(",gy=");
+    Serial1.print(ros2_sensor.angular_velocity.y);
+    Serial1.print(",gz=");
+    Serial1.print(ros2_sensor.angular_velocity.z);
+
+    Serial1.print(",ax=");
+    Serial1.print(ros2_sensor.linear_acceleration.x);
+    Serial1.print(",ay=");
+    Serial1.print(ros2_sensor.linear_acceleration.y);
+    Serial1.print(",az=");
+    Serial1.print(ros2_sensor.linear_acceleration.z);
+
+    Serial1.print(",mx=");
+    Serial1.print(ros2_sensor.magnetic_field.x);
+    Serial1.print(",my=");
+    Serial1.print(ros2_sensor.magnetic_field.y);
+    Serial1.print(",mz=");
+    Serial1.print(ros2_sensor.magnetic_field.z);
+    Serial1.println("");
+  }
 }
