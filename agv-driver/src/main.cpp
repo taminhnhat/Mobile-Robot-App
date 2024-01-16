@@ -42,52 +42,52 @@ void OnTimer1Interrupt()
 {
   timer_count++;
   uint32_t present_t = millis();
-  while (Radio.available())
-  {
-    char tempChar = (char)Radio.read();
-    if (tempChar != '\n')
-    {
-      messageFromRaio += tempChar;
-    }
-    else
-    {
-      msgProcess(messageFromRaio, Radio);
-      messageFromRaio = "";
-    }
-  }
-  if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
-  {
-    motor1.stop();
-    motor2.stop();
-    motor3.stop();
-    motor4.stop();
-    OnVelocityControl = false;
-  }
-  if (timer_count % MOTOR_CYCLE == 0)
-  {
-    // if (!EN_MECANUM_WHEEL)
-    // {
-    //   motor2.setVelocity(motor1.getVelocity());
-    //   motor3.setVelocity(motor4.getVelocity());
-    // }
-    motor1.tick(MOTOR_CYCLE);
-    motor2.tick(MOTOR_CYCLE);
-    motor3.tick(MOTOR_CYCLE);
-    motor4.tick(MOTOR_CYCLE);
-  }
-  if (timer_count % BAT_VOL_CAL_CYCLE == 0)
-  {
-    battery.tick();
-  }
-  if (timer_count % CURRENT_CAL_CYCLE == 0)
-  {
-    currentSensor_1_2.tick();
-    currentSensor_3_4.tick();
-  }
-  if (timer_count % LOG_CYCLE == 0)
-  {
-    logger();
-  }
+  // while (Radio.available())
+  // {
+  //   char tempChar = (char)Radio.read();
+  //   if (tempChar != '\n')
+  //   {
+  //     messageFromRaio += tempChar;
+  //   }
+  //   else
+  //   {
+  //     msgProcess(messageFromRaio, Radio);
+  //     messageFromRaio = "";
+  //   }
+  // }
+  // if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
+  // {
+  //   motor1.stop();
+  //   motor2.stop();
+  //   motor3.stop();
+  //   motor4.stop();
+  //   OnVelocityControl = false;
+  // }
+  // if (timer_count % MOTOR_CYCLE == 0)
+  // {
+  //   // if (!EN_MECANUM_WHEEL)
+  //   // {
+  //   //   motor2.setVelocity(motor1.getVelocity());
+  //   //   motor3.setVelocity(motor4.getVelocity());
+  //   // }
+  //   motor1.tick(MOTOR_CYCLE);
+  //   motor2.tick(MOTOR_CYCLE);
+  //   motor3.tick(MOTOR_CYCLE);
+  //   motor4.tick(MOTOR_CYCLE);
+  // }
+  // if (timer_count % BAT_VOL_CAL_CYCLE == 0)
+  // {
+  //   battery.tick();
+  // }
+  // if (timer_count % CURRENT_CAL_CYCLE == 0)
+  // {
+  //   currentSensor_1_2.tick();
+  //   currentSensor_3_4.tick();
+  // }
+  // if (timer_count % LOG_CYCLE == 0)
+  // {
+  //   logger();
+  // }
 }
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
@@ -323,6 +323,7 @@ void setReports()
 
 void msgProcess(String lightCmd, Stream &stream)
 {
+  uint64_t start_t = micros();
   uint32_t idx = lightCmd.indexOf('{'); //
 
   String cmd_cs = lightCmd.substring(0, idx); // received checksum
@@ -433,6 +434,8 @@ void msgProcess(String lightCmd, Stream &stream)
     position.add(motor2.getPosition());
     position.add(motor3.getPosition());
     position.add(motor4.getPosition());
+
+    doc["dur"] = micros() - start_t;
 
     char buffer[500];
     serializeJson(doc, buffer);
