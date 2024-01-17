@@ -1,7 +1,5 @@
 #include <Arduino.h>
 
-// struct CONF_
-// {
 bool CRC_Enable = true;
 bool EN_MECANUM_WHEEL = false;
 bool EN_VELOCITY_LOG = false;
@@ -31,11 +29,8 @@ const uint32_t CURRENT_CAL_CYCLE = 2;   // in ms
 const uint32_t MOTOR_CYCLE = 10;        // in ms
 const uint32_t BAT_VOL_CAL_CYCLE = 100; // in ms
 const uint32_t DIS_VOL_CAL_CYCLE = 10;  // in ms
-const uint32_t MPU_CAL_CYCLE = 10;      // in us
+const uint32_t MPU_CAL_CYCLE = 10000;   // in us
+const uint32_t MPU_SAMP_TIME = 10;      // sampling time in ms
 const uint32_t PID_SAMPLE_CYCLE = 20;   // in ms
 const uint32_t STATUS_CMD_CYCLE = 100;  // in ms
 uint32_t last_time_call_status = 0;     // in ms
-// }
-// ;
-
-// CONF_ CONFIG;

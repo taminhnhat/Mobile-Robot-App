@@ -23,7 +23,7 @@ uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 
-void setReports();
+int setReports();
 void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
@@ -43,8 +43,6 @@ void OnTimer1Interrupt()
 {
   timer_count++;
   uint32_t present_t = millis();
-  if (timer_count % 100 == 0)
-    readMpu();
 
   // while (Radio.available())
   // {
@@ -88,6 +86,14 @@ void OnTimer1Interrupt()
   //   currentSensor_1_2.tick();
   //   currentSensor_3_4.tick();
   // }
+  if (timer_count % MPU_SAMP_TIME == 0)
+  {
+    readMpu();
+  }
+  if ((timer_count - 1) % 1000 == 0)
+  {
+    Bridge.println(millis());
+  }
   // if (timer_count % LOG_CYCLE == 0)
   // {
   //   logger();
@@ -223,16 +229,9 @@ void loop()
 {
   if (bno08x.wasReset())
   {
-    Serial1.print("sensor was reset ");
+    Serial1.print("sensor was reset. ");
     setReports();
   }
-
-  uint64_t start_t = micros();
-  // readMpu();
-
-  // if (millis() % LOG_CYCLE == 0)
-  // {
-  // }
 }
 
 // -------------------------------------------------DECLARE FUNCTIONS--------------------------------------------------------
@@ -256,30 +255,38 @@ void bridgeEvent()
   // }
 }
 
-void setReports()
+int setReports()
 {
   Bridge.println("Setting bno085 reports");
-  // if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV, MPU_CAL_CYCLE))
-  // {
-  //   Bridge.println("Could not enable stabilized remote vector");
-  // }
-  if (!bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, MPU_CAL_CYCLE))
+  uint8_t reports_success = 0;
+  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV))
   {
+    reports_success++;
+    Bridge.println("Could not enable stabilized remote vector");
+  }
+  if (!bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED))
+  {
+    reports_success++;
     Bridge.println("Could not enable gyroscope calibrated");
   }
-  // if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION, MPU_CAL_CYCLE))
-  // {
-  //   Bridge.println("Could not enable linear acceleration");
-  // }
-  if (!bno08x.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, MPU_CAL_CYCLE))
+  if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION))
   {
+    reports_success++;
+    Bridge.println("Could not enable linear acceleration");
+  }
+  if (!bno08x.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED))
+  {
+    reports_success++;
     Bridge.println("Could not enable magnetic field calibrated");
   }
+  return reports_success;
+  Bridge.print("Complete ");
+  Bridge.print(reports_success);
+  Bridge.println(" reports");
 }
 
 void msgProcess(String lightCmd, Stream &stream)
 {
-  stream.print(lightCmd);
   uint64_t start_t = micros();
   uint32_t idx = lightCmd.indexOf('{'); //
 
@@ -350,6 +357,7 @@ void msgProcess(String lightCmd, Stream &stream)
     // String msg = String(buffer);
     // msg = crc_generate(msg) + msg + "\r\n";
     stream.print("863713777{\"topic\":\"ros2_control\",\"status\":\"ok\"}\r\n");
+    // readMpu();
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
@@ -634,7 +642,6 @@ void readMpu()
     //   ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
     //   break;
     case SH2_ARVR_STABILIZED_GRV:
-      // Bridge.println("quaternion update");
       ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.i;
       ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedGRV.j;
       ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.k;
@@ -661,7 +668,6 @@ void readMpu()
     default:
       break;
     }
-    // Bridge.println(micros() - start_t);
   }
   else
   {
