@@ -20,6 +20,8 @@ const robotHub = new SerialPort({
     autoOpen: true
 });
 
+let send_t = Date.now()
+
 robotHub.on('open', function () {
     isRgbHubOpen = true
     clearInterval(reconnectHubInterval)
@@ -29,9 +31,10 @@ robotHub.on('open', function () {
     setTimeout(() => {
         ros2ControlInterval = setInterval(() => {
             sendingCount++
-            robotHub.write(`{"topic":"ros2_control","velocity":[4.03562,4.02,4.043256324,4.034566],"timeout":1000}\r\n`)
-            // robotHub.write(`150088878{"topic":"ros2_state"}\r\n`)
-        }, 10)
+            // robotHub.write(`{"topic":"ros2_control","velocity":[4.03562,4.02,4.043256324,4.034566],"timeout":1000}\r\n`)
+            send_t = Date.now()
+            robotHub.write(`150088878{"topic":"ros2_state"}\r\n`)
+        }, 20)
     }, 2000)
     console.log('rgb hub opened')
 });
@@ -41,7 +44,8 @@ robotHub.on('data', function (data) {
     const value = String(data)
     messageBufferFromRgbHub += value.trim()
     if (value[value.length - 1] == '\n') {
-        console.log(`sent:${sendingCount}   received:${receivingCount}   ${dayjs().format('hh:mm:ss.SSS')} <<< ${messageBufferFromRgbHub}`)
+        let receive_t = Date.now()
+        console.log(`sent:${sendingCount}   received:${receive_t - send_t}   ${dayjs().format('hh:mm:ss.SSS')} <<< ${messageBufferFromRgbHub}`)
         // msgProcess(messageBufferFromRgbHub)
         messageBufferFromRgbHub = ''
     }

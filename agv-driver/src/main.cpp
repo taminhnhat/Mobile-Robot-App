@@ -6,15 +6,10 @@
 #include "hardware_control.h"
 #include "currentSensor.hpp"
 #include "lcd.hpp"
-// #include "power.h"
+#include "power.h"
 
 // -------------------------------------------------JSON--------------------------------------------------------
 StaticJsonDocument<500> doc;
-
-// -------------------------------------------------MPU BNO085--------------------------------------------------------
-#define BNO08X_RESET -1
-Adafruit_BNO08x bno08x(BNO08X_RESET);
-sh2_SensorValue_t sensorValue;
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 String messageFromRaio = "";
@@ -23,12 +18,10 @@ uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 
-int setReports();
 void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
 void velocityProcessTimeout(double, double, double, uint32_t);
 void velocityProcess_base(double, double, double);
-void readMpu();
 void lcdRender();
 void logger();
 
@@ -57,42 +50,39 @@ void OnTimer1Interrupt()
   //     messageFromRaio = "";
   //   }
   // }
-  // if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
-  // {
-  //   motor1.stop();
-  //   motor2.stop();
-  //   motor3.stop();
-  //   motor4.stop();
-  //   OnVelocityControl = false;
-  // }
-  // if (timer_count % MOTOR_CYCLE == 0)
-  // {
-  //   // if (!EN_MECANUM_WHEEL)
-  //   // {
-  //   //   motor2.setVelocity(motor1.getVelocity());
-  //   //   motor3.setVelocity(motor4.getVelocity());
-  //   // }
-  //   motor1.tick(MOTOR_CYCLE);
-  //   motor2.tick(MOTOR_CYCLE);
-  //   motor3.tick(MOTOR_CYCLE);
-  //   motor4.tick(MOTOR_CYCLE);
-  // }
-  // if (timer_count % BAT_VOL_CAL_CYCLE == 0)
-  // {
-  //   battery.tick();
-  // }
+  if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
+  {
+    motor1.stop();
+    motor2.stop();
+    motor3.stop();
+    motor4.stop();
+    OnVelocityControl = false;
+  }
+  if (timer_count % MOTOR_CYCLE == 0)
+  {
+    // if (!EN_MECANUM_WHEEL)
+    // {
+    //   motor2.setVelocity(motor1.getVelocity());
+    //   motor3.setVelocity(motor4.getVelocity());
+    // }
+    motor1.tick(MOTOR_CYCLE);
+    motor2.tick(MOTOR_CYCLE);
+    motor3.tick(MOTOR_CYCLE);
+    motor4.tick(MOTOR_CYCLE);
+  }
+  if (timer_count % BAT_VOL_CAL_CYCLE == 0)
+  {
+    battery.tick();
+    dfMeter.tick();
+  }
   // if (timer_count % CURRENT_CAL_CYCLE == 0)
   // {
   //   currentSensor_1_2.tick();
   //   currentSensor_3_4.tick();
   // }
-  if (timer_count % MPU_SAMP_TIME == 0)
-  {
-    readMpu();
-  }
   if ((timer_count - 1) % 1000 == 0)
   {
-    Bridge.println(millis());
+    // Bridge.println(millis());
   }
   // if (timer_count % LOG_CYCLE == 0)
   // {
@@ -138,55 +128,9 @@ void setup()
 
   analogWriteResolution(PWM_RESOLUTION_SET);
   // Start serial 1 as ros2 bridge
-  Bridge.begin(460800);
+  Bridge.begin(115200);
   // Start serial 1 as debug port (rf/bluetooth)
   Radio.begin(115200);
-
-  Bridge.println("===> Adafruit BNO08x test!");
-
-  bool bnoConnected = false;
-  uint8_t connectCount = 0;
-
-  while (!bnoConnected && connectCount <= 5)
-  {
-    bnoConnected = bno08x.begin_I2C();
-    connectCount++;
-    delay(500);
-  }
-  if (bnoConnected)
-  {
-    IMU_AVAILABLE = true;
-    Bridge.println("BNO08x Found!");
-    setReports();
-    for (int n = 0; n < bno08x.prodIds.numEntries; n++)
-    {
-      Bridge.print("Part ");
-      Bridge.print(bno08x.prodIds.entry[n].swPartNumber);
-      Bridge.print(": Version :");
-      Bridge.print(bno08x.prodIds.entry[n].swVersionMajor);
-      Bridge.print(".");
-      Bridge.print(bno08x.prodIds.entry[n].swVersionMinor);
-      Bridge.print(".");
-      Bridge.print(bno08x.prodIds.entry[n].swVersionPatch);
-      Bridge.print(" Build ");
-      Bridge.println(bno08x.prodIds.entry[n].swBuildNumber);
-    }
-  }
-  else
-  {
-    IMU_AVAILABLE = false;
-    Bridge.println("Failed to find BNO08x chip");
-  }
-
-  // if (!bno08x.begin_I2C())
-  // {
-  //   Bridge.println("Failed to find BNO08x chip");
-  // }
-  // else
-  // {
-  //   IMU_AVAILABLE = true;
-  //   Bridge.println("BNO08x Found!");
-  // }
 
   // Bridge.println("===> Setting up power manager");
   // dfMeter.init(Bridge);
@@ -227,11 +171,6 @@ void setup()
 
 void loop()
 {
-  if (bno08x.wasReset())
-  {
-    Serial1.print("sensor was reset. ");
-    setReports();
-  }
 }
 
 // -------------------------------------------------DECLARE FUNCTIONS--------------------------------------------------------
@@ -253,36 +192,6 @@ void bridgeEvent()
   //     messageFromBridge = "";
   //   }
   // }
-}
-
-int setReports()
-{
-  Bridge.println("Setting bno085 reports");
-  uint8_t reports_success = 0;
-  if (!bno08x.enableReport(SH2_ARVR_STABILIZED_GRV))
-  {
-    reports_success++;
-    Bridge.println("Could not enable stabilized remote vector");
-  }
-  if (!bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED))
-  {
-    reports_success++;
-    Bridge.println("Could not enable gyroscope calibrated");
-  }
-  if (!bno08x.enableReport(SH2_LINEAR_ACCELERATION))
-  {
-    reports_success++;
-    Bridge.println("Could not enable linear acceleration");
-  }
-  if (!bno08x.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED))
-  {
-    reports_success++;
-    Bridge.println("Could not enable magnetic field calibrated");
-  }
-  return reports_success;
-  Bridge.print("Complete ");
-  Bridge.print(reports_success);
-  Bridge.println(" reports");
 }
 
 void msgProcess(String lightCmd, Stream &stream)
@@ -357,12 +266,12 @@ void msgProcess(String lightCmd, Stream &stream)
     // String msg = String(buffer);
     // msg = crc_generate(msg) + msg + "\r\n";
     stream.print("863713777{\"topic\":\"ros2_control\",\"status\":\"ok\"}\r\n");
-    // readMpu();
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
     // add battery value
-    doc["bat"] = battery.getAverageVoltage();
+    // doc["bat"] = battery.getAverageVoltage();
+    doc["bat"] = dfMeter.getVoltage();
     // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());
@@ -539,7 +448,7 @@ void msgProcess(String lightCmd, Stream &stream)
     motor3.info(stream);
     motor4.info(stream);
   }
-  stream.println(micros() - start_t);
+  // stream.println(micros() - start_t);
 }
 
 void velocityProcess(double linear_x, double linear_y, double angular)
@@ -620,62 +529,6 @@ void velocityProcess_base(double linear_x, double linear_y, double angular)
   Bridge.print("\t");
   Bridge.print(motor_4_velocity * MPS_TO_RPM_FACTOR);
   Bridge.println("");
-}
-
-void readMpu()
-{
-  uint64_t start_t = micros();
-  if (bno08x.getSensorEvent(&sensorValue))
-  {
-    uint64_t now_t = micros();
-    Bridge.print(start_t);
-    Bridge.print(" ");
-    Bridge.println(now_t - start_t);
-    // in this demo only one report type will be received depending on FAST_MODE define (above)
-    switch (sensorValue.sensorId)
-    {
-    // case SH2_ARVR_STABILIZED_RV:
-    //   // Bridge.println("quaternion update");
-    //   ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedRV.i;
-    //   ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedRV.j;
-    //   ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedRV.k;
-    //   ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedRV.real;
-    //   break;
-    case SH2_ARVR_STABILIZED_GRV:
-      ros2_sensor.orientation.x = sensorValue.un.arvrStabilizedGRV.i;
-      ros2_sensor.orientation.y = sensorValue.un.arvrStabilizedGRV.j;
-      ros2_sensor.orientation.z = sensorValue.un.arvrStabilizedGRV.k;
-      ros2_sensor.orientation.w = sensorValue.un.arvrStabilizedGRV.real;
-      break;
-    case SH2_GYROSCOPE_CALIBRATED:
-      ros2_sensor.angular_velocity.x = sensorValue.un.gyroscope.x;
-      ros2_sensor.angular_velocity.y = sensorValue.un.gyroscope.y;
-      ros2_sensor.angular_velocity.z = sensorValue.un.gyroscope.z;
-      break;
-    case SH2_LINEAR_ACCELERATION:
-      ros2_sensor.linear_acceleration.x = sensorValue.un.linearAcceleration.x;
-      ros2_sensor.linear_acceleration.y = sensorValue.un.linearAcceleration.y;
-      ros2_sensor.linear_acceleration.z = sensorValue.un.linearAcceleration.z;
-      break;
-    case SH2_MAGNETIC_FIELD_CALIBRATED:
-      ros2_sensor.magnetic_field.x = sensorValue.un.magneticField.x;
-      ros2_sensor.magnetic_field.y = sensorValue.un.magneticField.y;
-      ros2_sensor.magnetic_field.z = sensorValue.un.magneticField.z;
-      break;
-    case SH2_TEMPERATURE:
-      ros2_sensor.temperature = sensorValue.un.temperature.value;
-      break;
-    default:
-      break;
-    }
-  }
-  else
-  {
-    uint64_t now_t = micros();
-    Bridge.print(start_t);
-    Bridge.print(" NONE ");
-    Bridge.println(now_t - start_t);
-  }
 }
 
 void lcdRender()
