@@ -31,21 +31,21 @@ robotHub.on('open', function () {
     setTimeout(() => {
         ros2ControlInterval = setInterval(() => {
             sendingCount++
-            // robotHub.write(`{"topic":"ros2_control","velocity":[4.03562,4.02,4.043256324,4.034566],"timeout":1000}\r\n`)
             send_t = Date.now()
-            robotHub.write(`150088878{"topic":"ros2_state"}\r\n`)
+            robotHub.write(`4063223057{"topic":"ros2_control","velocity":[4.03,4.02,4.04,4.03]}\r\n`)
+            // robotHub.write(`150088878{"topic":"ros2_state"}\r\n`)
         }, 20)
     }, 2000)
     console.log('rgb hub opened')
 });
 
 robotHub.on('data', function (data) {
-    receivingCount++
     const value = String(data)
     messageBufferFromRgbHub += value.trim()
     if (value[value.length - 1] == '\n') {
+        receivingCount++
         let receive_t = Date.now()
-        console.log(`sent:${sendingCount}   received:${receive_t - send_t}   ${dayjs().format('hh:mm:ss.SSS')} <<< ${messageBufferFromRgbHub}`)
+        console.log(`sent:${sendingCount}   received:${receivingCount}   time:${receive_t - send_t}   ${dayjs().format('hh:mm:ss.SSS')} <<< ${messageBufferFromRgbHub}`)
         // msgProcess(messageBufferFromRgbHub)
         messageBufferFromRgbHub = ''
     }

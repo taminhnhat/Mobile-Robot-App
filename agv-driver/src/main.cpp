@@ -17,6 +17,7 @@ String messageFromBridge = "";
 uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
+bool ledState = true;
 
 void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
@@ -24,6 +25,7 @@ void velocityProcessTimeout(double, double, double, uint32_t);
 void velocityProcess_base(double, double, double);
 void lcdRender();
 void logger();
+void toggleLed();
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
 CurrentSensor currentSensor_1_2(CURRENT_SENSOR_1_2),
@@ -73,7 +75,7 @@ void OnTimer1Interrupt()
   if (timer_count % BAT_VOL_CAL_CYCLE == 0)
   {
     battery.tick();
-    dfMeter.tick();
+    // dfMeter.tick();
   }
   // if (timer_count % CURRENT_CAL_CYCLE == 0)
   // {
@@ -82,7 +84,11 @@ void OnTimer1Interrupt()
   // }
   if ((timer_count - 1) % 1000 == 0)
   {
-    // Bridge.println(millis());
+    toggleLed();
+  }
+  if ((timer_count - 1) % 5000 == 0)
+  {
+    ina219.reset();
   }
   // if (timer_count % LOG_CYCLE == 0)
   // {
@@ -113,6 +119,7 @@ void setup()
   pinMode(MOTOR_2_DIR, OUTPUT);
   pinMode(MOTOR_3_DIR, OUTPUT);
   pinMode(MOTOR_4_DIR, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(MOTOR_1_A), EncoderHandle_1_A, CHANGE);
   attachInterrupt(digitalPinToInterrupt(MOTOR_1_B), EncoderHandle_1_B, CHANGE);
   attachInterrupt(digitalPinToInterrupt(MOTOR_2_A), EncoderHandle_2_A, CHANGE);
@@ -128,7 +135,7 @@ void setup()
 
   analogWriteResolution(PWM_RESOLUTION_SET);
   // Start serial 1 as ros2 bridge
-  Bridge.begin(115200);
+  Bridge.begin(460800);
   // Start serial 1 as debug port (rf/bluetooth)
   Radio.begin(115200);
 
@@ -271,7 +278,7 @@ void msgProcess(String lightCmd, Stream &stream)
   {
     // add battery value
     // doc["bat"] = battery.getAverageVoltage();
-    doc["bat"] = dfMeter.getVoltage();
+    // doc["bat"] = ina219.getBusVoltage_V();
     // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());
@@ -623,4 +630,10 @@ void logger()
     Serial1.print(ros2_sensor.magnetic_field.z);
     Serial1.println("");
   }
+}
+
+void toggleLed()
+{
+  digitalWrite(LED_BUILTIN, ledState);
+  ledState = !ledState;
 }
