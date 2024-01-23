@@ -219,7 +219,10 @@ void msgProcess(String lightCmd, Stream &stream)
   if (CRC_Enable == true)
   {
     if (rec_cs != cal_cs)
+    {
+      stream.println("crc failed");
       return;
+    }
   }
   const uint8_t len = lightCmd.length();
   char json[len];
@@ -277,7 +280,7 @@ void msgProcess(String lightCmd, Stream &stream)
   else if (topic_name.compareTo("ros2_state") == 0)
   {
     // add battery value
-    // doc["bat"] = battery.getAverageVoltage();
+    doc["bat"] = battery.getAverageVoltage();
     // doc["bat"] = ina219.getBusVoltage_V();
     // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
