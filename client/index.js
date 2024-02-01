@@ -141,7 +141,7 @@ function stopCamera() {
 const fs = require('fs');
 const { Console } = require("console");
 const { stderr } = require("process");
-const fileHandle = fs.openSync('/tmp/ros2_control_out', 'r+');
+const fileHandle = fs.openSync('/tmp/robot_driver', 'r+');
 let fifoRs = fs.createReadStream(null, { fd: fileHandle });
 
 fifoRs.on('ready', function (err) {
