@@ -1,15 +1,17 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <math.h>
-#include <Adafruit_BNO08x.h>
+#include <Adafruit_INA219.h>
 #include "checksum.h"
 #include "hardware_control.h"
 #include "currentSensor.hpp"
 #include "lcd.hpp"
-#include "power.h"
 
 // -------------------------------------------------JSON--------------------------------------------------------
 StaticJsonDocument<500> doc;
+
+// -------------------------------------------------INA219--------------------------------------------------------
+Adafruit_INA219 ina219(0x45);
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 String messageFromRaio = "";
@@ -18,6 +20,7 @@ uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 bool ledState = true;
+float vol = 0;
 
 void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
@@ -39,19 +42,19 @@ void OnTimer1Interrupt()
   timer_count++;
   uint32_t present_t = millis();
 
-  // while (Radio.available())
-  // {
-  //   char tempChar = (char)Radio.read();
-  //   if (tempChar != '\n')
-  //   {
-  //     messageFromRaio += tempChar;
-  //   }
-  //   else
-  //   {
-  //     msgProcess(messageFromRaio, Radio);
-  //     messageFromRaio = "";
-  //   }
-  // }
+  while (Radio.available())
+  {
+    char tempChar = (char)Radio.read();
+    if (tempChar != '\n')
+    {
+      messageFromRaio += tempChar;
+    }
+    else
+    {
+      msgProcess(messageFromRaio, Radio);
+      messageFromRaio = "";
+    }
+  }
   if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
   {
     motor1.stop();
@@ -72,9 +75,10 @@ void OnTimer1Interrupt()
     motor3.tick(MOTOR_CYCLE);
     motor4.tick(MOTOR_CYCLE);
   }
-  if (timer_count % BAT_VOL_CAL_CYCLE == 0)
+  if ((timer_count - 1) % BAT_VOL_CAL_CYCLE == 0)
   {
     battery.tick();
+    vol = ina219.getBusVoltage_V() + ina219.getShuntVoltage_mV() / 1000;
     // dfMeter.tick();
   }
   // if (timer_count % CURRENT_CAL_CYCLE == 0)
@@ -82,18 +86,10 @@ void OnTimer1Interrupt()
   //   currentSensor_1_2.tick();
   //   currentSensor_3_4.tick();
   // }
-  if ((timer_count - 1) % 1000 == 0)
+  if ((timer_count - 2) % 1000 == 0)
   {
     toggleLed();
   }
-  if ((timer_count - 1) % 5000 == 0)
-  {
-    ina219.reset();
-  }
-  // if (timer_count % LOG_CYCLE == 0)
-  // {
-  //   logger();
-  // }
 }
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
@@ -169,6 +165,15 @@ void setup()
   delay(100);
   currentSensor_1_2.calibrate();
   currentSensor_3_4.calibrate();
+
+  if (!ina219.begin())
+  {
+    Serial.println("Failed to find INA219 chip");
+    while (1)
+    {
+      delay(10);
+    }
+  }
 
   Bridge.println("================================setup complete========================================");
 
@@ -280,8 +285,8 @@ void msgProcess(String lightCmd, Stream &stream)
   else if (topic_name.compareTo("ros2_state") == 0)
   {
     // add battery value
-    doc["bat"] = battery.getAverageVoltage();
-    // doc["bat"] = ina219.getBusVoltage_V();
+    // doc["bat"] = battery.getAverageVoltage();
+    doc["bat"] = vol;
     // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());

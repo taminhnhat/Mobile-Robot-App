@@ -2,7 +2,7 @@ const { SerialPort } = require('serialport')
 const GPS = require('gps')
 
 const port = new SerialPort({
-    path: '/dev/ch341',
+    path: 'COM6',
     baudRate: 9600
     // parser: new SerialPort.parsers.Readline({
     //     delimiter: '\r\n'
