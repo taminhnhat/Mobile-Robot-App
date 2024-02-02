@@ -61,7 +61,7 @@ double trimDouble(double in, uint8_t num = 2)
     else
     {
         const uint16_t sc = 10 ^ num;
-        return round(in * sc) / sc;
+        return roundf(in * sc) / sc;
     }
 }
 

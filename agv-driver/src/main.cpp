@@ -78,7 +78,7 @@ void OnTimer1Interrupt()
   if ((timer_count - 1) % BAT_VOL_CAL_CYCLE == 0)
   {
     battery.tick();
-    vol = ina219.getBusVoltage_V() + ina219.getShuntVoltage_mV() / 1000;
+    vol = ina219.getBusVoltage_V();
     // dfMeter.tick();
   }
   // if (timer_count % CURRENT_CAL_CYCLE == 0)
@@ -286,7 +286,7 @@ void msgProcess(String lightCmd, Stream &stream)
   {
     // add battery value
     // doc["bat"] = battery.getAverageVoltage();
-    doc["bat"] = vol;
+    doc["bat"] = trimDouble(vol);
     // add velocity value
     JsonArray velocity = doc.createNestedArray("vel");
     velocity.add(motor1.getAverageSpeed());
