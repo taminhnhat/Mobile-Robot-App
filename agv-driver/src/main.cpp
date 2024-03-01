@@ -21,6 +21,12 @@ uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 bool ledState = true;
 float vol = 0;
+double mW_sum = 0;
+double mA_sum = 0;
+uint8_t mW_count = 0;
+uint8_t mA_count = 0;
+double powerInMiliWattHour = 0;
+double POWER_RAW_TO_MILI_WATT_HOUR = 0.1 / 3600;
 
 void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
@@ -79,6 +85,23 @@ void OnTimer1Interrupt()
   {
     battery.tick();
     vol = ina219.getBusVoltage_V();
+    mW_sum += ina219.getPower_mW() * 10;
+    double tmp_a = ina219.getCurrent_mA() * 10;
+    if (tmp_a != infinityf())
+      mA_sum += tmp_a;
+    // Bridge.print("A=");
+    // Bridge.print(mA_sum / 10);
+    // Bridge.print(" mA\t\t");
+    // Bridge.print(ina219.getBusVoltage_V());
+    // Bridge.print(" V\t");
+    // Bridge.print(",W=");
+    // Bridge.print(mW_sum / 10);
+    // Bridge.print(" mW\t");
+    // Bridge.print(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR);
+    // Bridge.print(" mAh\t");
+    // Bridge.print(mW_sum * POWER_RAW_TO_MILI_WATT_HOUR);
+    // Bridge.print(" mWh");
+    // Bridge.println("");
     // dfMeter.tick();
   }
   // if (timer_count % CURRENT_CAL_CYCLE == 0)
@@ -284,50 +307,82 @@ void msgProcess(String lightCmd, Stream &stream)
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
-    // add battery value
-    // doc["bat"] = battery.getAverageVoltage();
-    doc["bat"] = trimDouble(vol);
-    // add velocity value
-    JsonArray velocity = doc.createNestedArray("vel");
-    velocity.add(motor1.getAverageSpeed());
-    velocity.add(motor2.getAverageSpeed());
-    velocity.add(motor3.getAverageSpeed());
-    velocity.add(motor4.getAverageSpeed());
-    // add position value
-    JsonArray position = doc.createNestedArray("pos");
-    position.add(motor1.getPosition());
-    position.add(motor2.getPosition());
-    position.add(motor3.getPosition());
-    position.add(motor4.getPosition());
-    // add imu value
-    if (IMU_AVAILABLE)
-    {
-      JsonArray orientation = doc.createNestedArray("ori");
-      orientation.add(trimDouble(ros2_sensor.orientation.x, 0));
-      orientation.add(trimDouble(ros2_sensor.orientation.y, 0));
-      orientation.add(trimDouble(ros2_sensor.orientation.z, 0));
-      orientation.add(trimDouble(ros2_sensor.orientation.w, 0));
+    // // add battery value
+    // // doc["bat"] = battery.getAverageVoltage();
+    // doc["bat"] = trimDouble(vol);
+    // doc["mAh"] = mA_sum * POWER_RAW_TO_MILI_WATT_HOUR;
+    // doc["mWh"] = mW_sum * POWER_RAW_TO_MILI_WATT_HOUR;
+    // // add velocity value
+    // JsonArray velocity = doc.createNestedArray("vel");
+    // velocity.add(motor1.getAverageSpeed());
+    // velocity.add(motor2.getAverageSpeed());
+    // velocity.add(motor3.getAverageSpeed());
+    // velocity.add(motor4.getAverageSpeed());
+    // // add position value
+    // JsonArray position = doc.createNestedArray("pos");
+    // position.add(motor1.getPosition());
+    // position.add(motor2.getPosition());
+    // position.add(motor3.getPosition());
+    // position.add(motor4.getPosition());
+    // // add imu value
+    // if (IMU_AVAILABLE)
+    // {
+    //   JsonArray orientation = doc.createNestedArray("ori");
+    //   orientation.add(trimDouble(ros2_sensor.orientation.x, 0));
+    //   orientation.add(trimDouble(ros2_sensor.orientation.y, 0));
+    //   orientation.add(trimDouble(ros2_sensor.orientation.z, 0));
+    //   orientation.add(trimDouble(ros2_sensor.orientation.w, 0));
 
-      JsonArray gyroscope = doc.createNestedArray("gyr");
-      gyroscope.add(trimDouble(ros2_sensor.angular_velocity.x, 0));
-      gyroscope.add(trimDouble(ros2_sensor.angular_velocity.y, 0));
-      gyroscope.add(trimDouble(ros2_sensor.angular_velocity.z, 0));
+    //   JsonArray gyroscope = doc.createNestedArray("gyr");
+    //   gyroscope.add(trimDouble(ros2_sensor.angular_velocity.x, 0));
+    //   gyroscope.add(trimDouble(ros2_sensor.angular_velocity.y, 0));
+    //   gyroscope.add(trimDouble(ros2_sensor.angular_velocity.z, 0));
 
-      JsonArray accelerometer = doc.createNestedArray("acc");
-      accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.x, 0));
-      accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.y, 0));
-      accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.z, 0));
+    //   JsonArray accelerometer = doc.createNestedArray("acc");
+    //   accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.x, 0));
+    //   accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.y, 0));
+    //   accelerometer.add(trimDouble(ros2_sensor.linear_acceleration.z, 0));
 
-      JsonArray magnetic = doc.createNestedArray("mag");
-      magnetic.add(trimDouble(ros2_sensor.magnetic_field.x, 0));
-      magnetic.add(trimDouble(ros2_sensor.magnetic_field.y, 0));
-      magnetic.add(trimDouble(ros2_sensor.magnetic_field.z, 0));
-    }
-    // doc["dur"] = micros() - start_t;
+    //   JsonArray magnetic = doc.createNestedArray("mag");
+    //   magnetic.add(trimDouble(ros2_sensor.magnetic_field.x, 0));
+    //   magnetic.add(trimDouble(ros2_sensor.magnetic_field.y, 0));
+    //   magnetic.add(trimDouble(ros2_sensor.magnetic_field.z, 0));
+    // }
+    // // doc["dur"] = micros() - start_t;
 
-    char buffer[500];
-    serializeJson(doc, buffer);
-    String msg = String(buffer);
+    // char buffer[500];
+    // serializeJson(doc, buffer);
+    // String msg = String(buffer);
+    // msg = crc_generate(msg) + msg + "\r\n";
+    // stream.print(msg);
+
+    // char str[200];
+    // sprintf(str, "{\"topic\":\"ros2_state\",\"bat\":%f,\"mAh\":%f,\"mWh\":%f,\"vel\":[0.00,0.00,0.00,0.00],\"pos\":[0.00,0.00,0.00,0.00]}",
+    //         vol, mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, mW_sum * POWER_RAW_TO_MILI_WATT_HOUR);
+
+    String msg = "{\"topic\":\"ros2_state\",\"bat\":";
+    msg += trimDouble(vol, 1);
+    msg += ",\"mAh\":";
+    msg += trimDouble(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+    msg += ",\"mWh\":";
+    msg += trimDouble(mW_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+    msg += ",\"vel\":[";
+    msg += trimDouble(motor1.getAverageSpeed(), 2);
+    msg += ",";
+    msg += trimDouble(motor2.getAverageSpeed(), 2);
+    msg += ",";
+    msg += trimDouble(motor3.getAverageSpeed(), 2);
+    msg += ",";
+    msg += trimDouble(motor4.getAverageSpeed(), 2);
+    msg += "],\"pos\":[";
+    msg += trimDouble(motor1.getPosition(), 2);
+    msg += ",";
+    msg += trimDouble(motor2.getPosition(), 2);
+    msg += ",";
+    msg += trimDouble(motor3.getPosition(), 2);
+    msg += ",";
+    msg += trimDouble(motor4.getPosition(), 2);
+    msg += "]}";
     msg = crc_generate(msg) + msg + "\r\n";
     stream.print(msg);
   }

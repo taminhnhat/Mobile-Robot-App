@@ -71,8 +71,8 @@ function msgProcess(msg) {
         switch (obj.topic) {
             case 'ros2_state':
                 send_t = Date.now()
-                // robotHub.write(`4063223057{"topic":"ros2_control","velocity":[4.03,4.02,4.04,4.03]}\r\n`)
-                robotHub.write(`1768921197{"topic":"ros2_control","velocity":[2.03,2.02,2.04,2.03]}\r\n`)
+                robotHub.write(`4063223057{"topic":"ros2_control","velocity":[4.03,4.02,4.04,4.03]}\r\n`)
+                // robotHub.write(`1768921197{"topic":"ros2_control","velocity":[2.03,2.02,2.04,2.03]}\r\n`)
                 sendingCount++
                 break
             case 'ros2_control':
