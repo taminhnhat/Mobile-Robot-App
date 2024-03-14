@@ -189,7 +189,7 @@
 			float: right;
 			background-color: #f0f0f0;
 			border: none;
-			width: 50px;
+			width: 80px;
 			font-weight: bold;
 		}
 
@@ -277,7 +277,7 @@
 				</div>
 				<div id="videoContainer" style="width: 60%;float: left;height: 100%;position: relative;">
 					<img id="robot_view" style="background-color: #333;"
-						src="http://172.27.1.252:8080/stream?topic=/camera/color/image_raw">
+						src="http://192.168.50.3:8080/stream?topic=/camera/color/image_raw">
 					<div style="position: absolute;bottom: 0;display: block;">
 						<button id="startCameraButton"
 							style="background-color: rgba(4, 170, 109, 0.8);border: none;"><span id="startCameraIcon"
@@ -462,18 +462,33 @@
 			<button id="connectShortcut" class="shortcut" style="background-color: #f0f0f0;min-width: 12vh;"><span
 					id="connectIcon" class="material-symbols-outlined">link_off</span></button>
 		</div>
-		<div style="width: 100%;">
+
+		<div>
 			<input id="linear_vel" type="text" class="robot_state" value="---">
 		</div>
 		<div style="text-align: left;width: 100%;">m/s</div>
-		<div style="width: 100%;">
+
+		<div>
 			<input id="angular_vel" type="text" class="robot_state" value="---">
 		</div>
 		<div style="text-align: left;width: 100%;">rad/s</div>
+
+		<!-- voltage -->
 		<div style="width: 100%;">
 			<input id="battery_voltage" type="text" class="robot_state" value="---">
 		</div>
-		<div style="text-align: left;width: 100%;">V</div>
+
+		<!-- mAh -->
+		<div style="text-align: right;">
+			<input id="battery_mAh" type="text" class="robot_state" value="---">
+		</div>
+
+		<!-- Wh -->
+		<div>
+			<input id="battery_Wh" type="text" class="robot_state" value="---">
+		</div>
+
+
 		<div>
 			<canvas id="linearMiniChart" style="width: 100px;height: 15px auto;"></canvas>
 		</div>
