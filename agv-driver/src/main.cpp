@@ -192,11 +192,9 @@ void setup()
   if (!ina219.begin())
   {
     Serial.println("Failed to find INA219 chip");
-    while (1)
-    {
-      delay(10);
-    }
   }
+  else
+    POWER_METTER_AVAILABLE = true;
 
   Bridge.println("================================setup complete========================================");
 
@@ -360,12 +358,16 @@ void msgProcess(String lightCmd, Stream &stream)
     // sprintf(str, "{\"topic\":\"ros2_state\",\"bat\":%f,\"mAh\":%f,\"mWh\":%f,\"vel\":[0.00,0.00,0.00,0.00],\"pos\":[0.00,0.00,0.00,0.00]}",
     //         vol, mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, mW_sum * POWER_RAW_TO_MILI_WATT_HOUR);
 
-    String msg = "{\"topic\":\"ros2_state\",\"bat\":";
-    msg += trimDouble(vol, 1);
-    msg += ",\"mAh\":";
-    msg += trimDouble(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
-    msg += ",\"mWh\":";
-    msg += trimDouble(mW_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+    String msg = "{\"topic\":\"ros2_state\"";
+    if (POWER_METTER_AVAILABLE)
+    {
+      msg += ",\"bat\":";
+      msg += trimDouble(vol, 1);
+      msg += ",\"mAh\":";
+      msg += trimDouble(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+      msg += ",\"mWh\":";
+      msg += trimDouble(mW_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+    }
     msg += ",\"vel\":[";
     msg += trimDouble(motor1.getAverageSpeed(), 2);
     msg += ",";

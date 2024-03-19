@@ -6,6 +6,7 @@ bool EN_VELOCITY_LOG = false;
 bool EN_CURRENT_LOG = false;
 bool EN_IMU_LOG = false;
 bool IMU_AVAILABLE = false;                                                                   //
+bool POWER_METTER_AVAILABLE = false;                                                          //
 const uint32_t DEFAULT_VEL_TIMEOUT = 1000;                                                    //
 const double WHEEL_SEPARATION = 0.205;                                                        // m
 const double WHEEL_DISTANCE = 0.146;                                                          // m
