@@ -291,6 +291,10 @@
 					</div>
 					<div class="canvas-container" style="width: 80%;">
 						<!-- <p>Wheel velocity (rad/s)</p> -->
+						<canvas style="width: 100%;" id="mAChart"></canvas>
+					</div>
+					<div class="canvas-container" style="width: 80%;">
+						<!-- <p>Wheel velocity (rad/s)</p> -->
 						<canvas style="width: 100%;" id="velocityChart"></canvas>
 					</div>
 				</div>
@@ -478,10 +482,15 @@
 			<input id="battery_voltage" type="text" class="robot_state" value="---">
 		</div>
 
-		<!-- mAh -->
+		<!-- mA -->
 		<div style="text-align: right;">
-			<input id="battery_mAh" type="text" class="robot_state" value="---">
+			<input id="battery_mA" type="text" class="robot_state" value="---">
 		</div>
+
+		<!-- mAh -->
+		<!-- <div style="text-align: right;">
+			<input id="battery_mAh" type="text" class="robot_state" value="---">
+		</div> -->
 
 		<!-- Wh -->
 		<div>

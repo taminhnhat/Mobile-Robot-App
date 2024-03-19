@@ -82,8 +82,15 @@ socket.on('ros:topic', d => {
         vel.forEach(a => angular_vel_average += a / 4)
 
         document.getElementById('battery_voltage').value = d.data.bat.toFixed(2) + " V";
-        document.getElementById('battery_mAh').value = d.data.mAh.toFixed() + " mAh";
-        document.getElementById('battery_Wh').value = d.data.mWh.toFixed() / 1000 + " Wh";
+        document.getElementById('battery_mA').value = d.data.mA.toFixed() + " mA";
+        // document.getElementById('battery_mAh').value = d.data.mAh.toFixed() + " mAh";
+        document.getElementById('battery_Wh').value = d.data.Wh.toFixed(2) + " Wh";
+
+        chartData_mA.push(Math.abs(d.data.mA) / 1000);
+        while (chartData_mA.length > chartSize) chartData_mA.shift();
+        mAChart.data.datasets[0].data = chartData_mA
+        mAChart.update()
+
         linearMiniChart.data.datasets[0].data[0] = 2 + Math.abs(linear_vel_average) * 3
         linearMiniChart.data.datasets[0].data[1] = 28 - Math.abs(linear_vel_average) * 3
         linearMiniChart.update()

@@ -21,12 +21,14 @@ uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
 bool ledState = true;
 float vol = 0;
+float mAmp = 0;
 double mW_sum = 0;
 double mA_sum = 0;
 uint8_t mW_count = 0;
 uint8_t mA_count = 0;
 double powerInMiliWattHour = 0;
 double POWER_RAW_TO_MILI_WATT_HOUR = 0.1 / 3600;
+double POWER_RAW_TO_WATT_HOUR = POWER_RAW_TO_MILI_WATT_HOUR / 1000;
 
 void msgProcess(String, Stream &);
 void velocityProcess(double, double, double);
@@ -86,9 +88,9 @@ void OnTimer1Interrupt()
     battery.tick();
     vol = ina219.getBusVoltage_V();
     mW_sum += ina219.getPower_mW() * 10;
-    double tmp_a = ina219.getCurrent_mA() * 10;
-    if (tmp_a != infinityf())
-      mA_sum += tmp_a;
+    mAmp = ina219.getCurrent_mA() * 10;
+    if (mAmp != infinityf())
+      mA_sum += mAmp;
     // Bridge.print("A=");
     // Bridge.print(mA_sum / 10);
     // Bridge.print(" mA\t\t");
@@ -363,10 +365,12 @@ void msgProcess(String lightCmd, Stream &stream)
     {
       msg += ",\"bat\":";
       msg += trimDouble(vol, 1);
-      msg += ",\"mAh\":";
-      msg += trimDouble(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
-      msg += ",\"mWh\":";
-      msg += trimDouble(mW_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+      msg += ",\"mA\":";
+      msg += trimDouble(mAmp, 2);
+      // msg += ",\"mAh\":";
+      // msg += trimDouble(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+      msg += ",\"Wh\":";
+      msg += trimDouble(mW_sum * POWER_RAW_TO_WATT_HOUR, 2);
     }
     msg += ",\"vel\":[";
     msg += trimDouble(motor1.getAverageSpeed(), 2);
