@@ -26,13 +26,15 @@ robotHub.on('open', function () {
     isRgbHubOpen = true
     clearInterval(reconnectHubInterval)
     setTimeout(() => {
-        robotHub.write(`1749486877{"topic":"config","crc":"false"}`)
+        // sendingCount++
+        // robotHub.write(`1749486877{"topic":"config","crc":"false"}`)
     }, 1000)
     setTimeout(() => {
         ros2ControlInterval = setInterval(() => {
             sendingCount++
             send_t = Date.now()
             robotHub.write(`150088878{"topic":"ros2_state"}\r\n`)
+            console.log(`${dayjs().format('hh:mm:ss.SSS')} ${sendingCount} ==> 150088878{"topic":"ros2_state"}`)
         }, 20)
     }, 2000)
     console.log('rgb hub opened')
@@ -42,6 +44,9 @@ robotHub.on('data', function (data) {
     const value = String(data)
     messageBufferFromRgbHub += value.trim()
     if (value[value.length - 1] == '\n') {
+        receivingCount++
+        let receive_t = Date.now()
+        console.log(`${dayjs().format('hh:mm:ss.SSS')} ${receivingCount} <== ${messageBufferFromRgbHub} ${receive_t - send_t}`)
         msgProcess(messageBufferFromRgbHub)
         messageBufferFromRgbHub = ''
     }
@@ -61,8 +66,6 @@ robotHub.on('error', (err) => {
 });
 
 function msgProcess(msg) {
-    let receive_t = Date.now()
-    console.log(`sent:${sendingCount}   received:${receivingCount}   time:${receive_t - send_t}   ${dayjs().format('hh:mm:ss.SSS')} <<< ${msg}`)
     const startIdx = msg.indexOf('{')
     const stopIdx = msg.lastIndexOf('}')
     let str = msg.substr(startIdx, stopIdx - startIdx + 1)
@@ -71,9 +74,11 @@ function msgProcess(msg) {
         switch (obj.topic) {
             case 'ros2_state':
                 send_t = Date.now()
-                robotHub.write(`4063223057{"topic":"ros2_control","velocity":[4.03,4.02,4.04,4.03]}\r\n`)
-                // robotHub.write(`1768921197{"topic":"ros2_control","velocity":[2.03,2.02,2.04,2.03]}\r\n`)
                 sendingCount++
+                const send_msg = `1486596010{"topic":"ros2_control","vel":[4.03,4.02,4.04,4.03]}\r\n`
+                robotHub.write(send_msg)
+                // robotHub.write(`1768921197{"topic":"ros2_control","velocity":[2.03,2.02,2.04,2.03]}\r\n`)
+                console.log(`${dayjs().format('hh:mm:ss.SSS')} ${sendingCount} ==> ${send_msg.trim()}`)
                 break
             case 'ros2_control':
                 break
@@ -81,7 +86,6 @@ function msgProcess(msg) {
             default:
                 return
         }
-        receivingCount++
     }
 
     catch (error) {

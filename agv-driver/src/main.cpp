@@ -71,19 +71,32 @@ void OnTimer1Interrupt()
     motor4.stop();
     OnVelocityControl = false;
   }
-  if (timer_count % MOTOR_CYCLE == 0)
+  // if (timer_count % MOTOR_CYCLE == 0)
+  // {
+  //   motor1.tick(MOTOR_CYCLE);
+  //   motor2.tick(MOTOR_CYCLE);
+  //   motor3.tick(MOTOR_CYCLE);
+  //   motor4.tick(MOTOR_CYCLE);
+  // }
+  switch (timer_count % MOTOR_CYCLE)
   {
-    // if (!EN_MECANUM_WHEEL)
-    // {
-    //   motor2.setVelocity(motor1.getVelocity());
-    //   motor3.setVelocity(motor4.getVelocity());
-    // }
+  case 0:
     motor1.tick(MOTOR_CYCLE);
+    break;
+  case 1:
     motor2.tick(MOTOR_CYCLE);
+    break;
+  case 2:
     motor3.tick(MOTOR_CYCLE);
+    break;
+  case 3:
     motor4.tick(MOTOR_CYCLE);
+    break;
+
+  default:
+    break;
   }
-  if ((timer_count - 1) % BAT_VOL_CAL_CYCLE == 0)
+  if (timer_count % BAT_VOL_CAL_CYCLE == 4 && POWER_METTER_AVAILABLE)
   {
     battery.tick();
     vol = ina219.getBusVoltage_V();
@@ -111,7 +124,7 @@ void OnTimer1Interrupt()
   //   currentSensor_1_2.tick();
   //   currentSensor_3_4.tick();
   // }
-  if ((timer_count - 2) % 1000 == 0)
+  if (timer_count % 1000 == 5)
   {
     toggleLed();
   }
@@ -260,19 +273,19 @@ void msgProcess(String lightCmd, Stream &stream)
   DeserializationError error = deserializeJson(doc, json);
   if (error)
   {
-    stream.print("deserializeJson() failed, error: ");
-    stream.println(error.f_str());
+    stream.println("deserializeJson failed");
+    // stream.println(error.f_str());
     return;
   }
   const char *topic = doc["topic"];
   const String topic_name = String(topic);
   if (topic_name.compareTo("ros2_control") == 0)
   {
-    const double front_right_wheel_speed = doc["velocity"][0]; // rad/s
-    const double rear_right_wheel_speed = doc["velocity"][1];  // rad/s
-    const double rear_left_wheel_speed = doc["velocity"][2];   // rad/s
-    const double front_left_wheel_speed = doc["velocity"][3];  // rad/s
-    const uint32_t timeout = doc["timeout"];                   // ms
+    const double front_right_wheel_speed = doc["vel"][0]; // rad/s
+    const double rear_right_wheel_speed = doc["vel"][1];  // rad/s
+    const double rear_left_wheel_speed = doc["vel"][2];   // rad/s
+    const double front_left_wheel_speed = doc["vel"][3];  // rad/s
+    const uint32_t timeout = doc["timeout"];              // ms
     const double motor_1_velocity = front_right_wheel_speed * WHEEL_DIAMETER / 2;
     const double motor_2_velocity = rear_right_wheel_speed * WHEEL_DIAMETER / 2;
     const double motor_3_velocity = rear_left_wheel_speed * WHEEL_DIAMETER / 2;
