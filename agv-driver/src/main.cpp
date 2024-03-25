@@ -316,7 +316,8 @@ void msgProcess(String lightCmd, Stream &stream)
     // serializeJson(doc, buffer);
     // String msg = String(buffer);
     // msg = crc_generate(msg) + msg + "\r\n";
-    stream.print("863713777{\"topic\":\"ros2_control\",\"status\":\"ok\"}\r\n");
+    // stream.print("863713777{\"topic\":\"ros2_control\",\"status\":\"ok\"}\r\n");
+    stream.print("394310136{\"topic\":\"ros2_control\"}\r\n");
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
@@ -373,19 +374,7 @@ void msgProcess(String lightCmd, Stream &stream)
     // sprintf(str, "{\"topic\":\"ros2_state\",\"bat\":%f,\"mAh\":%f,\"mWh\":%f,\"vel\":[0.00,0.00,0.00,0.00],\"pos\":[0.00,0.00,0.00,0.00]}",
     //         vol, mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, mW_sum * POWER_RAW_TO_MILI_WATT_HOUR);
 
-    String msg = "{\"topic\":\"ros2_state\"";
-    if (POWER_METTER_AVAILABLE)
-    {
-      msg += ",\"bat\":";
-      msg += trimDouble(vol, 1);
-      msg += ",\"mA\":";
-      msg += trimDouble(mAmp, 2);
-      // msg += ",\"mAh\":";
-      // msg += trimDouble(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
-      msg += ",\"Wh\":";
-      msg += trimDouble(mW_sum * POWER_RAW_TO_WATT_HOUR, 2);
-    }
-    msg += ",\"vel\":[";
+    String msg = "{\"vel\":[";
     msg += trimDouble(motor1.getAverageSpeed(), 2);
     msg += ",";
     msg += trimDouble(motor2.getAverageSpeed(), 2);
@@ -401,7 +390,21 @@ void msgProcess(String lightCmd, Stream &stream)
     msg += trimDouble(motor3.getPosition(), 2);
     msg += ",";
     msg += trimDouble(motor4.getPosition(), 2);
-    msg += "]}";
+    msg += "]";
+
+    if (POWER_METTER_AVAILABLE)
+    {
+      msg += ",\"bat\":";
+      msg += trimDouble(vol, 1);
+      // msg += ",\"mA\":";
+      // msg += trimDouble(mAmp, 2);
+      // msg += ",\"mAh\":";
+      // msg += trimDouble(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, 2);
+      msg += ",\"Wh\":";
+      msg += trimDouble(mW_sum * POWER_RAW_TO_WATT_HOUR, 2);
+    }
+
+    msg += "}";
     msg = crc_generate(msg) + msg + "\r\n";
     stream.print(msg);
   }

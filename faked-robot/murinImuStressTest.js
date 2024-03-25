@@ -49,7 +49,6 @@ robotHub.on('data', function (data) {
         receivingCount++
         let receive_t = Date.now()
         console.log(`${dayjs().format('hh:mm:ss.SSS')} ${receivingCount} <== ${messageBufferFromRgbHub} ${receive_t - send_t}`)
-        msgProcess(messageBufferFromRgbHub)
         messageBufferFromRgbHub = ''
     }
 });
@@ -66,32 +65,3 @@ robotHub.on('close', () => {
 robotHub.on('error', (err) => {
     console.log('Rgb hub error', { error: err })
 });
-
-function msgProcess(msg) {
-    const startIdx = msg.indexOf('{')
-    const stopIdx = msg.lastIndexOf('}')
-    let str = msg.substr(startIdx, stopIdx - startIdx + 1)
-    try {
-        const obj = JSON.parse(str)
-        if (obj.topic != 'ros2_control') {
-            send_t = Date.now()
-            sendingCount++
-            const send_msg = `1486596010{"topic":"ros2_control","vel":[4.03,4.02,4.04,4.03]}\r\n`
-            robotHub.write(send_msg)
-            // robotHub.write(`1768921197{"topic":"ros2_control","velocity":[2.03,2.02,2.04,2.03]}\r\n`)
-            console.log(`${dayjs().format('hh:mm:ss.SSS')} ${sendingCount} ==> ${send_msg.trim()}`)
-        }
-        // switch (obj.topic) {
-        //     case 'ros2_state':
-        //         break
-        //     case 'ros2_control':
-        //         break
-
-        //     default:
-        //         return
-        // }
-    }
-
-    catch (error) {
-    }
-}
