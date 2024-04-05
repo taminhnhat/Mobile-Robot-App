@@ -14,29 +14,22 @@ StaticJsonDocument<500> doc;
 Adafruit_INA219 ina219(0x45);
 
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
-String messageFromRaio = "";
+String messageFromRadio = "";
 String messageFromBridge = "";
 uint32_t velocity_lastcall = 0;
 uint32_t velocity_timeout = 500;
 bool OnVelocityControl = false;
-bool ledState = true;
 float vol = 0;
 float mAmp = 0;
 double mW_sum = 0;
 double mA_sum = 0;
 uint8_t mW_count = 0;
 uint8_t mA_count = 0;
-double powerInMiliWattHour = 0;
 double POWER_RAW_TO_MILI_WATT_HOUR = 0.1 / 3600;
 double POWER_RAW_TO_WATT_HOUR = POWER_RAW_TO_MILI_WATT_HOUR / 1000;
 
 void msgProcess(String, Stream &);
-void velocityProcess(double, double, double);
-void velocityProcessTimeout(double, double, double, uint32_t);
-void velocityProcess_base(double, double, double);
-void lcdRender();
 void logger();
-void toggleLed();
 
 // -------------------------------------------------MAIN CODE--------------------------------------------------------
 CurrentSensor currentSensor_1_2(CURRENT_SENSOR_1_2),
@@ -50,53 +43,57 @@ void OnTimer1Interrupt()
   timer_count++;
   uint32_t present_t = millis();
 
-  while (Radio.available())
+  if (Radio.available())
   {
     char tempChar = (char)Radio.read();
     if (tempChar != '\n')
     {
-      messageFromRaio += tempChar;
+      messageFromRadio += tempChar;
     }
     else
     {
-      msgProcess(messageFromRaio, Radio);
-      messageFromRaio = "";
+      msgProcess(messageFromRadio, Radio);
+      messageFromRadio = "";
     }
   }
-  if (OnVelocityControl == true && present_t - velocity_lastcall >= velocity_timeout)
+  if (present_t = velocity_timeout)
   {
     motor1.stop();
     motor2.stop();
     motor3.stop();
     motor4.stop();
-    OnVelocityControl = false;
   }
-  // if (timer_count % MOTOR_CYCLE == 0)
-  // {
-  //   motor1.tick(MOTOR_CYCLE);
-  //   motor2.tick(MOTOR_CYCLE);
-  //   motor3.tick(MOTOR_CYCLE);
-  //   motor4.tick(MOTOR_CYCLE);
-  // }
-  switch (timer_count % MOTOR_CYCLE)
+  if (timer_count % MOTOR_CYCLE == 0)
   {
-  case 0:
     motor1.tick(MOTOR_CYCLE);
-    break;
-  case 1:
     motor2.tick(MOTOR_CYCLE);
-    break;
-  case 2:
     motor3.tick(MOTOR_CYCLE);
-    break;
-  case 3:
     motor4.tick(MOTOR_CYCLE);
-    break;
-
-  default:
-    break;
   }
-  if (timer_count % BAT_VOL_CAL_CYCLE == 4 && POWER_METTER_AVAILABLE)
+  // switch (timer_count % MOTOR_CYCLE)
+  // {
+  // case 0:
+  //   motor1.tick(MOTOR_CYCLE);
+  //   break;
+  // case 1:
+  //   motor2.tick(MOTOR_CYCLE);
+  //   break;
+  // case 2:
+  //   motor3.tick(MOTOR_CYCLE);
+  //   break;
+  // case 3:
+  //   motor4.tick(MOTOR_CYCLE);
+  //   break;
+
+  // default:
+  //   break;
+  // }
+  if (timer_count % CURRENT_CAL_CYCLE == 2)
+  {
+    currentSensor_1_2.tick();
+    currentSensor_3_4.tick();
+  }
+  if (timer_count % BAT_VOL_CAL_CYCLE == 3 && POWER_METTER_AVAILABLE)
   {
     battery.tick();
     vol = ina219.getBusVoltage_V();
@@ -104,27 +101,8 @@ void OnTimer1Interrupt()
     mAmp = ina219.getCurrent_mA() * 10;
     if (mAmp != infinityf())
       mA_sum += mAmp;
-    // Bridge.print("A=");
-    // Bridge.print(mA_sum / 10);
-    // Bridge.print(" mA\t\t");
-    // Bridge.print(ina219.getBusVoltage_V());
-    // Bridge.print(" V\t");
-    // Bridge.print(",W=");
-    // Bridge.print(mW_sum / 10);
-    // Bridge.print(" mW\t");
-    // Bridge.print(mA_sum * POWER_RAW_TO_MILI_WATT_HOUR);
-    // Bridge.print(" mAh\t");
-    // Bridge.print(mW_sum * POWER_RAW_TO_MILI_WATT_HOUR);
-    // Bridge.print(" mWh");
-    // Bridge.println("");
-    // dfMeter.tick();
   }
-  // if (timer_count % CURRENT_CAL_CYCLE == 0)
-  // {
-  //   currentSensor_1_2.tick();
-  //   currentSensor_3_4.tick();
-  // }
-  if (timer_count % 1000 == 5)
+  if (timer_count % 1000 == 4)
   {
     toggleLed();
   }
@@ -227,89 +205,71 @@ void bridgeEvent()
   messageFromBridge = Bridge.readStringUntil('\n');
   msgProcess(messageFromBridge, Bridge);
   messageFromBridge = "";
-  // while (Bridge.available())
-  // {
-  //   char tempChar = (char)Bridge.read();
-  //   if (tempChar != '\n')
-  //   {
-  //     messageFromBridge += tempChar;
-  //   }
-  //   else
-  //   {
-  //     msgProcess(messageFromBridge, Bridge);
-  //     messageFromBridge = "";
-  //   }
-  // }
 }
 
-void msgProcess(String lightCmd, Stream &stream)
+void msgProcess(String rawMessage, Stream &stream)
 {
   uint64_t start_t = micros();
-  uint32_t idx = lightCmd.indexOf('{'); //
 
-  String cmd_cs = lightCmd.substring(0, idx); // received checksum
+  // split string
+  uint32_t idx = rawMessage.indexOf('{');              //
+  String checksumBlock = rawMessage.substring(0, idx); // received checksum
   uint32_t rec_cs = 0;
-  for (unsigned int i = 0; i < cmd_cs.length(); i++)
+  for (unsigned int i = 0; i < checksumBlock.length(); i++)
   {
-    rec_cs = rec_cs * 10 + (cmd_cs[i] - '0');
+    rec_cs = rec_cs * 10 + (checksumBlock[i] - '0');
   }
-  lightCmd = lightCmd.substring(idx);       // split light comment from message
-  uint32_t cal_cs = crc_generate(lightCmd); // calculated checksum
+  rawMessage = rawMessage.substring(idx);     // split light comment from message
+  uint32_t cal_cs = crc_generate(rawMessage); // calculated checksum
 
   // checksum
   if (CRC_Enable == true)
   {
     if (rec_cs != cal_cs)
     {
-      stream.println("crc failed");
+      stream.println("2213191634{\"status\":\"checksum failed\"}");
       return;
     }
   }
-  const uint8_t len = lightCmd.length();
-  char json[len];
-  lightCmd.toCharArray(json, len);
-  // Bridge.print(lightCmd);
 
+  // deserialize
+  const uint8_t len = rawMessage.length();
+  char json[len];
+  rawMessage.toCharArray(json, len);
   DeserializationError error = deserializeJson(doc, json);
   if (error)
   {
-    stream.println("deserializeJson failed");
+    stream.println("858532069{\"status\":\"deserialize failed\"}");
     // stream.println(error.f_str());
     return;
   }
+
   const char *topic = doc["topic"];
   const String topic_name = String(topic);
   if (topic_name.compareTo("ros2_control") == 0)
   {
+    velocity_lastcall = millis();
+    // OnVelocityControl = true;
     const double front_right_wheel_speed = doc["vel"][0]; // rad/s
     const double rear_right_wheel_speed = doc["vel"][1];  // rad/s
     const double rear_left_wheel_speed = doc["vel"][2];   // rad/s
     const double front_left_wheel_speed = doc["vel"][3];  // rad/s
     const uint32_t timeout = doc["timeout"];              // ms
-    const double motor_1_velocity = front_right_wheel_speed * WHEEL_DIAMETER / 2;
-    const double motor_2_velocity = rear_right_wheel_speed * WHEEL_DIAMETER / 2;
-    const double motor_3_velocity = rear_left_wheel_speed * WHEEL_DIAMETER / 2;
-    const double motor_4_velocity = front_left_wheel_speed * WHEEL_DIAMETER / 2;
-    if (timeout == 0)
-      velocity_timeout = DEFAULT_VEL_TIMEOUT;
-    else
-      velocity_timeout = timeout;
-    velocity_lastcall = millis();
-    OnVelocityControl = true;
-    if (EN_MECANUM_WHEEL == true)
-    {
-      motor1.setVelocity(motor_1_velocity);
-      motor2.setVelocity(motor_2_velocity);
-      motor3.setVelocity(motor_3_velocity);
-      motor4.setVelocity(motor_4_velocity);
-    }
-    else
-    {
-      motor1.setVelocity(motor_1_velocity);
-      motor2.setVelocity(motor_1_velocity);
-      motor3.setVelocity(motor_4_velocity);
-      motor4.setVelocity(motor_4_velocity);
-    }
+
+    const double motor_1_velocity = front_right_wheel_speed * WHEEL_RADIUS;
+    const double motor_2_velocity = rear_right_wheel_speed * WHEEL_RADIUS;
+    const double motor_3_velocity = rear_left_wheel_speed * WHEEL_RADIUS;
+    const double motor_4_velocity = front_left_wheel_speed * WHEEL_RADIUS;
+
+    (timeout == 0) ? velocity_timeout = velocity_lastcall + DEFAULT_VEL_TIMEOUT : velocity_timeout = velocity_lastcall + timeout;
+
+    if (!Motor_Enable)
+      enableMotor();
+
+    motor1.setVelocity(motor_1_velocity);
+    motor2.setVelocity(motor_2_velocity);
+    motor3.setVelocity(motor_3_velocity);
+    motor4.setVelocity(motor_4_velocity);
     // ros2 control response
     // doc["status"] = "ok";
     // char buffer[120];
@@ -317,7 +277,8 @@ void msgProcess(String lightCmd, Stream &stream)
     // String msg = String(buffer);
     // msg = crc_generate(msg) + msg + "\r\n";
     // stream.print("863713777{\"topic\":\"ros2_control\",\"status\":\"ok\"}\r\n");
-    stream.print("394310136{\"topic\":\"ros2_control\"}\r\n");
+    // stream.print("394310136{\"topic\":\"ros2_control\"}\r\n");
+    stream.print("2110931352{\"status\":\"success\"}\r\n");
   }
   else if (topic_name.compareTo("ros2_state") == 0)
   {
@@ -375,21 +336,21 @@ void msgProcess(String lightCmd, Stream &stream)
     //         vol, mA_sum * POWER_RAW_TO_MILI_WATT_HOUR, mW_sum * POWER_RAW_TO_MILI_WATT_HOUR);
 
     String msg = "{\"vel\":[";
-    msg += trimDouble(motor1.getAverageSpeed(), 2);
+    msg += motor1.getAverageSpeed();
     msg += ",";
-    msg += trimDouble(motor2.getAverageSpeed(), 2);
+    msg += motor2.getAverageSpeed();
     msg += ",";
-    msg += trimDouble(motor3.getAverageSpeed(), 2);
+    msg += motor3.getAverageSpeed();
     msg += ",";
-    msg += trimDouble(motor4.getAverageSpeed(), 2);
+    msg += motor4.getAverageSpeed();
     msg += "],\"pos\":[";
-    msg += trimDouble(motor1.getPosition(), 2);
+    msg += motor1.getPosition();
     msg += ",";
-    msg += trimDouble(motor2.getPosition(), 2);
+    msg += motor2.getPosition();
     msg += ",";
-    msg += trimDouble(motor3.getPosition(), 2);
+    msg += motor3.getPosition();
     msg += ",";
-    msg += trimDouble(motor4.getPosition(), 2);
+    msg += motor4.getPosition();
     msg += "]";
 
     if (POWER_METTER_AVAILABLE)
@@ -408,8 +369,10 @@ void msgProcess(String lightCmd, Stream &stream)
     msg = crc_generate(msg) + msg + "\r\n";
     stream.print(msg);
   }
-  else if (topic_name.compareTo("control") == 0)
+  else if (topic_name.compareTo("vel_control") == 0)
   {
+    velocity_lastcall = millis();
+    // OnVelocityControl = true;
     const double linear_x = doc["linear"][0];   // x
     const double linear_y = doc["linear"][1];   // y
     const double linear_z = doc["linear"][2];   // z
@@ -429,11 +392,36 @@ void msgProcess(String lightCmd, Stream &stream)
       return;
     }
 
-    if (timeout == 0)
-      velocity_timeout = DEFAULT_VEL_TIMEOUT;
+    (timeout == 0) ? velocity_timeout = velocity_lastcall + DEFAULT_VEL_TIMEOUT : velocity_timeout = velocity_lastcall + timeout;
+
+    double motor_1_velocity = 0;
+    double motor_2_velocity = 0;
+    double motor_3_velocity = 0;
+    double motor_4_velocity = 0;
+    const double angular_tmp = angular_y * ANGULAR_VELOCITY_FACTOR;
+    if (EN_MECANUM_WHEEL == true)
+    {
+      motor_1_velocity = linear_x + linear_y + angular_tmp;
+      motor_2_velocity = linear_x - linear_y + angular_tmp;
+      motor_3_velocity = linear_x + linear_y - angular_tmp;
+      motor_4_velocity = linear_x - linear_y - angular_tmp;
+    }
     else
-      velocity_timeout = timeout;
-    velocityProcess(linear_x, linear_y, angular_y);
+    {
+      motor_1_velocity = linear_x + angular_tmp;
+      motor_2_velocity = linear_x + angular_tmp;
+      motor_3_velocity = linear_x - angular_tmp;
+      motor_4_velocity = linear_x - angular_tmp;
+    }
+
+    motor1.setVelocity(motor_1_velocity);
+    motor2.setVelocity(motor_2_velocity);
+    motor3.setVelocity(motor_3_velocity);
+    motor4.setVelocity(motor_4_velocity);
+  }
+  else if (topic_name.compareTo("pos_control") == 0)
+  {
+    //
   }
   else if (topic_name.compareTo("config") == 0)
   {
@@ -543,102 +531,6 @@ void msgProcess(String lightCmd, Stream &stream)
   // stream.println(micros() - start_t);
 }
 
-void velocityProcess(double linear_x, double linear_y, double angular)
-{
-  velocity_lastcall = millis();
-  OnVelocityControl = true;
-  double motor_1_velocity = 0;
-  double motor_2_velocity = 0;
-  double motor_3_velocity = 0;
-  double motor_4_velocity = 0;
-  const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
-  if (EN_MECANUM_WHEEL == true)
-  {
-    motor_1_velocity = linear_x + linear_y + angular_tmp;
-    motor_2_velocity = linear_x - linear_y + angular_tmp;
-    motor_3_velocity = linear_x + linear_y - angular_tmp;
-    motor_4_velocity = linear_x - linear_y - angular_tmp;
-  }
-  else
-  {
-    motor_1_velocity = linear_x + angular_tmp;
-    motor_2_velocity = linear_x + angular_tmp;
-    motor_3_velocity = linear_x - angular_tmp;
-    motor_4_velocity = linear_x - angular_tmp;
-  }
-  // Bridge.print("=> m/s: ");
-  // Bridge.print(motor_1_velocity);
-  // Bridge.print("   ");
-  // Bridge.print(motor_2_velocity);
-  // Bridge.print("   ");
-  // Bridge.print(motor_3_velocity);
-  // Bridge.print("   ");
-  // Bridge.print(motor_4_velocity);
-  // Bridge.print("   rpm: ");
-  // Bridge.print(motor_1_velocity * MPS_TO_RPM_FACTOR);
-  // Bridge.print("   ");
-  // Bridge.print(motor_2_velocity * MPS_TO_RPM_FACTOR);
-  // Bridge.print("   ");
-  // Bridge.print(motor_3_velocity * MPS_TO_RPM_FACTOR);
-  // Bridge.print("   ");
-  // Bridge.print(motor_4_velocity * MPS_TO_RPM_FACTOR);
-  // Bridge.println("");
-  motor1.setVelocity(motor_1_velocity);
-  motor2.setVelocity(motor_2_velocity);
-  motor3.setVelocity(motor_3_velocity);
-  motor4.setVelocity(motor_4_velocity);
-}
-
-void velocityProcessTimeout(double linear_x, double linear_y, double angular, uint32_t timeout)
-{
-  velocity_timeout = timeout;
-  velocityProcess(linear_x, linear_y, angular);
-}
-
-void velocityProcess_base(double linear_x, double linear_y, double angular)
-{
-  velocity_lastcall = millis();
-  const double angular_tmp = angular * ANGULAR_VELOCITY_FACTOR;
-  double linear_tmp = linear_x;
-  const double motor_1_velocity = linear_tmp + angular_tmp;
-  const double motor_2_velocity = linear_tmp + angular_tmp;
-  const double motor_3_velocity = linear_tmp - angular_tmp;
-  const double motor_4_velocity = linear_tmp - angular_tmp;
-  Bridge.print("WHEEL VELOCITY: ");
-  Bridge.print(motor_1_velocity);
-  Bridge.print("\t");
-  Bridge.print(motor_2_velocity);
-  Bridge.print("\t");
-  Bridge.print(motor_3_velocity);
-  Bridge.print("\t");
-  Bridge.print(motor_4_velocity);
-  Bridge.print("\tWHEEL SPEED: ");
-  Bridge.print(motor_1_velocity * MPS_TO_RPM_FACTOR);
-  Bridge.print("\t");
-  Bridge.print(motor_2_velocity * MPS_TO_RPM_FACTOR);
-  Bridge.print("\t");
-  Bridge.print(motor_3_velocity * MPS_TO_RPM_FACTOR);
-  Bridge.print("\t");
-  Bridge.print(motor_4_velocity * MPS_TO_RPM_FACTOR);
-  Bridge.println("");
-}
-
-void lcdRender()
-{
-  display.clear();
-  String Amp = String() + 4.5 + "A";
-  display.drawString(7, 0, Amp.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
-  String Wat = String() + 19.1 + "W";
-  display.drawString(14, 0, Wat.c_str(), OLED::NORMAL_SIZE, OLED::WHITE);
-  String Vol = String() + battery.getAverageVoltage() + "V";
-  display.drawString(0, 2, Vol.c_str(), OLED::DOUBLE_SIZE, OLED::WHITE);
-  uint8_t batteryScale = 42.0 * (battery.getAverageVoltage() - 12.8) / 4;
-  display.draw_rectangle(80, 15, 125, 31, OLED::HOLLOW, OLED::WHITE);
-  display.draw_rectangle(125, 18, 127, 27, OLED::SOLID, OLED::WHITE);
-  display.draw_rectangle(82, 17, 81 + batteryScale, 29, OLED::SOLID, OLED::WHITE);
-  display.display();
-}
-
 void logger()
 {
   if (EN_VELOCITY_LOG)
@@ -715,10 +607,4 @@ void logger()
     Serial1.print(ros2_sensor.magnetic_field.z);
     Serial1.println("");
   }
-}
-
-void toggleLed()
-{
-  digitalWrite(LED_BUILTIN, ledState);
-  ledState = !ledState;
 }

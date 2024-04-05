@@ -2,13 +2,6 @@
 #include "configuration.h"
 #include <iostream>
 #include <Wire.h>
-
-// define control mode
-#define IF_POSITION_CONTROL_MODE 1
-#define IF_VELOCITY_CONTROL_MODE 2
-#define IF_LOCKED_MODE 0
-#define IF_FLOATING_MODE 3
-
 // define motor 1
 #define MOTOR_1_A PA7
 #define MOTOR_1_B PA6
@@ -47,11 +40,18 @@ HardwareSerial Radio(PA3, PA2);
 
 void enableMotor()
 {
+    Motor_Enable = true;
     digitalWrite(MOTOR_EN, HIGH);
 }
 void disableMotor()
 {
+    Motor_Enable = false;
     digitalWrite(MOTOR_EN, LOW);
+}
+void toggleLed()
+{
+    digitalWrite(LED_BUILTIN, ledState);
+    ledState = !ledState;
 }
 
 double trimDouble(double in, uint8_t num = 2)
@@ -104,9 +104,16 @@ private:
     uint32_t A_PIN_ADDR;       // encoder channel A pin address
     uint32_t B_PIN_ADDR;       // encoder channel B pin address
     String state;              //
-    uint32_t controlMode;      // 1 for position control, 2 for velocity control
     uint32_t SampleTime;
     uint32_t controllerDirection;
+
+    enum controlMode
+    {
+        VELOCITY_CONTROL_MODE,
+        POSITION_CONTROL_MODE,
+        LOCKING_MODE,
+        FLOATING_MODE
+    }
 
     struct pid_var
     {
@@ -128,7 +135,7 @@ private:
     void velocityCompute()
     {
         this->vol_Pro = this->v_set - this->v_ins;
-        double pid_scale_factor = 1;
+        // double pid_scale_factor = 1;
         // if (this->vol_Pro < 0.1)
         //   pid_scale_factor = 2;
         // else if (this->vol_Pro < 0.2)
@@ -138,7 +145,7 @@ private:
         //   this->P_Voltage = pid_scale_factor * this->v_kp * this->vol_Pro;
         // else
         //   this->P_Voltage = 0;
-        this->P_Voltage = pid_scale_factor * this->v_kp * this->vol_Pro;
+        this->P_Voltage = this->v_kp * this->vol_Pro;
         this->I_Voltage = this->v_ki * this->vol_Int;
         this->D_Voltage = this->v_kd * this->vol_Der;
 
@@ -155,17 +162,18 @@ private:
             output_voltage = 12;
         if (output_voltage < -12)
             output_voltage = 12;
-        uint32_t duty = abs(output_voltage) * PWM_MAX_VAL / 12;
+        uint32_t pwm_output = abs(output_voltage) * VOL_TO_PWM_SIGNAL_OUTPUT_FACTOR;
+
         this->voltage = output_voltage;
-        if (output_voltage > 0)
+        if (this->voltage > 0)
         {
             digitalWrite(this->DIR_PIN_ADDR, LOW);
-            analogWrite(this->PWM_PIN_ADDR, duty);
+            analogWrite(this->PWM_PIN_ADDR, pwm_output);
         }
         else
         {
             digitalWrite(this->DIR_PIN_ADDR, HIGH);
-            analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - duty);
+            analogWrite(this->PWM_PIN_ADDR, PWM_MAX_VAL - pwm_output);
         }
     }
 
@@ -188,7 +196,6 @@ public:
         this->PWM_PIN_ADDR = pwm_pin;
         this->CUR_SEN_PIN_ADDR = cur_sen_pin;
         this->state = "float";
-        this->controlMode = IF_POSITION_CONTROL_MODE;
     }
     void setVelocityPID(double v_kp, double v_ki, double v_kd)
     {
@@ -228,7 +235,7 @@ public:
         const uint32_t present_t = millis();
         uint32_t d_t = present_t - this->last_t; // in miliseconds
         this->d_p = present_p - this->p_pre;
-        this->v_ins = (this->d_p * 60000.0 * RPM_TO_MPS_FACTOR) / (d_t * MOTOR_PPR);
+        this->v_ins = this->d_p * PPMS_TO_MPS_FACTOR / d_t;
         this->p_pre = present_p;
         this->last_t = present_t;
 
@@ -259,13 +266,15 @@ public:
     {
         switch (this->controlMode)
         {
-        case IF_POSITION_CONTROL_MODE: // Control position mode
+        case POSITION_CONTROL_MODE: // Control position mode
             this->positionCompute();
             break;
-        case IF_VELOCITY_CONTROL_MODE: // Control velocity mode
+        case VELOCITY_CONTROL_MODE: // Control velocity mode
             this->velocityCompute();
             break;
-        case IF_LOCKED_MODE: // Locked mode
+        case LOCKING_MODE: // Locked mode
+            break;
+        case FLOATING_MODE: //
             break;
         default:
             break;
@@ -304,7 +313,7 @@ public:
     }
     double getSetSpeed()
     {
-        return this->v_set * 2 / WHEEL_DIAMETER;
+        return this->v_set / WHEEL_RADIUS;
     }
     double getAverageVelocity()
     {
@@ -312,11 +321,11 @@ public:
     }
     double getSpeed()
     {
-        return trimDouble(this->v_ins * 2 / WHEEL_DIAMETER, 2);
+        return trimDouble(this->v_ins / WHEEL_RADIUS, 2);
     }
     double getAverageSpeed()
     {
-        return trimDouble(this->v_ave * 2 / WHEEL_DIAMETER, 2);
+        return trimDouble(this->v_ave / WHEEL_RADIUS, 2);
     }
     int32_t getdp()
     {
@@ -325,7 +334,7 @@ public:
     void setPosition(int32_t p)
     {
         this->p_set = p;
-        this->controlMode = IF_POSITION_CONTROL_MODE;
+        this->controlMode = POSITION_CONTROL_MODE;
     }
     /**
      * set wheel velocity in m/s
@@ -338,8 +347,7 @@ public:
             v = -MOTOR_ALLOW_MAX_SPEED_IN_MPS;
         this->v_set = v;
         this->voltage = this->v_set * 12 / MOTOR_MAX_SPEED_IN_MPS;
-        this->controlMode = IF_VELOCITY_CONTROL_MODE;
-        this->lastcall = millis();
+        this->controlMode = VELOCITY_CONTROL_MODE;
     }
     void lock()
     {
@@ -348,7 +356,8 @@ public:
     void stop()
     {
         this->drive(0.0);
-        this->controlMode = IF_LOCKED_MODE;
+        this->v_set = 0;
+        this->controlMode = LOCKING_MODE;
     }
 } motor1("M-1", MOTOR_1_DIR, MOTOR_1_PWM, CURRENT_SENSOR_1_2),
     motor2("M-2", MOTOR_2_DIR, MOTOR_2_PWM, CURRENT_SENSOR_1_2),
@@ -444,7 +453,7 @@ public:
     ~Battery() {}
     void tick()
     {
-        this->vol_ins = 3.3 * 5 * analogRead(BATTERY_SENSOR) / 1023;
+        this->vol_ins = analogRead(BATTERY_SENSOR) * ANALOG_INPUT_TO_VOLTAGE_FACTOR;
         this->vol_sum += this->vol_ins;
         this->vol_cou++;
         const uint64_t present_t = millis();
