@@ -59,42 +59,40 @@ socket.on('ros:topic', d => {
     messages.appendChild(item);
     var c = document.getElementById('messageBox')
     c.scrollTo(0, c.scrollHeight)
-    if (d.topic == 'ros2_state') {
-        const vel = d.data.vel;
-        chartData_front_right_wheel.push(vel[0]);
-        while (chartData_front_right_wheel.length > chartSize) chartData_front_right_wheel.shift();
-        chartData_rear_right_wheel.push(vel[1]);
-        while (chartData_rear_right_wheel.length > chartSize) chartData_rear_right_wheel.shift();
-        chartData_rear_left_wheel.push(vel[2]);
-        while (chartData_rear_left_wheel.length > chartSize) chartData_rear_left_wheel.shift();
-        chartData_front_left_wheel.push(vel[3]);
-        while (chartData_front_left_wheel.length > chartSize) chartData_front_left_wheel.shift();
-        // update chart
-        wheelVelocityChart.data.datasets[0].data = JSON.parse(JSON.stringify(chartData_front_right_wheel));
-        wheelVelocityChart.data.datasets[1].data = JSON.parse(JSON.stringify(chartData_rear_right_wheel));
-        wheelVelocityChart.data.datasets[2].data = JSON.parse(JSON.stringify(chartData_rear_left_wheel));
-        wheelVelocityChart.data.datasets[3].data = JSON.parse(JSON.stringify(chartData_front_left_wheel));
-        wheelVelocityChart.update();
-        // update bottom row
-        linear_vel_average = 0;
-        vel.forEach(v => linear_vel_average += v / 4)
-        angular_vel_average = 0;
-        vel.forEach(a => angular_vel_average += a / 4)
+    const vel = d.data.vel;
+    chartData_front_right_wheel.push(vel[0]);
+    while (chartData_front_right_wheel.length > chartSize) chartData_front_right_wheel.shift();
+    chartData_rear_right_wheel.push(vel[1]);
+    while (chartData_rear_right_wheel.length > chartSize) chartData_rear_right_wheel.shift();
+    chartData_rear_left_wheel.push(vel[2]);
+    while (chartData_rear_left_wheel.length > chartSize) chartData_rear_left_wheel.shift();
+    chartData_front_left_wheel.push(vel[3]);
+    while (chartData_front_left_wheel.length > chartSize) chartData_front_left_wheel.shift();
+    // update chart
+    wheelVelocityChart.data.datasets[0].data = JSON.parse(JSON.stringify(chartData_front_right_wheel));
+    wheelVelocityChart.data.datasets[1].data = JSON.parse(JSON.stringify(chartData_rear_right_wheel));
+    wheelVelocityChart.data.datasets[2].data = JSON.parse(JSON.stringify(chartData_rear_left_wheel));
+    wheelVelocityChart.data.datasets[3].data = JSON.parse(JSON.stringify(chartData_front_left_wheel));
+    wheelVelocityChart.update();
+    // update bottom row
+    linear_vel_average = 0;
+    vel.forEach(v => linear_vel_average += v / 4)
+    angular_vel_average = 0;
+    vel.forEach(a => angular_vel_average += a / 4)
 
-        document.getElementById('battery_voltage').value = d.data.bat.toFixed(2) + " V";
-        document.getElementById('battery_mA').value = d.data.mA.toFixed() + " mA";
-        // document.getElementById('battery_mAh').value = d.data.mAh.toFixed() + " mAh";
-        document.getElementById('battery_Wh').value = d.data.Wh.toFixed(2) + " Wh";
+    document.getElementById('battery_voltage').value = d.data.bat.toFixed(2) + " V";
+    // document.getElementById('battery_mA').value = d.data.mA.toFixed() + " mA";
+    // document.getElementById('battery_mAh').value = d.data.mAh.toFixed() + " mAh";
+    document.getElementById('battery_Wh').value = d.data.Wh.toFixed(2) + " Wh";
 
-        chartData_mA.push(Math.abs(d.data.mA) / 1000);
-        while (chartData_mA.length > chartSize) chartData_mA.shift();
-        mAChart.data.datasets[0].data = chartData_mA
-        mAChart.update()
+    chartData_mA.push(Math.abs(d.data.mA) / 1000);
+    while (chartData_mA.length > chartSize) chartData_mA.shift();
+    mAChart.data.datasets[0].data = chartData_mA
+    mAChart.update()
 
-        linearMiniChart.data.datasets[0].data[0] = 2 + Math.abs(linear_vel_average) * 3
-        linearMiniChart.data.datasets[0].data[1] = 28 - Math.abs(linear_vel_average) * 3
-        linearMiniChart.update()
-    }
+    linearMiniChart.data.datasets[0].data[0] = 2 + Math.abs(linear_vel_average) * 3
+    linearMiniChart.data.datasets[0].data[1] = 28 - Math.abs(linear_vel_average) * 3
+    linearMiniChart.update()
 })
 
 let tempTable = [];
