@@ -141,8 +141,8 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_A), EncoderHandle_4_A, CHANGE);
   attachInterrupt(digitalPinToInterrupt(MOTOR_4_B), EncoderHandle_4_B, CHANGE);
 
-  timer.setPrescaleFactor(9999);
-  timer.setOverflow(9);
+  timer.setPrescaleFactor(10000);
+  timer.setOverflow(10);
   timer.attachInterrupt(OnTimer1Interrupt);
 
   analogWriteResolution(PWM_RESOLUTION_SET);
