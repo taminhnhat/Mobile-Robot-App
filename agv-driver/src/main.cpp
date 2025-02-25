@@ -16,8 +16,8 @@ Adafruit_INA219 ina219(0x45);
 // -------------------------------------------------PID CONTROLLER--------------------------------------------------------
 String messageFromRadio = "";
 String messageFromBridge = "";
-uint32_t velocity_lastcall = 0;
-uint32_t velocity_timeout = 500;
+uint32_t velocity_lastcall_ms = 0;
+uint32_t velocity_timeout_ms = 500;
 bool OnVelocityControl = false;
 float vol = 0;
 float mAmp = 0;
@@ -41,7 +41,6 @@ uint64_t timer_count = 0;
 void OnTimer1Interrupt()
 {
   timer_count++;
-  uint32_t present_t = millis();
 
   if (Radio.available())
   {
@@ -56,7 +55,7 @@ void OnTimer1Interrupt()
       messageFromRadio = "";
     }
   }
-  if (present_t = velocity_timeout)
+  if (timer_count >= velocity_timeout_ms)
   {
     motor1.stop();
     motor2.stop();
@@ -248,7 +247,7 @@ void msgProcess(String rawMessage, Stream &stream)
   const String topic_name = String(topic);
   if (topic_name.compareTo("ros2_control") == 0)
   {
-    velocity_lastcall = millis();
+    velocity_lastcall_ms = millis();
     // OnVelocityControl = true;
     const double front_right_wheel_speed = doc["vel"][0]; // rad/s
     const double rear_right_wheel_speed = doc["vel"][1];  // rad/s
@@ -261,8 +260,9 @@ void msgProcess(String rawMessage, Stream &stream)
     const double motor_3_velocity = rear_left_wheel_speed * WHEEL_RADIUS;
     const double motor_4_velocity = front_left_wheel_speed * WHEEL_RADIUS;
 
-    (timeout == 0) ? velocity_timeout = velocity_lastcall + DEFAULT_VEL_TIMEOUT : velocity_timeout = velocity_lastcall + timeout;
-
+    (timeout == 0) ? velocity_timeout_ms = velocity_lastcall_ms + DEFAULT_VEL_TIMEOUT : velocity_timeout_ms = velocity_lastcall_ms + timeout;
+    Serial1.print("velocity_timeout_ms ");
+    Serial1.println(velocity_timeout_ms);
     if (!Motor_Enable)
       enableMotor();
 
@@ -270,6 +270,14 @@ void msgProcess(String rawMessage, Stream &stream)
     motor2.setVelocity(motor_2_velocity);
     motor3.setVelocity(motor_3_velocity);
     motor4.setVelocity(motor_4_velocity);
+    stream.print(motor1.getSetSpeed());
+    stream.print(" ");
+    stream.print(motor2.getSetSpeed());
+    stream.print(" ");
+    stream.print(motor3.getSetSpeed());
+    stream.print(" ");
+    stream.print(motor4.getSetSpeed());
+    stream.print("\n");
     // ros2 control response
     // doc["status"] = "ok";
     // char buffer[120];
@@ -371,7 +379,7 @@ void msgProcess(String rawMessage, Stream &stream)
   }
   else if (topic_name.compareTo("vel_control") == 0)
   {
-    velocity_lastcall = millis();
+    velocity_lastcall_ms = millis();
     // OnVelocityControl = true;
     const double linear_x = doc["linear"][0];   // x
     const double linear_y = doc["linear"][1];   // y
@@ -392,7 +400,7 @@ void msgProcess(String rawMessage, Stream &stream)
       return;
     }
 
-    (timeout == 0) ? velocity_timeout = velocity_lastcall + DEFAULT_VEL_TIMEOUT : velocity_timeout = velocity_lastcall + timeout;
+    (timeout == 0) ? velocity_timeout_ms = velocity_lastcall_ms + DEFAULT_VEL_TIMEOUT : velocity_timeout_ms = velocity_lastcall_ms + timeout;
 
     double motor_1_velocity = 0;
     double motor_2_velocity = 0;

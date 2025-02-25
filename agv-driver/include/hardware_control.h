@@ -65,6 +65,14 @@ double trimDouble(double in, uint8_t num = 2)
     }
 }
 
+enum ControlMode
+{
+    VELOCITY_CONTROL_MODE,
+    POSITION_CONTROL_MODE,
+    LOCKING_MODE,
+    FLOATING_MODE
+};
+
 class MotorControl
 {
 private:
@@ -97,7 +105,7 @@ private:
     uint32_t timeout = 500;    // velocity timeout, after this velocity set to 0
     uint32_t lastcall = 0;     // last time set velocity
     uint32_t last_t;           // last time call in milisecond
-    uint32_t last_pid_t;       // last time call in milisecond
+    uint32_t last_pid_t = 0;       // last time call in milisecond
     uint32_t DIR_PIN_ADDR;     // direction pin address
     uint32_t PWM_PIN_ADDR;     // pwm pin address
     uint32_t CUR_SEN_PIN_ADDR; // current sensor pin address
@@ -106,14 +114,7 @@ private:
     String state;              //
     uint32_t SampleTime;
     uint32_t controllerDirection;
-
-    enum controlMode
-    {
-        VELOCITY_CONTROL_MODE,
-        POSITION_CONTROL_MODE,
-        LOCKING_MODE,
-        FLOATING_MODE
-    }
+    uint32_t controlMode;
 
     struct pid_var
     {
