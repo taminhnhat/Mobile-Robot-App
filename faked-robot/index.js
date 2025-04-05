@@ -14,7 +14,7 @@ let reconnectHubInterval
 //  NEED TO CONFIG SERIAL PORT FIRST, READ 'README.md'
 const robotHub = new SerialPort({
     path: usbPath,
-    baudRate: 115200,
+    baudRate: 460800,
     autoOpen: true
 });
 
